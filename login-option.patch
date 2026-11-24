@@ -1,0 +1,115 @@
+--- a/index.html
++++ b/index.html
+@@ -47,7 +47,7 @@
+ textarea.big{min-height:180px;font:12px monospace}
+ body.auth{padding-bottom:16px}body.auth nav,body.auth #hb{display:none}
+ .auth-box{max-width:460px;margin:8px auto}.auth-box h2{margin-top:4px}.tabs{display:flex;border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:14px}.tabs button{flex:1;border:0;background:var(--card);color:var(--mut);padding:10px;font:inherit;cursor:pointer}.tabs button.on{background:var(--pri);color:#fff;font-weight:600}
+-.err{color:var(--bad);font-size:14px;min-height:1.2em;margin:0 0 8px}.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:6px 0 4px}.kv dt{color:var(--mut)}.kv dd{margin:0}
++.err{color:var(--bad);font-size:14px;min-height:1.2em;margin:0 0 8px}.err.show{background:var(--badb);border:1px solid #fca5a5;border-radius:10px;padding:8px 10px;font-weight:600}.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:6px 0 4px}.kv dt{color:var(--mut)}.kv dd{margin:0}
+ .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 18px;border-radius:99px;z-index:30;font-size:14px}
+ .ck{display:flex;gap:8px;align-items:center;color:var(--tx)}.ck input{width:auto;margin:0}.sub{font-size:13px;color:var(--mut);margin:0 0 4px}
+ .free{display:inline-block;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700;background:var(--prib);color:var(--pri);border:1px dashed var(--pri)}
+@@ -121,6 +121,7 @@
+ .tabs button.on{background:linear-gradient(135deg,#10b981,#0d9488)}
+ .toast{background:#0f3d2a;color:#fff}
+ a{color:var(--pri)}
++.auth-hero{background:linear-gradient(135deg,#d9fbea,#e0f2fe);border:0}.auth-hero h2{color:#0f3d2a}
+ </style>
+ </head>
+ <body>
+@@ -149,8 +150,8 @@
+ /* starts empty for a real user; reference lists (SP, EM, PM) are kept above and below */
+ function seed(){return{cs:[],an:[],tr:[],ai:[],fd:[]}}
+ /* ---------- accounts (stored on this device) ---------- */
+-/* Login / Sign Up is OFF for now: the app opens straight into the last-used account (or a test account). Set to true to bring login back. */
+-const AUTH_ON=false;
++/* Login / Sign Up is ON. Set AUTH_ON to false only for testing (opens straight into the last-used account, or a test account). */
++const AUTH_ON=true;
+ const UK='lvi_users',SK='lvi_session',TK='lvi_test_user';let U=null;
+ const testUser=()=>{let u=null;try{u=JSON.parse(localStorage.getItem(TK))}catch(e){}return u&&u.id==='test'?u:{id:'test',name:'Test Inspector',hosp:'Test Veterinary Centre',qual:'',age:'',gender:'',phone:'',email:'',area:'',created:today()}};
+ const users=()=>{try{return JSON.parse(localStorage.getItem(UK))||[]}catch(e){return[]}};
+@@ -158,15 +159,23 @@
+ const dk=()=>K+'_u_'+U.id;
+ const ph10=p=>String(p||'').replace(/\D/g,'').slice(-10);
+ async function hash(pw,salt){const t=salt+'|'+pw;try{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h1=5381,h2=52711;for(const c of t){const k=c.charCodeAt(0);h1=(h1*33^k)>>>0;h2=(h2*31+k)>>>0}return 'f'+h1.toString(16)+h2.toString(16)}}
+-const CLK='lvi_claimed',FLDS=['cs','an','tr','ai','fd'];
+-/* records saved on this device without an account (old single-user data + login-off test data). Never deleted. */
+-function unclaimed(){try{if(localStorage.getItem(CLK))return null}catch(e){return null}const o={cs:[],an:[],tr:[],ai:[],fd:[]};
+- [K,K+'_u_test'].forEach(k=>{try{const x=JSON.parse(localStorage.getItem(k));if(x&&x.cs){FLDS.forEach(f=>o[f].push(...(x[f]||[])));if(x.aiTarget)o.aiTarget=x.aiTarget;if(x.sig)o.sig=x.sig}}catch(e){}});
+- const n=FLDS.reduce((t,f)=>t+o[f].length,0);return n?o:null}
++const FLDS=['cs','an','tr','ai','fd'];
++/* ids of every record already stored in some inspector account on this device */
++function accIds(){const ids=new Set();users().forEach(u=>{try{const x=JSON.parse(localStorage.getItem(K+'_u_'+u.id));x&&FLDS.forEach(f=>(x[f]||[]).forEach(r=>ids.add(r.id)))}catch(e){}});return ids}
++/* records saved on this device without an account (old single-user data + login-off test data) that no account holds yet.
++   Sample (demo) records are skipped. Nothing here is ever deleted. */
++function unclaimed(){const have=accIds(),no=new Set((U&&S&&S.ucNo)||[]),o={cs:[],an:[],tr:[],ai:[],fd:[]};
++ [K,K+'_u_test'].forEach(k=>{let x=null;try{x=JSON.parse(localStorage.getItem(k))}catch(e){}if(!x||!x.cs)return;
++  const dc=new Set(x.cs.filter(r=>r.demo).map(r=>r.id)),da=new Set((x.an||[]).filter(r=>r.demo||dc.has(r.cid)).map(r=>r.id));
++  const keep=(f,r)=>!r.demo&&!have.has(r.id)&&!no.has(r.id)&&!(f==='an'&&dc.has(r.cid))&&!(['tr','ai','fd'].includes(f)&&da.has(r.aid));
++  FLDS.forEach(f=>(x[f]||[]).forEach(r=>{if(keep(f,r)&&!o[f].some(y=>y.id===r.id))o[f].push(r)}));if(x.aiTarget)o.aiTarget=x.aiTarget;if(x.sig)o.sig=x.sig});
++ return FLDS.some(f=>o[f].length)?o:null}
+ const ucText=o=>`${o.cs.length} farmer${o.cs.length===1?'':'s'}, ${o.an.length} animal${o.an.length===1?'':'s'}, ${o.tr.length} treatment${o.tr.length===1?'':'s'}, ${o.ai.length} AI/PD record${o.ai.length===1?'':'s'}, ${o.fd.length} feed suppl${o.fd.length===1?'y':'ies'}`;
+ /* merge unclaimed records into the logged-in account (skips ids it already has); originals stay on the device */
+ function claim(){const o=unclaimed();if(!o||!U)return 0;FLDS.forEach(f=>{S[f]=S[f]||[];const have=new Set(S[f].map(x=>x.id));o[f].forEach(x=>{if(!have.has(x.id)){S[f].push(x);have.add(x.id)}})});
+- if(o.aiTarget&&!S.aiTarget)S.aiTarget=o.aiTarget;if(o.sig&&!S.sig)S.sig=o.sig;save();try{localStorage.setItem(CLK,U.id+' '+new Date().toISOString())}catch(e){}return 1}
++ if(o.aiTarget&&!S.aiTarget)S.aiTarget=o.aiTarget;if(o.sig&&!S.sig)S.sig=o.sig;save();return 1}
++/* after login: offer unclaimed records once; "Not now" remembers the choice for this account */
++function ucPrompt(){const o=unclaimed();if(!o)return;sheet('Existing records found',`<p>These records were saved on this device without an account:</p><p><b>${ucText(o)}</b></p><p class="mut">Add them to your account? The originals stay on the device as a backup.</p><div class="btns"><button class="btn pri" data-a="ucY">Add to my account</button><button class="btn" data-a="ucN">Not now</button></div>`)}
+ function load(){S=null;try{S=JSON.parse(localStorage.getItem(dk()))}catch(e){}if(!S||!S.cs)S=seed();S.fd=S.fd||[];
+  /* sample data is added once per account; after you remove it, it does not come back */
+  if(!S.demoSeen){S.demoSeen=true;if(!hasDemo())addSamples();else save()}}
+@@ -185,16 +194,26 @@
+  const L=users().filter(u=>u.id!==selfId);if(L.some(u=>u.email===d.email.trim().toLowerCase()))return 'An account with this email already exists.';
+  if(L.some(u=>u.phone===ph10(d.phone)))return 'An account with this phone number already exists.';return ''}
+ const profObj=d=>({name:d.name.trim(),hosp:d.hosp.trim(),qual:d.qual.trim(),age:d.age,gender:d.gender,phone:ph10(d.phone),email:d.email.trim().toLowerCase(),area:d.area.trim()});
+-function authView(){const su=ui.auth==='signup',uc=unclaimed(),tp=(()=>{try{const t=JSON.parse(localStorage.getItem(TK));if(t&&t.id==='test'){const{id,created,...r}=t;return r}}catch(e){}return{}})();
+- return `<div class="auth-box"><div class="card" style="text-align:center;padding:18px"><div style="font-size:40px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers, animals, treatment, AI, PD and payments</div></div>
+- <div class="card"><div class="tabs"><button class="${su?'':'on'}" data-a="auth" data-id="login">Login</button><button class="${su?'on':''}" data-a="auth" data-id="signup">Sign up</button></div>
+- ${su?`<form data-auth="signup">${profFields(tp)}<div class="two">${fl('Password / PIN *','pw','','password','required minlength="4" autocomplete="new-password"')}${fl('Confirm *','pw2','','password','required minlength="4" autocomplete="new-password"')}</div>${uc?`<label class="seg" style="margin-bottom:12px;border-color:var(--pri)"><span style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="legacy" value="1" checked style="width:auto;margin-top:3px"><span style="color:var(--tx)"><b>Keep existing records</b> already saved on this device: ${ucText(uc)}. They will be added to this account.</span></span></label>`:''}<p class="err"></p><button class="btn pri" style="width:100%">Create account</button></form>`
+- :`<form data-auth="login">${fl('Email ID or phone number','id','','text','required autocomplete="username"')}${fl('Password / PIN','pw','','password','required autocomplete="current-password"')}<p class="err"></p><button class="btn pri" style="width:100%">Login</button><p class="mut" style="text-align:center;margin:12px 0 0">New inspector? <a href="#" data-a="auth" data-id="signup" style="color:var(--pri)">Create an account</a></p></form>`}
+- </div><p class="mut" style="text-align:center;font-size:12px">Accounts and records are saved on this device only.</p></div>`}
+-document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;if(!m)return;e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=t=>f.querySelector('.err').textContent=t;err('');
+- if(m==='login'){const id=d.id.trim().toLowerCase(),p=ph10(id),u=users().find(u=>u.email===id||(p.length===10&&!id.includes('@')&&u.phone===p));
+-  if(!u)return err('No account found with that email or phone number.');if(await hash(d.pw,u.salt)!==u.hash)return err('Incorrect password / PIN.');login(u);const uc=unclaimed();if(uc)ask(`Records saved on this device without an account were found (${ucText(uc)}). Add them to your account?`,()=>{claim();render();toast('Records added to your account')});return}
+- if(d.pw!==d.pw2)return err('Passwords do not match.');const bad=profCheck(d);if(bad)return err(bad);
++function authView(){const v=ui.auth,uc=v==='signup'?unclaimed():null,tp=(()=>{try{const t=JSON.parse(localStorage.getItem(TK));if(t&&t.id==='test'){const{id,created,...r}=t;return r}}catch(e){}return{}})();
++ const pw=(n,l,ac)=>fl(l,n,'','password',`required minlength="4" autocomplete="${ac}"`);
++ const form=v==='signup'?`<form data-auth="signup">${profFields(tp)}<div class="two">${pw('pw','Password / PIN *','new-password')}${pw('pw2','Confirm *','new-password')}</div>${uc?`<label class="seg" style="margin-bottom:12px;border-color:var(--pri)"><span style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="legacy" value="1" checked style="width:auto;margin-top:3px"><span style="color:var(--tx)"><b>Keep existing records</b> already saved on this device: ${ucText(uc)}. They will be added to this account.</span></span></label>`:''}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Create account</button><p class="mut" style="text-align:center;margin:12px 0 0">Already registered? <a href="#" data-a="auth" data-id="login">Login</a></p></form>`
++ :v==='reset'?`<form data-auth="reset"><p class="mut" style="margin-top:0">Enter the email ID <b>and</b> phone number you registered with, then choose a new password / PIN.</p>${fl('Registered email ID','email','','email','required autocomplete="email"')}${fl('Registered phone number','phone','','tel','required inputmode="tel" autocomplete="tel"')}<div class="two">${pw('pw','New password / PIN','new-password')}${pw('pw2','Confirm','new-password')}</div><p class="err" role="alert"></p><button class="btn pri" style="width:100%">Reset and login</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="login">← Back to login</a></p></form>`
++ :`<form data-auth="login">${fl('Email ID or phone number','id','','text','required autocomplete="username"')}${pw('pw','Password / PIN','current-password')}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Login</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="reset">Forgot password / PIN?</a> · New inspector? <a href="#" data-a="auth" data-id="signup">Create an account</a></p></form>`;
++ return `<div class="auth-box"><div class="card auth-hero" style="text-align:center;padding:20px"><div style="font-size:44px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers · Animals · Treatment · AI · PD · Feed · Payments</div></div>
++ <div class="card">${v==='reset'?'<h3>🔑 Reset password / PIN</h3>':`<div class="tabs"><button class="${v==='signup'?'':'on'}" data-a="auth" data-id="login">Login</button><button class="${v==='signup'?'on':''}" data-a="auth" data-id="signup">Sign up</button></div>`}${form}</div>
++ <p class="mut" style="text-align:center;font-size:12px">Accounts and records are saved on this device only.</p></div>`}
++document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;if(!m)return;e.preventDefault();const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),err=t=>{el.textContent=t?'⚠️ '+t:'';el.classList.toggle('show',!!t)};err('');
++ if(m==='login'){const id=d.id.trim().toLowerCase(),p=ph10(id),isMail=id.includes('@');
++  if(!isMail&&p.length!==10)return err('Enter a valid email ID or 10-digit phone number.');
++  const u=users().find(u=>isMail?u.email===id:u.phone===p);
++  if(!u)return err(`No account found with that ${isMail?'email ID':'phone number'}. Check it or create an account.`);
++  if(await hash(d.pw,u.salt)!==u.hash)return err('Incorrect password / PIN. Please try again.');
++  login(u);ucPrompt();return}
++ if(d.pw!==d.pw2)return err('Passwords do not match.');
++ if(m==='reset'){const L=users(),u=L.find(u=>u.email===d.email.trim().toLowerCase()&&u.phone===ph10(d.phone));
++  if(!u)return err('Email ID and phone number do not match any account on this device.');
++  u.salt=uid()+uid()+uid();u.hash=await hash(d.pw,u.salt);saveUsers(L);login(u);toast('Password / PIN reset');ucPrompt();return}
++ const bad=profCheck(d);if(bad)return err(bad);
+  const u={id:uid()+uid(),...profObj(d),salt:uid()+uid()+uid(),created:today()};u.hash=await hash(d.pw,u.salt);const L=users();L.push(u);saveUsers(L);
+  login(u);if(d.legacy&&claim()){render();toast('Existing records added to your account')}});
+ function profile(){const u=U,row=(k,v)=>`<dt>${k}</dt><dd>${esc(v||'—')}</dd>`;
+@@ -569,6 +588,8 @@
+  case'ast':ui.st=id;return render();
+  case'tools':return tools();
+  case'auth':ui.auth=id;return render();
++ case'ucY':closeM();claim();render();return toast('Records added to your account');
++ case'ucN':{const o=unclaimed();if(o)S.ucNo=[...(S.ucNo||[]),...FLDS.flatMap(f=>o[f].map(r=>r.id))];save();return closeM()}
+  case'prof':return profile();case'profE':return profEdit();case'profP':return pwForm();
+  case'logout':return ask('Log out of this device?',logout);
+  case'exp':$('#j').value=JSON.stringify(S,null,1);$('#j').select();return;
+@@ -578,7 +599,7 @@
+ 
+ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
+ document.addEventListener('input',e=>{if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
+-{const sid=(()=>{try{return localStorage.getItem(SK)}catch(e){}})();U=users().find(u=>u.id===sid)||null;if(!U&&!AUTH_ON){const L=users(),last=(()=>{try{return localStorage.getItem('lvi_last')}catch(e){}})();U=L.find(u=>u.id===last)||L[L.length-1]||testUser()}if(U)load();if(!users().length)ui.auth='signup'}
++{try{if(AUTH_ON&&localStorage.getItem('lvi_auth_v')!=='2'){localStorage.removeItem(SK);localStorage.setItem('lvi_auth_v','2')}}catch(e){}const sid=(()=>{try{return localStorage.getItem(SK)}catch(e){}})();U=users().find(u=>u.id===sid)||null;if(!U&&!AUTH_ON){const L=users(),last=(()=>{try{return localStorage.getItem('lvi_last')}catch(e){}})();U=L.find(u=>u.id===last)||L[L.length-1]||testUser()}if(U)load();if(!users().length)ui.auth='signup'}
+ render();
+ </script>
+ </body>
