@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Field Officer · Livestock Records</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f2fbf7;--card:#fff;--tx:#122019;--mut:#56685f;--bd:#d6e9e0;--pri:#0e9f6e;--pri2:#0d9488;--prib:#dcfaec;--wn:#b45309;--wnb:#fff3d6;--bad:#dc2626;--badb:#ffe4e4;--inf:#2563eb;--infb:#e3edff;
  --em:#10b981;--teal:#14b8a6;--blue:#2563eb;--amber:#f59e0b;--coral:#f43f5e;--violet:#8b5cf6;color-scheme:light}
@@ -121,11 +122,13 @@ fieldset.pay{border-color:#fcd34d;background:#fffbeb}
 .tabs button.on{background:linear-gradient(135deg,#10b981,#0d9488)}
 .toast{background:#0f3d2a;color:#fff}
 a{color:var(--pri)}
+.sync{display:inline-flex;align-items:center;align-self:center;line-height:1.2;font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;background:#ffffff2e;color:#fff;white-space:nowrap}.sync.off{background:#fff3d6;color:#92400e}.sync.busy,.sync.load{background:#ffffff40}
+.note{background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:500}
 .auth-hero{background:linear-gradient(135deg,#d9fbea,#e0f2fe);border:0}.auth-hero h2{color:#0f3d2a}
 </style>
 </head>
 <body>
-<header><h1>🐄 Field Officer</h1><div id="hb" class="btns" style="margin:0"></div></header>
+<header><h1>🐄 Field Officer</h1><div id="hb" class="btns" style="margin:0;align-items:center"></div></header>
 <main id="app"></main>
 <nav id="nav"></nav>
 <div class="ov" id="m" hidden></div>
@@ -149,81 +152,140 @@ let S,ui={tab:'dash',d:null,hist:[],q:'',sp:'',st:'active',r:'week',t:'all',ps:'
 
 /* starts empty for a real user; reference lists (SP, EM, PM) are kept above and below */
 function seed(){return{cs:[],an:[],tr:[],ai:[],fd:[]}}
-/* ---------- accounts (stored on this device) ---------- */
-/* Login / Sign Up is ON. Set AUTH_ON to false only for testing (opens straight into the last-used account, or a test account). */
-const AUTH_ON=true;
-const UK='lvi_users',SK='lvi_session',TK='lvi_test_user';let U=null;
-const testUser=()=>{let u=null;try{u=JSON.parse(localStorage.getItem(TK))}catch(e){}return u&&u.id==='test'?u:{id:'test',name:'Test Inspector',hosp:'Test Veterinary Centre',qual:'',age:'',gender:'',phone:'',email:'',area:'',created:today()}};
-const users=()=>{try{return JSON.parse(localStorage.getItem(UK))||[]}catch(e){return[]}};
-const saveUsers=L=>{try{localStorage.setItem(UK,JSON.stringify(L))}catch(e){}};
-const dk=()=>K+'_u_'+U.id;
+/* ---------- Supabase cloud: sign up / login + database ---------- */
+const SB_URL='https://dmshweetbwaqcqyzvypf.supabase.co',SB_KEY='sb_publishable_lHQS8S3Jo9B4hgsq6tSBGA_rsHY9RLg';
+const sb=(()=>{try{return window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){return null}})();
+const TB={cs:'farmers',an:'animals',tr:'treatments',ai:'ai_records',fd:'feed_supplies'},FLDS=Object.keys(TB);
+const TK='lvi_test_user';
+let U=null,snap=null,known=null,syncT=null,rT=null,syncing=false,again=false,net='ok';
 const ph10=p=>String(p||'').replace(/\D/g,'').slice(-10);
-async function hash(pw,salt){const t=salt+'|'+pw;try{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h1=5381,h2=52711;for(const c of t){const k=c.charCodeAt(0);h1=(h1*33^k)>>>0;h2=(h2*31+k)>>>0}return 'f'+h1.toString(16)+h2.toString(16)}}
-const FLDS=['cs','an','tr','ai','fd'];
-/* ids of every record already stored in some inspector account on this device */
-function accIds(){const ids=new Set();users().forEach(u=>{try{const x=JSON.parse(localStorage.getItem(K+'_u_'+u.id));x&&FLDS.forEach(f=>(x[f]||[]).forEach(r=>ids.add(r.id)))}catch(e){}});return ids}
-/* records saved on this device without an account (old single-user data + login-off test data) that no account holds yet.
-   Sample (demo) records are skipped. Nothing here is ever deleted. */
-function unclaimed(){const have=accIds(),no=new Set((U&&S&&S.ucNo)||[]),o={cs:[],an:[],tr:[],ai:[],fd:[]};
- [K,K+'_u_test'].forEach(k=>{let x=null;try{x=JSON.parse(localStorage.getItem(k))}catch(e){}if(!x||!x.cs)return;
+/* canonical JSON (sorted keys) so local records and cloud jsonb compare equal */
+const cj=v=>Array.isArray(v)?'['+v.map(x=>x===undefined?'null':cj(x)).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+cj(v[k])).join(',')+'}':JSON.stringify(v===undefined?null:v);
+const setOf=s=>({aiTarget:s.aiTarget||null,sig:s.sig||'',demoSeen:!!s.demoSeen,ucNo:s.ucNo||[]});
+const ck=()=>K+'_cloud_'+U.id; /* offline copy of this account on this device */
+const syncLbl={ok:'☁️ Saved',busy:'⏳ Saving…',load:'⏳ Loading…',off:'⚠️ Offline'};
+function setSync(st){net=st;const e=$('#sync');if(e){e.className='sync '+st;e.textContent=syncLbl[st];e.title=st==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}}
+const syncBadge=()=>`<span id="sync" class="sync ${net}" title="${net==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}">${syncLbl[net]}</span>`;
+function writeCache(dirty){if(!U||!S)return;const kn=snap?Object.fromEntries(FLDS.map(f=>[f,[...snap[f].keys()]])):known;try{localStorage.setItem(ck(),JSON.stringify({U,S,dirty,known:kn}))}catch(e){}}
+function save(){if(!U||!S)return;writeCache(true);clearTimeout(syncT);syncT=setTimeout(sync,400)}
+async function fetchAll(t){let out=[],from=0;for(;;){const{data,error}=await sb.from(t).select('id,data').order('id').range(from,from+999);if(error)throw error;out=out.concat(data||[]);if(!data||data.length<1000)break;from+=1000}return out}
+async function pullCloud(){const res=await Promise.all([sb.from('profiles').select('*').eq('id',U.id).maybeSingle(),...FLDS.map(f=>fetchAll(TB[f]))]);const pr=res[0];if(pr.error)throw pr.error;
+ const data={};FLDS.forEach((f,i)=>data[f]=res[i+1].map(r=>({...r.data,id:r.id})));return{prof:pr.data,data}}
+const mkSnap=(data,set)=>{const s={set:cj(set)};FLDS.forEach(f=>s[f]=new Map(data[f].map(r=>[r.id,cj(r)])));return s};
+const profU=(p,user)=>({id:user.id,name:p.full_name||user.user_metadata?.full_name||'',hosp:p.hospital||'',qual:p.qualification||'',age:p.age??'',gender:p.gender||'',phone:p.phone||'',email:p.email||user.email||'',area:p.area||'',created:String(p.created_at||user.created_at||'').slice(0,10)});
+/* push every local change (new, edited, deleted records + settings) to the cloud */
+async function sync(){if(!U||!S||!sb)return;if(syncing){again=true;return}const me=U.id;syncing=true;setSync('busy');
+ try{if(!snap){const c=await pullCloud();if(!U||U.id!==me)return;mergeOffline(c.data);snap=mkSnap(c.data,setOf(c.prof?.settings||{}))}
+  for(const f of FLDS){const cur=new Map(S[f].map(r=>[r.id,cj(r)])),old=snap[f];
+   const up=[...cur].filter(([id,j])=>old.get(id)!==j),del=[...old.keys()].filter(id=>!cur.has(id));
+   for(let i=0;i<up.length;i+=500){const ch=up.slice(i,i+500);const{error}=await sb.from(TB[f]).upsert(ch.map(([id,j])=>({user_id:me,id,data:JSON.parse(j)})),{onConflict:'user_id,id'});if(error)throw error;ch.forEach(([id,j])=>old.set(id,j))}
+   for(let i=0;i<del.length;i+=200){const ch=del.slice(i,i+200);const{error}=await sb.from(TB[f]).delete().eq('user_id',me).in('id',ch);if(error)throw error;ch.forEach(id=>old.delete(id))}}
+  const sj=cj(setOf(S));if(sj!==snap.set){const{error}=await sb.from('profiles').update({settings:JSON.parse(sj)}).eq('id',me);if(error)throw error;snap.set=sj}
+  syncing=false;if(again){again=false;return sync()}if(U&&U.id===me){writeCache(false);setSync('ok')}}
+ catch(e){syncing=false;console.warn('Cloud sync failed:',e);if(U&&U.id===me){setSync('off');clearTimeout(rT);rT=setTimeout(sync,15000)}}}
+/* when offline edits are pushed: keep records added on other devices meanwhile, apply local deletions */
+function mergeOffline(cloud){if(!known)return;FLDS.forEach(f=>{const have=new Set(S[f].map(r=>r.id)),kn=new Set(known[f]||[]);cloud[f].forEach(r=>{if(!have.has(r.id)&&!kn.has(r.id))S[f].push(r)})})}
+addEventListener('online',()=>{if(U)sync()});
+/* refresh from the cloud when the app comes back to the screen (e.g. edited on another device) */
+document.addEventListener('visibilitychange',async()=>{if(document.hidden||!U||!snap||syncing||net==='busy'||!$('#m').hidden)return;let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty)return;
+ try{const me=U.id,c=await pullCloud();if(!U||U.id!==me||!$('#m').hidden)return;const set=c.prof?.settings||{};S={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',demoSeen:!!set.demoSeen,ucNo:set.ucNo||[]};snap=mkSnap(c.data,setOf(S));if(c.prof)U=profU(c.prof,{id:me,email:U.email});writeCache(false);render()}catch(e){}});
+/* after sign in: load this inspector's records from the cloud (or the offline copy) */
+async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,email:user.email,name:user.user_metadata?.full_name||user.email||''};S=null;snap=null;known=null;ui.auth='loading';ui.note='';setSync('load');render();
+ let cache=null;try{cache=JSON.parse(localStorage.getItem(ck()))}catch(e){}known=cache?.known||null;
+ try{const c=await pullCloud();if(!U||U.id!==user.id)return;let prof=c.prof;
+  if(!prof){const m=user.user_metadata||{};const row={id:user.id,email:user.email,full_name:m.full_name||'',hospital:m.hospital||'',qualification:m.qualification||'',age:+m.age||null,gender:m.gender||null,phone:m.phone||null,area:m.area||''};const r=await sb.from('profiles').upsert(row).select().maybeSingle();prof=r.data||row}
+  U=profU(prof,user);const set=prof.settings||{};const cloudS={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',demoSeen:!!set.demoSeen,ucNo:set.ucNo||[]};
+  if(cache&&cache.dirty&&cache.S){S=cache.S;mergeOffline(c.data)}else S=cloudS;snap=mkSnap(c.data,setOf(cloudS));setSync('ok')}
+ catch(e){console.warn('Cloud load failed:',e);if(cache&&cache.S){S=cache.S;U=cache.U||U;snap=null;setSync('off')}
+  else{U=null;S=null;ui.auth='login';ui.note='⚠️ Could not load your records from the cloud. Check the internet connection (and that the Supabase SQL setup script has been run), then log in again.';await sb.auth.signOut().catch(()=>{});return render()}}
+ FLDS.forEach(f=>S[f]=S[f]||[]);
+ /* sample data is added once per account; after you remove it, it does not come back */
+ if(!S.demoSeen){S.demoSeen=true;if(!hasDemo())addSamples()}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();ucPrompt()}
+function endSession(){clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
+ U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
+async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
+
+/* ---------- records saved earlier on this device (before cloud login) ---------- */
+/* sources: old single-user data, login-off test data, and an old on-device account with the same email or phone */
+function ucSources(){const L=[K,K+'_u_test'];try{(JSON.parse(localStorage.getItem('lvi_users'))||[]).forEach(u=>{if(U&&(u.email===U.email||(U.phone&&u.phone===U.phone)))L.push(K+'_u_'+u.id)})}catch(e){}return L}
+/* records not yet in this cloud account. Sample (demo) records are skipped. Nothing on the device is deleted. */
+function unclaimed(){if(!U||!S)return null;const have=new Set(FLDS.flatMap(f=>S[f].map(r=>r.id))),no=new Set(S.ucNo||[]),o={cs:[],an:[],tr:[],ai:[],fd:[]};
+ ucSources().forEach(k=>{let x=null;try{x=JSON.parse(localStorage.getItem(k))}catch(e){}if(!x||!x.cs)return;
   const dc=new Set(x.cs.filter(r=>r.demo).map(r=>r.id)),da=new Set((x.an||[]).filter(r=>r.demo||dc.has(r.cid)).map(r=>r.id));
   const keep=(f,r)=>!r.demo&&!have.has(r.id)&&!no.has(r.id)&&!(f==='an'&&dc.has(r.cid))&&!(['tr','ai','fd'].includes(f)&&da.has(r.aid));
   FLDS.forEach(f=>(x[f]||[]).forEach(r=>{if(keep(f,r)&&!o[f].some(y=>y.id===r.id))o[f].push(r)}));if(x.aiTarget)o.aiTarget=x.aiTarget;if(x.sig)o.sig=x.sig});
  return FLDS.some(f=>o[f].length)?o:null}
 const ucText=o=>`${o.cs.length} farmer${o.cs.length===1?'':'s'}, ${o.an.length} animal${o.an.length===1?'':'s'}, ${o.tr.length} treatment${o.tr.length===1?'':'s'}, ${o.ai.length} AI/PD record${o.ai.length===1?'':'s'}, ${o.fd.length} feed suppl${o.fd.length===1?'y':'ies'}`;
-/* merge unclaimed records into the logged-in account (skips ids it already has); originals stay on the device */
-function claim(){const o=unclaimed();if(!o||!U)return 0;FLDS.forEach(f=>{S[f]=S[f]||[];const have=new Set(S[f].map(x=>x.id));o[f].forEach(x=>{if(!have.has(x.id)){S[f].push(x);have.add(x.id)}})});
+function claim(){const o=unclaimed();if(!o)return 0;FLDS.forEach(f=>{const have=new Set(S[f].map(x=>x.id));o[f].forEach(x=>{if(!have.has(x.id)){S[f].push(x);have.add(x.id)}})});
  if(o.aiTarget&&!S.aiTarget)S.aiTarget=o.aiTarget;if(o.sig&&!S.sig)S.sig=o.sig;save();return 1}
-/* after login: offer unclaimed records once; "Not now" remembers the choice for this account */
-function ucPrompt(){const o=unclaimed();if(!o)return;sheet('Existing records found',`<p>These records were saved on this device without an account:</p><p><b>${ucText(o)}</b></p><p class="mut">Add them to your account? The originals stay on the device as a backup.</p><div class="btns"><button class="btn pri" data-a="ucY">Add to my account</button><button class="btn" data-a="ucN">Not now</button></div>`)}
-function load(){S=null;try{S=JSON.parse(localStorage.getItem(dk()))}catch(e){}if(!S||!S.cs)S=seed();S.fd=S.fd||[];
- /* sample data is added once per account; after you remove it, it does not come back */
- if(!S.demoSeen){S.demoSeen=true;if(!hasDemo())addSamples();else save()}}
-function save(){if(!U)return;try{localStorage.setItem(dk(),JSON.stringify(S))}catch(e){}}
-function login(u){U=u;try{localStorage.setItem(SK,u.id);localStorage.setItem('lvi_last',u.id)}catch(e){}load();ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';closeM();scrollTo(0,0);render()}
-function logout(){try{localStorage.removeItem(SK)}catch(e){}U=null;S=null;ui.auth='login';closeM();render()}
+function ucPrompt(){const o=unclaimed();if(!o)return;sheet('Records found on this device',`<p>These records were saved on this phone before cloud login:</p><p><b>${ucText(o)}</b></p><p class="mut">Upload them to your cloud account? The copy on this device is kept as a backup.</p><div class="btns"><button class="btn pri" data-a="ucY">Upload to my account</button><button class="btn" data-a="ucN">Not now</button></div>`)}
+
+/* ---------- sign up / login screens ---------- */
 const QUAL=['B.V.Sc & A.H.','M.V.Sc','Ph.D (Veterinary)','Diploma in Livestock Management','Livestock Inspector Certificate','Diploma in Dairy Technology','Other'];
 const sel=(l,n,opts,v,x='')=>`<label>${l}<select name="${n}" ${x}>${opts.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
-const profFields=(u={})=>fl('Full name *','name',u.name,'text','required autocomplete="name"')+fl('Veterinary hospital / centre name *','hosp',u.hosp,'text','required')
+const profFields=(u={},edit)=>fl('Full name *','name',u.name,'text','required autocomplete="name"')+fl('Veterinary hospital / centre name *','hosp',u.hosp,'text','required')
  +`<label>Qualification *<input name="qual" list="qlist" value="${esc(u.qual)}" required><datalist id="qlist">${QUAL.map(q=>`<option value="${esc(q)}">`).join('')}</datalist></label>`
  +`<div class="two">${fl('Age *','age',u.age,'number','required min="18" max="90" inputmode="numeric"')}${sel('Gender *','gender',['Male','Female','Other'],u.gender)}</div>`
- +fl('Phone number *','phone',u.phone,'tel','required inputmode="tel" autocomplete="tel"')+fl('Email ID *','email',u.email,'email','required autocomplete="email"')
+ +fl('Phone number *','phone',u.phone,'tel','required inputmode="tel" autocomplete="tel"')+(edit?fl('Email ID (login, cannot be changed here)','email',u.email,'email','readonly'):fl('Email ID *','email',u.email,'email','required autocomplete="email"'))
  +fl('Area / Panchayat *','area',u.area,'text','required');
-/* returns an error message, or '' if the profile is valid and unique */
-function profCheck(d,selfId){if(ph10(d.phone).length!==10)return 'Enter a valid 10-digit phone number.';
- const L=users().filter(u=>u.id!==selfId);if(L.some(u=>u.email===d.email.trim().toLowerCase()))return 'An account with this email already exists.';
- if(L.some(u=>u.phone===ph10(d.phone)))return 'An account with this phone number already exists.';return ''}
-const profObj=d=>({name:d.name.trim(),hosp:d.hosp.trim(),qual:d.qual.trim(),age:d.age,gender:d.gender,phone:ph10(d.phone),email:d.email.trim().toLowerCase(),area:d.area.trim()});
-function authView(){const v=ui.auth,uc=v==='signup'?unclaimed():null,tp=(()=>{try{const t=JSON.parse(localStorage.getItem(TK));if(t&&t.id==='test'){const{id,created,...r}=t;return r}}catch(e){}return{}})();
- const pw=(n,l,ac)=>fl(l,n,'','password',`required minlength="4" autocomplete="${ac}"`);
- const form=v==='signup'?`<form data-auth="signup">${profFields(tp)}<div class="two">${pw('pw','Password / PIN *','new-password')}${pw('pw2','Confirm *','new-password')}</div>${uc?`<label class="seg" style="margin-bottom:12px;border-color:var(--pri)"><span style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="legacy" value="1" checked style="width:auto;margin-top:3px"><span style="color:var(--tx)"><b>Keep existing records</b> already saved on this device: ${ucText(uc)}. They will be added to this account.</span></span></label>`:''}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Create account</button><p class="mut" style="text-align:center;margin:12px 0 0">Already registered? <a href="#" data-a="auth" data-id="login">Login</a></p></form>`
- :v==='reset'?`<form data-auth="reset"><p class="mut" style="margin-top:0">Enter the email ID <b>and</b> phone number you registered with, then choose a new password / PIN.</p>${fl('Registered email ID','email','','email','required autocomplete="email"')}${fl('Registered phone number','phone','','tel','required inputmode="tel" autocomplete="tel"')}<div class="two">${pw('pw','New password / PIN','new-password')}${pw('pw2','Confirm','new-password')}</div><p class="err" role="alert"></p><button class="btn pri" style="width:100%">Reset and login</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="login">← Back to login</a></p></form>`
- :`<form data-auth="login">${fl('Email ID or phone number','id','','text','required autocomplete="username"')}${pw('pw','Password / PIN','current-password')}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Login</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="reset">Forgot password / PIN?</a> · New inspector? <a href="#" data-a="auth" data-id="signup">Create an account</a></p></form>`;
- return `<div class="auth-box"><div class="card auth-hero" style="text-align:center;padding:20px"><div style="font-size:44px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers · Animals · Treatment · AI · PD · Feed · Payments</div></div>
- <div class="card">${v==='reset'?'<h3>🔑 Reset password / PIN</h3>':`<div class="tabs"><button class="${v==='signup'?'':'on'}" data-a="auth" data-id="login">Login</button><button class="${v==='signup'?'on':''}" data-a="auth" data-id="signup">Sign up</button></div>`}${form}</div>
- <p class="mut" style="text-align:center;font-size:12px">Accounts and records are saved on this device only.</p></div>`}
-document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;if(!m)return;e.preventDefault();const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),err=t=>{el.textContent=t?'⚠️ '+t:'';el.classList.toggle('show',!!t)};err('');
- if(m==='login'){const id=d.id.trim().toLowerCase(),p=ph10(id),isMail=id.includes('@');
-  if(!isMail&&p.length!==10)return err('Enter a valid email ID or 10-digit phone number.');
-  const u=users().find(u=>isMail?u.email===id:u.phone===p);
-  if(!u)return err(`No account found with that ${isMail?'email ID':'phone number'}. Check it or create an account.`);
-  if(await hash(d.pw,u.salt)!==u.hash)return err('Incorrect password / PIN. Please try again.');
-  login(u);ucPrompt();return}
- if(d.pw!==d.pw2)return err('Passwords do not match.');
- if(m==='reset'){const L=users(),u=L.find(u=>u.email===d.email.trim().toLowerCase()&&u.phone===ph10(d.phone));
-  if(!u)return err('Email ID and phone number do not match any account on this device.');
-  u.salt=uid()+uid()+uid();u.hash=await hash(d.pw,u.salt);saveUsers(L);login(u);toast('Password / PIN reset');ucPrompt();return}
- const bad=profCheck(d);if(bad)return err(bad);
- const u={id:uid()+uid(),...profObj(d),salt:uid()+uid()+uid(),created:today()};u.hash=await hash(d.pw,u.salt);const L=users();L.push(u);saveUsers(L);
- login(u);if(d.legacy&&claim()){render();toast('Existing records added to your account')}});
+const profObj=d=>({name:d.name.trim(),hosp:d.hosp.trim(),qual:d.qual.trim(),age:d.age,gender:d.gender,phone:ph10(d.phone),email:(d.email||'').trim().toLowerCase(),area:d.area.trim()});
+function errMsg(e){const m=String(e&&(e.message||e.error_description||e)||'');
+ if(/invalid login credentials/i.test(m))return 'Incorrect email / phone or password. Please try again.';
+ if(/email not confirmed/i.test(m))return 'Your email is not confirmed yet. Open the confirmation link sent to your inbox, then log in.';
+ if(/already registered|already exists/i.test(m))return 'An account with this email already exists. Please log in.';
+ if(/password should be|at least 6/i.test(m))return 'Password / PIN must be at least 6 characters.';
+ if(/rate limit|too many/i.test(m))return 'Too many attempts. Please wait a minute and try again.';
+ if(/failed to fetch|network|load failed/i.test(m))return 'Cannot reach the server. Check your internet connection.';
+ if(/database error saving new user/i.test(m))return 'This phone number or email is already registered.';
+ if(/duplicate key|profiles_phone_key/i.test(m))return 'An account with this phone number already exists.';
+ return m||'Something went wrong. Please try again.'}
+function authView(){const v=ui.auth,tp=(()=>{try{const t=JSON.parse(localStorage.getItem(TK));if(t&&t.id==='test'){const{id,created,...r}=t;return r}}catch(e){}return{}})();
+ const pw=(n,l,ac)=>fl(l,n,'','password',`required minlength="6" autocomplete="${ac}"`);
+ const note=ui.note?`<div class="card note">${esc(ui.note)}</div>`:'';
+ const hero=`<div class="card auth-hero" style="text-align:center;padding:20px"><div style="font-size:44px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers · Animals · Treatment · AI · PD · Feed · Payments</div></div>`;
+ if(v==='loading')return `<div class="auth-box">${hero}<div class="card" style="text-align:center;padding:26px"><div style="font-size:30px">⏳</div><b>Loading your records…</b><div class="mut">Connecting to the cloud</div></div></div>`;
+ if(!sb)return `<div class="auth-box">${hero}<div class="card note">⚠️ Could not load the Supabase library. Check your internet connection and reload the page.</div></div>`;
+ const form=v==='signup'?`<form data-auth="signup">${profFields(tp)}<div class="two">${pw('pw','Password / PIN * (min 6)','new-password')}${pw('pw2','Confirm *','new-password')}</div><p class="err" role="alert"></p><button class="btn pri" style="width:100%">Create account</button><p class="mut" style="text-align:center;margin:12px 0 0">Already registered? <a href="#" data-a="auth" data-id="login">Login</a></p></form>`
+ :v==='reset'?`<form data-auth="reset"><p class="mut" style="margin-top:0">Enter the email ID you registered with. We will email you a link to set a new password / PIN.</p>${fl('Registered email ID','email','','email','required autocomplete="email"')}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Send reset link</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="login">← Back to login</a></p></form>`
+ :v==='newpw'?`<form data-auth="newpw"><p class="mut" style="margin-top:0">Choose a new password / PIN for your account.</p><div class="two">${pw('pw','New password / PIN','new-password')}${pw('pw2','Confirm','new-password')}</div><p class="err" role="alert"></p><button class="btn pri" style="width:100%">Save new password</button></form>`
+ :`<form data-auth="login">${fl('Email ID or phone number','id','','text','required autocomplete="username"')}${fl('Password / PIN','pw','','password','required autocomplete="current-password"')}<p class="err" role="alert"></p><button class="btn pri" style="width:100%">Login</button><p class="mut" style="text-align:center;margin:12px 0 0"><a href="#" data-a="auth" data-id="reset">Forgot password / PIN?</a> · New inspector? <a href="#" data-a="auth" data-id="signup">Create an account</a></p></form>`;
+ const head=v==='reset'?'<h3>🔑 Reset password / PIN</h3>':v==='newpw'?'<h3>🔑 Set a new password / PIN</h3>':`<div class="tabs"><button class="${v==='signup'?'':'on'}" data-a="auth" data-id="login">Login</button><button class="${v==='signup'?'on':''}" data-a="auth" data-id="signup">Sign up</button></div>`;
+ return `<div class="auth-box">${hero}${note}<div class="card">${head}${form}</div><p class="mut" style="text-align:center;font-size:12px">🔒 Secure cloud account: log in from any phone or computer to see your records.</p></div>`}
+document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;if(!m)return;e.preventDefault();if(!sb)return;
+ const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),btn=f.querySelector('button.pri'),lbl=btn.textContent,
+  err=t=>{el.textContent=t?'⚠️ '+t:'';el.classList.toggle('show',!!t);btn.disabled=false;btn.textContent=lbl};
+ err('');btn.disabled=true;btn.textContent='Please wait…';
+ try{
+ if(m==='login'){const id=d.id.trim().toLowerCase(),isMail=id.includes('@'),p=ph10(id);let email=id;
+  if(!isMail){if(p.length!==10)return err('Enter a valid email ID or 10-digit phone number.');
+   const r=await sb.rpc('email_for_phone',{p_phone:p});if(r.error)return err(errMsg(r.error));if(!r.data)return err('No account found with that phone number. Check it or create an account.');email=r.data}
+  const{data,error}=await sb.auth.signInWithPassword({email,password:d.pw});if(error)return err(errMsg(error));ui.note='';return startSession(data.user)}
+ if(m==='reset'){const{error}=await sb.auth.resetPasswordForEmail(d.email.trim().toLowerCase(),{redirectTo:location.origin+location.pathname});if(error)return err(errMsg(error));
+  ui.auth='login';ui.note=`📧 If an account exists for ${d.email.trim()}, a password reset link has been sent. Open it on this device to set a new password.`;return render()}
+ if(d.pw!==d.pw2)return err('Passwords do not match.');if(d.pw.length<6)return err('Password / PIN must be at least 6 characters.');
+ if(m==='newpw'){const{data,error}=await sb.auth.updateUser({password:d.pw});if(error)return err(errMsg(error));ui.auth='login';toast('Password / PIN updated');U=null;return startSession(data.user)}
+ const P=profObj(d);if(P.phone.length!==10)return err('Enter a valid 10-digit phone number.');
+ const av=await sb.rpc('phone_available',{p_phone:P.phone});if(av.error)return err(errMsg(av.error));if(av.data===false)return err('An account with this phone number already exists.');
+ const{data,error}=await sb.auth.signUp({email:P.email,password:d.pw,options:{emailRedirectTo:location.origin+location.pathname,data:{full_name:P.name,hospital:P.hosp,qualification:P.qual,age:P.age,gender:P.gender,phone:P.phone,area:P.area}}});
+ if(error)return err(errMsg(error));
+ if(data.user&&Array.isArray(data.user.identities)&&data.user.identities.length===0)return err('An account with this email already exists. Please log in.');
+ if(data.session)return startSession(data.user);
+ ui.auth='login';ui.note=`✅ Account created. A confirmation link was sent to ${P.email}. Open it, then log in here with your email or phone number.`;render()}
+ catch(x){err(errMsg(x))}});
 function profile(){const u=U,row=(k,v)=>`<dt>${k}</dt><dd>${esc(v||'—')}</dd>`;
  sheet('👤 My profile',`<dl class="kv">${row('Name',u.name)}${row('Hospital / centre',u.hosp)}${row('Qualification',u.qual)}${row('Age',u.age)}${row('Gender',u.gender)}${row('Phone',u.phone)}${row('Email',u.email)}${row('Area / Panchayat',u.area)}${row('Registered on',fmt(u.created))}</dl>
- <div class="btns"><button class="btn" data-a="profE">Edit profile</button>${AUTH_ON?'<button class="btn" data-a="profP">Change password</button>':''}<button class="btn" data-a="tools">Data ⚙</button>${AUTH_ON?'<button class="btn dng" data-a="logout">Logout</button>':''}</div>${AUTH_ON?'':'<p class="mut" style="font-size:13px">Test mode: login is switched off.</p>'}`)}
-function profEdit(){modal('Edit profile',profFields(U)+'<p class="err"></p>',()=>{},f=>{f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),bad=profCheck(d,U.id);if(bad)return f.querySelector('.err').textContent=bad;
- if(U.id==='test'){Object.assign(U,profObj(d));try{localStorage.setItem(TK,JSON.stringify(U))}catch(e){}}else{const L=users(),u=L.find(x=>x.id===U.id);Object.assign(u,profObj(d));saveUsers(L);U=u}closeM();render();profile()}})}
-function pwForm(){modal('Change password / PIN',fl('Current password / PIN','old','','password','required autocomplete="current-password"')+fl('New password / PIN','pw','','password','required minlength="4" autocomplete="new-password"')+fl('Confirm new','pw2','','password','required minlength="4" autocomplete="new-password"')+'<p class="err"></p>',()=>{},
- f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=t=>f.querySelector('.err').textContent=t;if(await hash(d.old,U.salt)!==U.hash)return err('Current password is incorrect.');if(d.pw!==d.pw2)return err('New passwords do not match.');
- const L=users(),u=L.find(x=>x.id===U.id);u.salt=uid()+uid()+uid();u.hash=await hash(d.pw,u.salt);saveUsers(L);U=u;closeM();ask('Password changed.',()=>{})}})}
+ <p class="mut" style="font-size:13px">☁️ Records are stored in your secure cloud account. Status: ${syncLbl[net]}</p>
+ <div class="btns"><button class="btn" data-a="profE">Edit profile</button><button class="btn" data-a="profP">Change password</button><button class="btn" data-a="tools">Data ⚙</button><button class="btn dng" data-a="logout">Logout</button></div>`)}
+function profEdit(){modal('Edit profile',profFields(U,1)+'<p class="err"></p>',()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),P=profObj(d);
+ if(P.phone.length!==10)return el.textContent='Enter a valid 10-digit phone number.';el.textContent='Saving…';
+ const{error}=await sb.from('profiles').update({full_name:P.name,hospital:P.hosp,qualification:P.qual,age:+P.age||null,gender:P.gender,phone:P.phone,area:P.area}).eq('id',U.id);
+ if(error)return el.textContent=/duplicate|unique/i.test(error.message)?'An account with this phone number already exists.':errMsg(error);
+ Object.assign(U,{name:P.name,hosp:P.hosp,qual:P.qual,age:P.age,gender:P.gender,phone:P.phone,area:P.area});writeCache(false);closeM();render();profile()}})}
+function pwForm(){modal('Change password / PIN',fl('Current password / PIN','old','','password','required autocomplete="current-password"')+fl('New password / PIN (min 6)','pw','','password','required minlength="6" autocomplete="new-password"')+fl('Confirm new','pw2','','password','required minlength="6" autocomplete="new-password"')+'<p class="err"></p>',()=>{},
+ f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=t=>f.querySelector('.err').textContent=t;if(d.pw!==d.pw2)return err('New passwords do not match.');err('Checking…');
+ const chk=await sb.auth.signInWithPassword({email:U.email,password:d.old});if(chk.error)return err('Current password is incorrect.');
+ const{error}=await sb.auth.updateUser({password:d.pw});if(error)return err(errMsg(error));closeM();ask('Password changed.',()=>{})}})}
 const C=id=>S.cs.find(x=>x.id===id),A=id=>S.an.find(x=>x.id===id),live=a=>!a.status||a.status==='active',own=id=>S.an.filter(a=>a.cid===id&&live(a)),ownAll=id=>S.an.filter(a=>a.cid===id);
 const ag=(y,m)=>[y?y+'y':'',m?m+'m':''].filter(Boolean).join(' ')||'—';
 function age(a){if(a.dob){const d=P(a.dob),n=new Date();let m=(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth();if(n.getDate()<d.getDate())m--;m=Math.max(m,0);return '~'+ag(Math.floor(m/12),m%12)}return ag(+a.ay||0,+a.am||0)}
@@ -424,8 +486,8 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
   <div class="btns">${!r.wDone&&r.wDate&&live(a)?`<button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button>${fuBtns('wt',a.id,r.wDate,fdEx(r))}`:''}${r.wDone&&live(a)?`<button class="btn sm" data-a="wtN" data-id="${r.id}">Schedule another check</button>`:''}<button class="btn sm" data-a="editF" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delF" data-id="${r.id}">Delete</button></div></div>`).join('')}`})()}
  <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
 
-function render(){document.body.classList.toggle('auth',!U);if(!U){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
- $('#hb').innerHTML=`<button class="btn" data-a="prof">👤 ${esc(U.name.split(' ')[0])}</button>`;
+function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
+ $('#hb').innerHTML=`${syncBadge()}<button class="btn" data-a="prof">👤 ${esc((U.name||'Me').split(' ')[0])}</button>`;
  const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):anView(d.id)):({dash,cust,ani,trk,pay})[ui.tab]();
  $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}</button>`).join('');if(d&&d.k==='p')pgUpd()}
 
@@ -538,7 +600,7 @@ function xferForm(id){const a=A(id),others=S.cs.filter(c=>c.id!==a.cid);
  if(!others.length)return ask('Transfer needs another registered farmer. Add the receiving farmer first.',()=>{});
  modal('Transfer to another farmer',`<p class="mut">Current owner: ${esc(C(a.cid).name)}. Treatment records and follow-ups move with the animal.</p><label>New owner *<select name="to">${others.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.village)}</option>`).join('')}</select></label>`+fl('Transfer date','date',today(),'date','required')+ta('Reason / notes','notes'),
  d=>{const to=C(d.to),from=C(a.cid);logH(a,`Transferred from ${from.name} to ${to.name}`+(d.notes?' — '+d.notes:''),d.date);a.cid=to.id})}
-function tools(){modal('Data tools',`${fl('Sign-off for WhatsApp / SMS messages','sig',S.sig||'','text','placeholder="'+esc(U.name+(U.hosp?', '+U.hosp:''))+'"')}<p class="mut">Your records are saved in this browser, under your account. Copy the JSON below to back it up, or paste a backup and press Import.</p><textarea class="big" id="j" name="j"></textarea><div class="btns"><button type="button" class="btn" data-a="exp">Show export</button><button type="button" class="btn" data-a="imp">Import pasted</button>${hasDemo()?'<button type="button" class="btn" data-a="demoX">🧪 Remove sample data</button>':'<button type="button" class="btn" data-a="demoL">🧪 Load sample data</button>'}<button type="button" class="btn dng" data-a="clr">Delete all my records</button></div>`,d=>{S.sig=(d.sig||'').trim()})}
+function tools(){modal('Data tools',`${fl('Sign-off for WhatsApp / SMS messages','sig',S.sig||'','text','placeholder="'+esc(U.name+(U.hosp?', '+U.hosp:''))+'"')}<p class="mut">Your records are saved in your cloud account (with an offline copy on this device). Copy the JSON below for an extra backup, or paste a backup and press Import to replace your records.</p><textarea class="big" id="j" name="j"></textarea><div class="btns"><button type="button" class="btn" data-a="exp">Show export</button><button type="button" class="btn" data-a="imp">Import pasted</button>${hasDemo()?'<button type="button" class="btn" data-a="demoX">🧪 Remove sample data</button>':'<button type="button" class="btn" data-a="demoL">🧪 Load sample data</button>'}<button type="button" class="btn dng" data-a="clr">Delete all my records</button></div>`,d=>{S.sig=(d.sig||'').trim()})}
 
 /* ---------- actions ---------- */
 function open(k,id){if(ui.d)ui.hist.push(ui.d);ui.d={k,id};scrollTo(0,0)}
@@ -591,16 +653,23 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'ucY':closeM();claim();render();return toast('Records added to your account');
  case'ucN':{const o=unclaimed();if(o)S.ucNo=[...(S.ucNo||[]),...FLDS.flatMap(f=>o[f].map(r=>r.id))];save();return closeM()}
  case'prof':return profile();case'profE':return profEdit();case'profP':return pwForm();
- case'logout':return ask('Log out of this device?',logout);
+ case'logout':return ask(net==='off'?'Some changes are not saved to the cloud yet (offline). They stay on this device and upload next time you log in here. Log out?':'Log out of this device?',logout);
  case'exp':$('#j').value=JSON.stringify(S,null,1);$('#j').select();return;
- case'imp':try{const x=JSON.parse($('#j').value);if(!x.cs||!x.an||!x.tr||!x.ai)throw 0;x.fd=x.fd||[];S=x;save();closeM();ui.d=null;return render()}catch(e){$('#j').value='Invalid backup JSON.';return}
- case'clr':return ask('Delete all your farmers, animals and records? This cannot be undone.',()=>{S={cs:[],an:[],tr:[],ai:[],fd:[]};save();ui.d=null;ui.hist=[];render()})}}
+ case'imp':try{const x=JSON.parse($('#j').value);if(!x.cs||!x.an||!x.tr||!x.ai)throw 0;x.fd=x.fd||[];S={...x,demoSeen:true};save();closeM();ui.d=null;return render()}catch(e){$('#j').value='Invalid backup JSON.';return}
+ case'clr':return ask('Delete all your farmers, animals and records from your cloud account? This cannot be undone.',()=>{S={cs:[],an:[],tr:[],ai:[],fd:[]};save();ui.d=null;ui.hist=[];render()})}}
 function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==id);S.ai=S.ai.filter(x=>x.aid!==id);S.fd=S.fd.filter(x=>x.aid!==id)}
 
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
 document.addEventListener('input',e=>{if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
-{try{if(AUTH_ON&&localStorage.getItem('lvi_auth_v')!=='2'){localStorage.removeItem(SK);localStorage.setItem('lvi_auth_v','2')}}catch(e){}const sid=(()=>{try{return localStorage.getItem(SK)}catch(e){}})();U=users().find(u=>u.id===sid)||null;if(!U&&!AUTH_ON){const L=users(),last=(()=>{try{return localStorage.getItem('lvi_last')}catch(e){}})();U=L.find(u=>u.id===last)||L[L.length-1]||testUser()}if(U)load();if(!users().length)ui.auth='signup'}
-render();
+/* ---------- start: wait for Supabase to report the saved session ---------- */
+ui.auth=sb?'loading':'login';render();
+if(sb){let first=true;
+ sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>{
+  if(ev==='PASSWORD_RECOVERY'){U=null;S=null;ui.auth='newpw';ui.note='';return render()}
+  if(ev==='SIGNED_OUT')return endSession();
+  if(session&&session.user&&ui.auth!=='newpw'){if(!U||U.id!==session.user.id)startSession(session.user)}
+  else if(first&&!session){ui.auth='login';render()}
+  first=false},0)})}
 </script>
 </body>
 </html>
