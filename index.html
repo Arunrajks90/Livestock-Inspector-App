@@ -139,8 +139,14 @@ a{color:var(--pri)}
 .empty-box{background:#fff;border:1.5px dashed #a7f3d0;border-radius:14px;color:var(--mut);display:grid;gap:4px;justify-items:center}.empty-box b{color:#0f3d2a;font-size:16px}.empty-start{margin-top:10px;background:linear-gradient(135deg,#dcfce7,#e0f2fe);border:0}
 .auth-hero{background:linear-gradient(135deg,#d9fbea,#e0f2fe);border:0}.auth-hero h2{color:#0f3d2a}
 /* ===== mobile app feel ===== */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;overflow-x:hidden;scroll-behavior:smooth;background:#e9fbf3}
-body{overflow-x:hidden;overscroll-behavior-y:contain;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:100dvh;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;overflow-x:hidden;overflow-y:auto;height:auto;scroll-behavior:smooth;background:#e9fbf3}
+/* body must NOT become its own scroll box: "overflow-x:hidden" on body turned it into an unscrollable scroller that
+   swallowed mouse-wheel and finger-swipe scrolling. "clip" hides sideways overflow without creating a scroll box. */
+body{overflow-x:clip;overflow-y:visible;height:auto;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:100dvh;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+main,#app{overflow:visible;height:auto}
+/* closed popups / banners never block touches, clicks or the wheel */
+.ov[hidden],.inst[hidden],#m[hidden]{display:none!important;pointer-events:none!important}
+.toast{pointer-events:none}
 body.auth{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 header{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-height:56px}
 main{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
