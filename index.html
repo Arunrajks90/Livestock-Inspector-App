@@ -192,6 +192,26 @@ nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:
 .circle-cta{cursor:pointer;background:linear-gradient(135deg,#e0e7ff,#f0f9ff);border-color:#c7d2fe}
 .chip.on{color:#fff}
 @media (max-width:380px){nav button{font-size:11px;padding:8px 2px}}
+/* circle messaging */
+.chat-head{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:3;margin:10px 0 8px;padding:10px 12px;border-radius:14px;box-shadow:0 2px 10px #0f3d2a14}
+.chat-head.dm{background:#f5f3ff;border:1px solid #ddd6fe}.chat-head.ann{background:#fff7ed;border:1px solid #fed7aa}
+.mode-note{margin-top:6px;font-size:13px;border-radius:9px;padding:6px 9px}.mode-note.dm{background:#ede9fe;color:#4c1d95}.mode-note.ann{background:#ffedd5;color:#9a3412}
+.chat-list{display:flex;flex-direction:column;gap:6px;padding:4px 0 12px}
+.msg{max-width:84%;padding:8px 11px;border-radius:16px;box-shadow:0 1px 3px #0f3d2a14;overflow-wrap:anywhere}
+.msg.them{align-self:flex-start;background:#fff;border:1px solid var(--bd);border-bottom-left-radius:5px}
+.msg.me.dm{align-self:flex-end;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-bottom-right-radius:5px}
+.msg.me.ann{align-self:flex-end;background:linear-gradient(135deg,#fb923c,#ea580c);color:#fff;border-bottom-right-radius:5px}
+.msg.them.ann{background:#fffbeb;border-color:#fde68a}
+.msg .who{font-size:12px;font-weight:700;color:#9a3412;margin-bottom:2px}.msg .meta{font-size:11px;opacity:.75;margin-top:3px;text-align:right}
+.day-sep{align-self:center;font-size:12px;color:var(--mut);background:#fff;border:1px solid var(--bd);border-radius:99px;padding:2px 10px;margin:6px 0}
+.composer{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:flex-end;padding:8px;border-radius:16px;background:#fff;box-shadow:0 -2px 14px #0f3d2a1f;z-index:3}
+.composer.dm{border:2px solid #c4b5fd}.composer.ann{border:2px solid #fdba74}.composer textarea{flex:1;min-height:46px;max-height:140px;resize:vertical}.composer .btn{margin:0;flex-shrink:0}
+.composer.ann .btn.pri{background:linear-gradient(135deg,#fb923c,#ea580c);box-shadow:0 3px 10px #ea580c40}
+.inbox .prev{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}.inbox.dm{box-shadow:inset 4px 0 #8b5cf6,0 2px 8px #0f3d2a0d}.inbox.ann{box-shadow:inset 4px 0 #f97316,0 2px 8px #0f3d2a0d}
+.ub{display:inline-block;min-width:20px;height:20px;line-height:20px;padding:0 6px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11.5px;font-weight:700;text-align:center;margin-left:6px;vertical-align:middle}
+.mchip.tap{cursor:pointer;border-color:#c4b5fd;background:#faf5ff}.ann-btn{color:#9a3412;border-color:#fdba74;background:#fff7ed;font-weight:600}
+.live{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-left:6px}.live.on{background:#10b981;box-shadow:0 0 0 3px #10b98133}.live.off{background:#cbd5e1}
+.circle-cta.msg{background:linear-gradient(135deg,#ede9fe,#fff7ed);border-color:#ddd6fe}
 /* install banner */
 .inst{position:fixed;z-index:15;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #a7f3d0;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px #0f3d2a33;animation:instUp .3s ease-out}
 body.auth .inst{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
@@ -238,7 +258,7 @@ let U=null,snap=null,known=null,syncT=null,rT=null,syncing=false,again=false,net
 const ph10=p=>String(p||'').replace(/\D/g,'').slice(-10);
 /* canonical JSON (sorted keys) so local records and cloud jsonb compare equal */
 const cj=v=>Array.isArray(v)?'['+v.map(x=>x===undefined?'null':cj(x)).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+cj(v[k])).join(',')+'}':JSON.stringify(v===undefined?null:v);
-const setOf=s=>({aiTarget:s.aiTarget||null,sig:s.sig||'',ucNo:s.ucNo||[],rem:s.rem||{}});
+const setOf=s=>({aiTarget:s.aiTarget||null,sig:s.sig||'',ucNo:s.ucNo||[],rem:s.rem||{},annRead:s.annRead||{}});
 const ck=()=>K+'_cloud_'+U.id; /* offline copy of this account on this device */
 const syncLbl={ok:'☁️ Saved',busy:'⏳ Saving…',load:'⏳ Loading…',off:'⚠️ Offline'};
 function setSync(st){net=st;const e=$('#sync');if(e){e.className='sync '+st;e.innerHTML=syncHtml(st);e.title=st==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}}
@@ -266,20 +286,20 @@ function mergeOffline(cloud){if(!known)return;FLDS.forEach(f=>{const have=new Se
 addEventListener('online',()=>{if(U)sync()});
 /* refresh from the cloud when the app comes back to the screen (e.g. edited on another device) */
 document.addEventListener('visibilitychange',async()=>{if(document.hidden||!U||!snap||syncing||net==='busy'||!$('#m').hidden)return;let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty)return;
- try{const me=U.id,c=await pullCloud();if(!U||U.id!==me||!$('#m').hidden)return;const set=c.prof?.settings||{};S={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{}};snap=mkSnap(c.data,setOf(S));if(c.prof)U=profU(c.prof,{id:me,email:U.email});writeCache(false);render()}catch(e){}});
+ try{const me=U.id,c=await pullCloud();if(!U||U.id!==me||!$('#m').hidden)return;const set=c.prof?.settings||{};S={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{},annRead:set.annRead||{}};snap=mkSnap(c.data,setOf(S));if(c.prof)U=profU(c.prof,{id:me,email:U.email});writeCache(false);render()}catch(e){}});
 /* after sign in: load this inspector's records from the cloud (or the offline copy) */
 async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,email:user.email,name:user.user_metadata?.full_name||user.email||''};S=null;snap=null;known=null;ui.auth='loading';ui.note='';setSync('load');render();
  let cache=null;try{cache=JSON.parse(localStorage.getItem(ck()))}catch(e){}known=cache?.known||null;
  try{const c=await pullCloud();if(!U||U.id!==user.id)return;let prof=c.prof;
   if(!prof){const m=user.user_metadata||{};const row={id:user.id,email:user.email,full_name:m.full_name||'',hospital:m.hospital||'',qualification:m.qualification||'',age:+m.age||null,gender:m.gender||null,phone:m.phone||null,area:m.area||''};const r=await sb.from('profiles').upsert(row).select().maybeSingle();prof=r.data||row}
-  U=profU(prof,user);const set=prof.settings||{};const cloudS={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{}};
+  U=profU(prof,user);const set=prof.settings||{};const cloudS={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{},annRead:set.annRead||{}};
   if(cache&&cache.dirty&&cache.S){S=cache.S;mergeOffline(c.data)}else S=cloudS;snap=mkSnap(c.data,setOf(cloudS));setSync('ok')}
  catch(e){console.warn('Cloud load failed:',e);if(cache&&cache.S){S=cache.S;U=cache.U||U;snap=null;setSync('off')}
   else{U=null;S=null;ui.auth='login';ui.note='⚠️ Could not load your records from the cloud. Check the internet connection (and that the Supabase SQL setup script has been run), then log in again.';await sb.auth.signOut().catch(()=>{});return render()}}
  FLDS.forEach(f=>S[f]=S[f]||[]);
  purgeOldSamples();
- ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();loadCircle(true).then(()=>setTimeout(checkPopup,600))}
-function endSession(){CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
+function endSession(){stopRealtime();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
 async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
 
@@ -476,7 +496,8 @@ function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F
  const WT=F.filter(f=>f.k==='wt'&&dd(f.date)<=7),G=F.filter(f=>['tr','ai','pd'].includes(f.k)&&dd(f.date)<=7),RA=F.filter(f=>f.k==='rai'&&dd(f.date)<=7),PG=F.filter(f=>f.k==='due'||(f.k==='cf'&&dd(f.date)<=7));
  const sec=(t,L,ty,emp)=>`<div class="between"><h2>${t}${L.length?' ('+L.length+')':''}</h2><a href="#" data-a="trkT" data-id="${ty}" style="color:var(--pri);font-size:14px;white-space:nowrap">See all →</a></div>${L.slice(0,6).map(fRow).join('')||`<div class="empty" style="padding:14px">${emp}</div>`}`;
  const inN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length,fdN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='accepted').length,rtN=returnedToMe().length;
- return `${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${aiBanner()}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
+ const muN=msgUnreadTotal();
+ return `${muN?`<div class="card circle-cta msg" data-a="tab" data-id="circle"><b>💬 ${muN} new message${muN>1?'s':''} in your circle</b><div class="mut">Private chats and circle announcements · open the Circle tab</div></div>`:''}${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${aiBanner()}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
  ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log treatments, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Treatment</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button></div>
  ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}`}
 function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,c.village,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -552,7 +573,7 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
  $('#hb').innerHTML=`${syncBadge()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
- const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle})[ui.tab]();
+ const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):d.k==='chat'?chatView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle})[ui.tab]();
  $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments'],['circle','👥','Circle']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}${k==='circle'?'<i class="nb" id="circleN" hidden>0</i>':''}</button>`).join('');if(d&&d.k==='p')pgUpd();updNav()}
 
 /* ---------- modal + forms ---------- */
@@ -671,7 +692,7 @@ function open(k,id){if(ui.d)ui.hist.push(ui.d);ui.d={k,id};scrollTo(0,0)}
 function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  const del=(msg,fn)=>ask(msg,()=>{fn();ui.d=ui.d&&((ui.d.k==='a'&&!A(ui.d.id))||(ui.d.k==='c'&&!C(ui.d.id))||(ui.d.k==='p'&&!S.ai.find(x=>x.id===ui.d.id)))?ui.hist.pop()||null:ui.d;save();render()});
  switch(a){
- case'tab':ui.hl=null;ui.tab=id;ui.d=null;ui.hist=[];ui.q='';ui.sp='';scrollTo(0,0);if(id==='circle')loadCircle();return render();
+ case'tab':ui.hl=null;ui.tab=id;ui.d=null;ui.hist=[];ui.q='';ui.sp='';scrollTo(0,0);if(id==='circle'){loadCircle();loadMsgs(true)}return render();
  case'open':ui.d&&(ui.d.k===k&&ui.d.id===id)||open(k,id);return render();
  case'back':ui.d=ui.hist.pop()||null;return render();
  case'close':return closeM();
@@ -704,6 +725,8 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'bell':return remPopup(true);
  case'fuClose':{popOpen=false;const[k3,i3]=id.split('|');return closeForm(k3,i3)}
  case'allot':{popOpen=false;const[k3,i3]=id.split('|');return allotForm(k3,i3)}
+ case'chatOpen':return openChat(id);
+ case'chatSend':return chatSend(id);
  case'retSet':popOpen=false;return nextFuForm(id);
  case'retNone':popOpen=false;return ask('No further follow-up is needed for this task?',()=>retNone(id));
  case'cCreate':case'cJoin':case'cLeave':case'cCopy':case'tAccept':case'tDecline':case'tCancel':case'tClose':popOpen=false;return circleAct(a,id);
@@ -735,6 +758,7 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'clr':return ask('Delete all your farmers, animals and records from your cloud account? This cannot be undone.',()=>{S={cs:[],an:[],tr:[],ai:[],fd:[]};save();ui.d=null;ui.hist=[];render()})}}
 function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==id);S.ai=S.ai.filter(x=>x.aid!==id);S.fd=S.fd.filter(x=>x.aid!==id)}
 
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTx'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();const b=document.querySelector('[data-a="chatSend"]');if(b)chatSend(b.dataset.id)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
 document.addEventListener('input',e=>{if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
 /* ---------- Inspector Circle: task allotment / handover (privacy-first) ----------
@@ -763,9 +787,9 @@ async function loadCircle(quiet){if(!sb||!U||!S||CI.busy)return;CI.busy=true;con
  if(U&&U.id===me){updBell();updNav();if(!ui.d&&(ui.tab==='circle'||ui.tab==='dash'))softRender()}}
 /* re-draw only when it will not interrupt typing or an open form */
 function softRender(){const ae=document.activeElement;if(!$('#m').hidden||(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)))return;render()}
-function updNav(){const e=$('#circleN');if(!e)return;const n=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length+returnedToMe().length;e.textContent=n;e.hidden=!n}
+function updNav(){const e=$('#circleN');if(!e)return;const n=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length+returnedToMe().length+msgUnreadTotal();e.textContent=n;e.hidden=!n}
 setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false)loadCircle(true)},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U&&S)setTimeout(()=>loadCircle(true),800)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U&&S)setTimeout(()=>{loadCircle(true);loadMsgs(true)},800)});
 /* record + kind behind a source item */
 const srcRec=(k,id)=>k==='tr'?S.tr.find(x=>x.id===id):String(k).startsWith('req')?A(id):S.ai.find(x=>x.id===id);
 /* closing a follow-up on your own record (keeps the record, adds an audit note) */
@@ -887,9 +911,10 @@ function circle(){const ch=CI.err==='setup'?`<div class="card note">⚙️ Circl
  const inT=incoming('pending_acceptance'),feed=incoming('accepted'),out=outgoing().filter(t=>['pending_acceptance','accepted'].includes(t.status)),retL=returnedToMe(),hist=CI.tasks.filter(t=>['closed','declined','cancelled'].includes(t.status)&&!retL.includes(t));
  const cards=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id);const share=encodeURIComponent(`Join my Livestock Inspector circle "${c.name}" in the Field Officer app.\nInvite code: ${c.invite_code}\n${location.origin+location.pathname}`);
   return `<div class="card circ"><div class="between"><div><b>👥 ${esc(c.name)}</b><div class="mut">${ms.length} member${ms.length>1?'s':''}</div></div><div class="end"><div class="mut" style="font-size:12px">Invite code</div><b class="code">${esc(c.invite_code)}</b></div></div>
-  <div class="mem">${ms.map(m=>`<span class="mchip">${esc(m.display_name||'Inspector')}${m.user_id===U.id?' (you)':''}${m.role==='owner'?' ★':''}<small>${esc([m.hospital,m.area].filter(Boolean).join(' · '))}</small></span>`).join('')}</div>
+  <div class="mem">${ms.map(m=>`<span class="mchip${m.user_id===U.id?'':' tap'}"${m.user_id===U.id?'':` data-a="chatOpen" data-id="dm:${m.user_id}" title="Private chat"`}>${esc(m.display_name||'Inspector')}${m.user_id===U.id?' (you)':' 💬'}${m.role==='owner'?' ★':''}${m.user_id!==U.id&&dmUnread(m.user_id)?`<span class="ub">${dmUnread(m.user_id)}</span>`:''}<small>${esc([m.hospital,m.area].filter(Boolean).join(' · '))}</small></span>`).join('')}</div>
+  <div class="btns"><button class="btn sm ann-btn" data-a="chatOpen" data-id="ann:${c.id}">📢 Message all circle members${annUnread(c.id)?` <span class="ub">${annUnread(c.id)}</span>`:''}</button></div>
   <div class="btns"><button class="btn sm" data-a="cCopy" data-id="${esc(c.invite_code)}">📋 Copy code</button><a class="btn sm wa" href="https://wa.me/?text=${share}" target="_blank" rel="noopener">💬 Invite on WhatsApp</a><button class="btn sm dng" data-a="cLeave" data-id="${c.id}">Leave</button></div></div>`}).join('');
- return `<h2 style="margin-top:0">👥 Inspector Circle</h2><p class="mut" style="margin:-6px 0 10px;font-size:13px">🔒 Your records stay private. Circle members see only each other's names, and only the tasks you choose to allot.</p>${ch}
+ return `<h2 style="margin-top:0">👥 Inspector Circle</h2><p class="mut" style="margin:-6px 0 10px;font-size:13px">🔒 Your records stay private. Circle members see only each other's names, the tasks you choose to allot, and the messages you send.</p>${ch}${msgInbox()}
  ${!CI.loaded&&!CI.err?'<div class="empty">⏳ Loading your circle…</div>':''}
  ${retL.length?`<h2>↩ Returned to you (${retL.length})</h2><p class="mut" style="margin:-6px 0 8px;font-size:13px">Closed by your colleague. Set the next follow-up date: it stays only in your records and reminders.</p>${retL.map(t=>taskCard(t,'ret')).join('')}`:''}
  ${inT.length?`<h2>📥 Waiting for you (${inT.length})</h2>${inT.map(t=>taskCard(t,'in')).join('')}`:''}
@@ -908,6 +933,89 @@ async function circleAct(a,id){
  if(a==='tDecline')return declineForm(id);
  if(a==='tCancel')return ask('Cancel this allotment? Your colleague will see it as cancelled.',()=>taskSet(id,{status:'cancelled',response_note:'Cancelled by sender'},'Allotment cancelled'));
  if(a==='tClose')return closeForm(null,null,id)}
+
+/* ---------- Circle messaging: 🔒 private 1-on-1 chats and 📢 circle announcements ----------
+   Table circle_messages (supabase-messages.sql). Row security means a direct message is only ever
+   returned to its sender and its recipient; announcements only to members of that circle.
+   Live updates use Supabase Realtime, with polling as a fallback. */
+const CM={msgs:[],loaded:false,err:'',live:false,busy:false};
+let rtCh=null,msgPoll=null;
+const memberName=uid=>{const m=CI.members.find(x=>x.user_id===uid);return m?(m.display_name||'Inspector'):'Former member'};
+const memberCard=uid=>CI.members.find(x=>x.user_id===uid);
+const sharedCircle=uid=>{const mine=new Set(CI.members.filter(m=>m.user_id===U.id).map(m=>m.circle_id));const m=CI.members.find(x=>x.user_id===uid&&mine.has(x.circle_id));return m?m.circle_id:null};
+const dmThread=uid=>CM.msgs.filter(m=>m.message_type==='direct'&&((m.sender_id===U.id&&m.recipient_id===uid)||(m.sender_id===uid&&m.recipient_id===U.id)));
+const annThread=cid=>CM.msgs.filter(m=>m.message_type==='announcement'&&m.circle_id===cid);
+const dmUnread=uid=>CM.msgs.filter(m=>m.message_type==='direct'&&m.sender_id===uid&&m.recipient_id===U.id&&!m.is_read).length;
+const annSeen=cid=>(S&&S.annRead&&S.annRead[cid])||'';
+const annUnread=cid=>{const t=annSeen(cid);return annThread(cid).filter(m=>m.sender_id!==U.id&&m.created_at>t).length};
+const msgUnreadTotal=()=>!U||!S?0:CM.msgs.filter(m=>m.message_type==='direct'&&m.recipient_id===U.id&&!m.is_read).length+CI.circles.reduce((n,c)=>n+annUnread(c.id),0);
+const mErr=e=>{const m=String(e&&(e.message||e)||'');return /circle_messages|relation .* does not exist|schema cache|42P01|PGRST205/i.test(m)&&/does not exist|schema cache|PGRST205|42P01/i.test(m)?'setup':m};
+async function loadMsgs(quiet){if(!sb||!U||!S||CM.busy)return;CM.busy=true;const me=U.id;
+ try{const{data,error}=await sb.from('circle_messages').select('*').order('created_at',{ascending:true}).limit(2000);if(!U||U.id!==me)return;if(error)throw error;
+  const before=new Set(CM.msgs.map(m=>m.id));const fresh=data||[];
+  if(CM.loaded)fresh.filter(m=>!before.has(m.id)&&m.sender_id!==U.id).forEach(m=>notifyMsg(m));
+  CM.msgs=fresh;CM.loaded=true;CM.err=''}
+ catch(e){CM.err=mErr(e);if(!quiet)console.warn('Messages load failed:',e)}
+ finally{CM.busy=false}
+ if(U&&U.id===me)msgRefresh()}
+/* live updates (Realtime applies the same row security, so only allowed messages arrive) */
+function startRealtime(){if(!sb||!sb.channel||rtCh||!U)return;
+ try{rtCh=sb.channel('circle-messages-'+U.id).on('postgres_changes',{event:'*',schema:'public',table:'circle_messages'},p=>onMsgEvent(p)).subscribe(st=>{CM.live=st==='SUBSCRIBED';updLive()})}catch(e){rtCh=null}
+ clearInterval(msgPoll);msgPoll=setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false){const inChat=ui.d&&ui.d.k==='chat';if(inChat||!CM.live||Date.now()%60000<20000)loadMsgs(true)}},20000)}
+function stopRealtime(){clearInterval(msgPoll);msgPoll=null;if(rtCh){try{sb.removeChannel(rtCh)}catch(e){}rtCh=null}CM.live=false;CM.msgs=[];CM.loaded=false;CM.err=''}
+function onMsgEvent(p){const m=p&&p.new;if(!m||!m.id||!U)return;const i=CM.msgs.findIndex(x=>x.id===m.id);
+ if(i>=0)CM.msgs[i]={...CM.msgs[i],...m};else{CM.msgs.push(m);CM.msgs.sort((a,b)=>a.created_at.localeCompare(b.created_at));if(m.sender_id!==U.id&&(p.eventType||'INSERT')==='INSERT')notifyMsg(m)}
+ msgRefresh()}
+const openChatId=()=>ui.d&&ui.d.k==='chat'?ui.d.id:'';
+function notifyMsg(m){const here=m.message_type==='direct'?openChatId()==='dm:'+m.sender_id:openChatId()==='ann:'+m.circle_id;if(here)return;
+ toast(m.message_type==='direct'?`🔒 New private message from ${memberName(m.sender_id)}`:`📢 New announcement from ${memberName(m.sender_id)}`)}
+/* re-draw only what changed: the open chat's message list, badges, and the Circle tab */
+function msgRefresh(){const id=openChatId();if(id){markRead(id);const L=$('#chatList');if(L){const atEnd=scrollY+innerHeight>=document.documentElement.scrollHeight-160;L.innerHTML=chatBubbles(id);if(atEnd)scrollTo(0,document.documentElement.scrollHeight)}}
+ updNav();if(!ui.d&&ui.tab==='circle')softRender()}
+function updLive(){const e=$('#liveDot');if(e){e.className='live '+(CM.live?'on':'off');e.title=CM.live?'Live updates on':'Checking every 20 seconds'}}
+/* reading a chat clears its unread badge */
+let markBusy=false;
+async function markRead(id){if(!U||!S)return;const[t,x]=id.split(':');
+ if(t==='ann'){const last=annThread(x).slice(-1)[0];if(last&&last.created_at>annSeen(x)){S.annRead=S.annRead||{};S.annRead[x]=last.created_at;save()}return}
+ const un=CM.msgs.filter(m=>m.message_type==='direct'&&m.sender_id===x&&m.recipient_id===U.id&&!m.is_read);if(!un.length||markBusy)return;markBusy=true;
+ un.forEach(m=>m.is_read=true);try{await sb.from('circle_messages').update({is_read:true}).eq('message_type','direct').eq('recipient_id',U.id).eq('sender_id',x).eq('is_read',false)}catch(e){}markBusy=false;updNav()}
+const ftime=iso=>{const d=new Date(iso),t=d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});return ld(d)===today()?t:d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+', '+t};
+const msgHtml=t=>esc(t).replace(/\n/g,'<br>');
+function chatBubbles(id){const[t,x]=id.split(':');const L=t==='dm'?dmThread(x):annThread(x);
+ if(!L.length)return `<div class="empty" style="padding:18px">${t==='dm'?'No messages yet. Say hello 👋':'No announcements yet.'}</div>`;
+ let day='';return L.map(m=>{const mine=m.sender_id===U.id,d=ld(new Date(m.created_at));const sep=d!==day?(day=d,`<div class="day-sep">${fmt(d)}</div>`):'';
+  return `${sep}<div class="msg ${mine?'me':'them'} ${t}">${t==='ann'&&!mine?`<div class="who">${esc(memberName(m.sender_id))}</div>`:''}<div class="txt">${msgHtml(m.message_text)}</div><div class="meta">${ftime(m.created_at)}${mine&&t==='dm'?(m.is_read?' · ✓✓ Read':' · ✓ Sent'):''}</div></div>`}).join('')}
+function chatView(id){const[t,x]=id.split(':');
+ if(t==='dm'){const m=memberCard(x),nm=memberName(x),cid=sharedCircle(x);
+  return `${back}<div class="chat-head dm"><div class="between"><div><b>🔒 Private chat · ${esc(nm)}</b><div class="mut">${esc([m&&m.hospital,m&&m.area].filter(Boolean).join(' · '))}</div></div><span id="liveDot" class="live ${CM.live?'on':'off'}"></span></div>
+  <div class="mode-note dm">🔒 Only you and <b>${esc(nm)}</b> can see these messages. Other circle members cannot.</div></div>
+  <div id="chatList" class="chat-list">${chatBubbles(id)}</div>
+  ${cid?`<div class="composer dm"><textarea id="chatTx" rows="2" maxlength="2000" placeholder="Private message to ${esc(nm)}…"></textarea><button class="btn pri" data-a="chatSend" data-id="${id}">Send</button></div>`:'<div class="card note">You are no longer in a circle with this inspector, so new messages cannot be sent.</div>'}`}
+ const c=CI.circles.find(z=>z.id===x),n=CI.members.filter(m=>m.circle_id===x).length;
+ return `${back}<div class="chat-head ann"><div class="between"><div><b>📢 Circle Announcement · ${esc(c?c.name:'Circle')}</b><div class="mut">${n} member${n>1?'s':''}</div></div><span id="liveDot" class="live ${CM.live?'on':'off'}"></span></div>
+ <div class="mode-note ann">📢 Everything posted here is visible to <b>all ${n} members</b> of ${esc(c?c.name:'this circle')}. For a private message, open a member's chat instead.</div></div>
+ <div id="chatList" class="chat-list">${chatBubbles(id)}</div>
+ ${c?`<div class="composer ann"><textarea id="chatTx" rows="2" maxlength="2000" placeholder="Announcement to all ${n} members…"></textarea><button class="btn pri" data-a="chatSend" data-id="${id}">📢 Send to all ${n}</button></div>`:''}`}
+async function chatSend(id){const tx=$('#chatTx'),text=(tx&&tx.value||'').trim();if(!text)return toast('Type a message first');const[t,x]=id.split(':');
+ const row=t==='dm'?{circle_id:sharedCircle(x),sender_id:U.id,recipient_id:x,message_type:'direct',message_text:text}:{circle_id:x,sender_id:U.id,recipient_id:null,message_type:'announcement',message_text:text};
+ if(!row.circle_id)return toast('You are no longer in a circle with this inspector');
+ const btn=document.querySelector('[data-a="chatSend"]');if(btn)btn.disabled=true;
+ const{data,error}=await sb.from('circle_messages').insert(row).select().maybeSingle();if(btn)btn.disabled=false;
+ if(error)return toast('⚠️ '+(mErr(error)==='setup'?'Run supabase-messages.sql in Supabase first':errMsg(error)));
+ if(data&&!CM.msgs.some(m=>m.id===data.id))CM.msgs.push(data);if(tx){tx.value='';tx.focus()}
+ const L=$('#chatList');if(L){L.innerHTML=chatBubbles(id);scrollTo(0,document.documentElement.scrollHeight)}
+ if(t==='ann'){S.annRead=S.annRead||{};S.annRead[x]=(data&&data.created_at)||new Date().toISOString();save()}}
+function openChat(id){open('chat',id);render();markRead(id);setTimeout(()=>scrollTo(0,document.documentElement.scrollHeight),60);loadMsgs(true)}
+/* Circle tab: messages inbox (announcements per circle + one private thread per member) */
+function msgInbox(){if(CM.err==='setup')return `<h2>💬 Messages</h2><div class="card note">⚙️ Messaging is not set up in Supabase yet. Run <b>supabase-messages.sql</b> in the Supabase SQL Editor.</div>`;
+ if(!CI.circles.length)return '';
+ const prev=L=>{const m=L.slice(-1)[0];return m?`${m.sender_id===U.id?'You: ':''}${esc(m.message_text.slice(0,60))}${m.message_text.length>60?'…':''}`:'<span class="mut">No messages yet</span>'};
+ const ann=CI.circles.map(c=>{const L=annThread(c.id),u=annUnread(c.id);return `<div class="card item inbox ann" data-a="chatOpen" data-id="ann:${c.id}"><div style="min-width:0"><b>📢 ${esc(c.name)} · Announcements</b><div class="mut prev">${prev(L)}</div></div><div class="end">${u?`<span class="ub">${u}</span>`:''}${L.length?`<div class="mut" style="font-size:12px">${ftime(L.slice(-1)[0].created_at)}</div>`:''}</div></div>`}).join('');
+ const ids=[...new Set(others().map(m=>m.user_id))].sort((a,b)=>{const la=dmThread(a).slice(-1)[0],lb=dmThread(b).slice(-1)[0];return (lb?lb.created_at:'').localeCompare(la?la.created_at:'')||memberName(a).localeCompare(memberName(b))});
+ const dms=ids.map(uid=>{const L=dmThread(uid),u=dmUnread(uid);return `<div class="card item inbox dm" data-a="chatOpen" data-id="dm:${uid}"><div style="min-width:0"><b>🔒 ${esc(memberName(uid))}</b><div class="mut prev">${prev(L)}</div></div><div class="end">${u?`<span class="ub">${u}</span>`:''}${L.length?`<div class="mut" style="font-size:12px">${ftime(L.slice(-1)[0].created_at)}</div>`:''}</div></div>`}).join('');
+ return `<h2>💬 Messages <span id="liveDot" class="live ${CM.live?'on':'off'}"></span></h2>
+ <div class="sub">📢 Circle announcements: visible to all members</div>${ann}
+ <div class="sub" style="margin-top:10px">🔒 Private chats: only you and that inspector</div>${dms||'<div class="empty" style="padding:12px">Invite colleagues to your circle to chat privately.</div>'}`}
 
 /* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
 /* Each alert has a key (type : record : date [: stage]). Snooze / Stop are stored in S.rem, which is saved to the

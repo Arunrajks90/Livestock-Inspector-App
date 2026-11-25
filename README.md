@@ -20,12 +20,12 @@ your-repo/
     └── apple-touch-icon.png
 ```
 
-`supabase-setup.sql` and `supabase-circles.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
+`supabase-setup.sql`, `supabase-circles.sql` and `supabase-messages.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
 
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover). Both are safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) and then `supabase-messages.sql` (circle messaging). All are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -69,6 +69,13 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - **Returned to the sender:** the sender sees it under **↩ Returned to you** (also on Home, the Circle badge and the 🔔 popup) with the closed date and description, and taps **📅 Set next follow-up** (or **No further follow-up**). As soon as the date is saved, the follow-up **appears in the sender's 📅 Tracker** (the app opens it there), labelled **↩ After handover**, with the normal 1-day-before reminders; the Tracker also lists tasks still waiting for a date, and has an **↩ After handover** filter. In Supabase the same list is in the private view **my_follow_up_tracker**. The next follow-up date is saved **only in the sender's own records**, so its reminders belong to the sender alone and the assignee never sees it. An AI done by a colleague is recorded with its PD date but does not count toward the sender's monthly AI target.
 - **✔ Mark closed** (on your own pending follow-ups and on allotted tasks) records a closure description, for example *"Completed by another person — confirmed with farmer on call"*. The record stays, the note is added to the animal's history, and the reminder stops. When a colleague closes a task you allotted, your own record is closed automatically with their note.
 - Allotments are never deleted, so the history works as an audit trail.
+
+## Circle messaging (💬 in the Circle tab)
+- **🔒 Private chat:** tap a member's name (or their row under *Private chats*). Messages are visible **only to you and that inspector**; other circle members cannot see or fetch them. ✓ Sent / ✓✓ Read receipts.
+- **📢 Circle announcement:** *Message all circle members*. Posts are visible to **every member of that circle**, shown in orange and labelled as an announcement so they are never confused with private chats.
+- **Unread badges:** separately per member and for announcements, plus the total on the Circle tab and a card on Home. Read marks for announcements are saved to your profile, so they stay read on your other devices.
+- **Live:** new messages and read receipts arrive automatically through Supabase Realtime (green dot). If Realtime is unavailable, the app checks every 20 seconds instead (grey dot). On a computer, Ctrl / ⌘ + Enter sends.
+- Messages cannot be edited or deleted by anyone. They never include farmer, animal or payment records unless you type them yourself.
 
 ## Reminder popup (🔔)
 - When the app opens (and every 30 seconds while it is open) a popup lists reminders that are **due tomorrow, today or overdue**: treatment and AI follow-ups, PD checks, repeat AI dates, pregnancy follow-ups, expected due dates and 3-month weight checks.
