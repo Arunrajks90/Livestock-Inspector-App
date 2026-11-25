@@ -68,6 +68,11 @@ alter table public.task_allotments add column if not exists follow_up_owner_id u
 alter table public.task_allotments add column if not exists follow_up_status   text;   -- null = waiting for the sender · scheduled · not_needed
 alter table public.task_allotments add column if not exists follow_up_set_at   timestamptz;
 alter table public.task_allotments add column if not exists closure_description text generated always as (closure_note) stored;
+-- Decline workflow (added in v3): when the assignee declines, the task goes straight back to the sender's
+-- Follow-Up Tracker as an open item on its ORIGINAL due date. The assignee keeps no follow-ups for it.
+alter table public.task_allotments add column if not exists declined_at    timestamptz;
+alter table public.task_allotments add column if not exists decline_reason text
+  generated always as (case when status = 'declined' then response_note else null end) stored;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'task_allotments_follow_up_status_check') then
     alter table public.task_allotments add constraint task_allotments_follow_up_status_check
@@ -142,7 +147,8 @@ grant select, update, delete on public.circle_members    to authenticated;
 grant select, insert, update on public.task_allotments   to authenticated;
 
 -- Allowed status changes, and nobody can rewrite who/what a task is.
---   recipient (assignee): pending_acceptance → accepted / declined;  accepted → closed (a description is REQUIRED)
+--   recipient (assignee): pending_acceptance → accepted / declined (optional reason);  accepted → closed (a description is REQUIRED)
+--                         a declined task returns to the sender's Follow-Up Tracker on its original date.
 --                         after the task is closed / declined / cancelled the assignee can change nothing more.
 --   sender:    pending_acceptance → cancelled;  pending_acceptance / accepted → closed (handled elsewhere)
 --   sender only: follow_up_status / follow_up_set_at, once the task is closed (the next follow-up belongs to the sender).
@@ -163,7 +169,8 @@ begin
   end if;
   -- these are set by the system or by the original sender only
   if new.returned_to_sender is distinct from old.returned_to_sender
-     or new.follow_up_owner_id is distinct from old.follow_up_owner_id then
+     or new.follow_up_owner_id is distinct from old.follow_up_owner_id
+     or new.declined_at is distinct from old.declined_at then
     raise exception 'Return-to-sender fields are set automatically';
   end if;
   if new.follow_up_status is distinct from old.follow_up_status or new.follow_up_set_at is distinct from old.follow_up_set_at then
@@ -190,6 +197,7 @@ begin
       raise exception 'Sender cannot change status from % to %', old.status, new.status;
     end if;
     if new.status = 'accepted' then new.accepted_at := now(); end if;
+    if new.status = 'declined' then new.declined_at := now(); new.follow_up_owner_id := old.from_user; end if;
     if new.status = 'closed' then
       new.closed_at  := coalesce(new.closed_at, now());
       new.closed_by  := me;
