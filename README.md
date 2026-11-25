@@ -20,12 +20,12 @@ your-repo/
     └── apple-touch-icon.png
 ```
 
-`supabase-setup.sql` is **not** part of the website. Run it once in Supabase (below); you do not need to upload it.
+`supabase-setup.sql` and `supabase-circles.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
 
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. It is safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover). Both are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -60,6 +60,13 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - **Free Feed Supply** with an automatic 3-month weight check, reminders and weight verification.
 - **Payments (inspector only):** amount, mode, Paid / Pending. Each record keeps its own status, you get an alert when you pick a farmer with dues, and **no payment messages are ever sent to farmers**.
 - **WhatsApp / SMS** pre-filled messages for clinical and service follow-ups only.
+
+## Inspector Circle and task handover (👥 Circle tab)
+- **Create** a circle (you get a 6-letter invite code) or **join** one with a colleague's code. Members see only each other's name, hospital and area: **never** each other's farmers, animals, records or payments.
+- **👥 Allot** on a pending treatment follow-up, AI follow-up, PD check or repeat AI (and **👥 Allot visit** on an animal page for a new treatment visit or AI) sends **only that task** to a chosen member, with your description. It shows the farmer's name, phone and village, the animal summary and that task's clinical details. Payment details are never shared.
+- The colleague sees it under **📥 Waiting for you** and can **Accept** or **Decline** (with a reason). Before accepting, the farmer's phone is hidden. Accepted tasks go to **📋 My allotted feed**, with WhatsApp / SMS to the farmer, and appear in their 🔔 reminders.
+- **✔ Mark closed** (on your own pending follow-ups and on allotted tasks) records a closure description, for example *"Completed by another person — confirmed with farmer on call"*. The record stays, the note is added to the animal's history, and the reminder stops. When a colleague closes a task you allotted, your own record is closed automatically with their note.
+- Allotments are never deleted, so the history works as an audit trail.
 
 ## Reminder popup (🔔)
 - When the app opens (and every 30 seconds while it is open) a popup lists reminders that are **due tomorrow, today or overdue**: treatment and AI follow-ups, PD checks, repeat AI dates, pregnancy follow-ups, expected due dates and 3-month weight checks.

@@ -172,6 +172,21 @@ img,svg{max-width:100%}
 .szo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:8px;background:#f5f3ff;border-radius:10px}.szo .mut{font-size:13px;margin-right:2px}
 @media (max-width:420px){.sync .lbl{display:none}.sync{padding:5px 8px}}
 @media (max-width:340px){header .pn{display:none}}
+/* inspector circle */
+nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px}
+.allot-tag{margin-top:6px;font-size:13px;color:#1e40af;background:#eef4ff;border:1px solid #c7d7fe;border-radius:10px;padding:5px 8px}
+.closed-note{margin-top:6px;font-size:13px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:5px 8px}
+.allot-btn{color:#1d4ed8;border-color:#bfd3ff;background:#f5f8ff}
+.share-note{font-size:12.5px;color:#1e3a8a;background:#eef4ff;border-radius:10px;padding:8px 10px}
+.t-desc{margin-top:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:6px 9px;font-size:14px}
+.task.pending_acceptance{box-shadow:inset 4px 0 #f59e0b,0 2px 8px #0f3d2a0d}.task.accepted{box-shadow:inset 4px 0 #2563eb,0 2px 8px #0f3d2a0d}.task.closed{opacity:.9}
+.rk-at{box-shadow:inset 4px 0 #6366f1,0 2px 8px #0f3d2a0d}
+.circ .code{font-size:20px;letter-spacing:2px;color:#0f766e}.mem{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mchip{background:#f0fdf8;border:1px solid #a7f3d0;border-radius:12px;padding:5px 10px;font-size:13.5px;font-weight:600}.mchip small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.row2{display:flex;gap:8px;margin-top:6px}.row2 input{flex:1}.row2 .btn{margin:0;flex-shrink:0}
+.circle-cta{cursor:pointer;background:linear-gradient(135deg,#e0e7ff,#f0f9ff);border-color:#c7d2fe}
+.chip.on{color:#fff}
+@media (max-width:380px){nav button{font-size:11px;padding:8px 2px}}
 /* install banner */
 .inst{position:fixed;z-index:15;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #a7f3d0;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px #0f3d2a33;animation:instUp .3s ease-out}
 body.auth .inst{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
@@ -258,8 +273,8 @@ async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,e
   else{U=null;S=null;ui.auth='login';ui.note='⚠️ Could not load your records from the cloud. Check the internet connection (and that the Supabase SQL setup script has been run), then log in again.';await sb.auth.signOut().catch(()=>{});return render()}}
  FLDS.forEach(f=>S[f]=S[f]||[]);
  purgeOldSamples();
- ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();setTimeout(checkPopup,1500)}
-function endSession(){clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();loadCircle(true).then(()=>setTimeout(checkPopup,600))}
+function endSession(){CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
 async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
 
@@ -386,7 +401,7 @@ function purgeOldSamples(){if(!S)return;const dc=new Set(S.cs.filter(x=>x.demo).
  S.cs=S.cs.filter(x=>!x.demo);S.an=S.an.filter(x=>!x.demo&&!dc.has(x.cid));['tr','ai','fd'].forEach(k=>S[k]=S[k].filter(x=>!x.demo&&!da.has(x.aid)))}
 function fups(){const L=[],p=(k,r,date,type,label)=>A(r.aid)&&live(A(r.aid))&&L.push({k,id:r.id,aid:r.aid,date,type,label});
  S.tr.forEach(t=>t.next&&!t.done&&p('tr',t,t.next,'Follow-up','Treatment follow-up'+(t.dx?': '+t.dx:'')));
- S.ai.forEach(a=>{if(a.status==='pending'){a.pd&&p('pd',a,a.pd,'PD','Pregnancy detection due');a.next&&!a.nextDone&&p('ai',a,a.next,'Follow-up','AI follow-up')}
+ S.ai.forEach(a=>{if(a.status==='pending'){a.pd&&!a.pdClosed&&p('pd',a,a.pd,'PD','Pregnancy detection due');a.next&&!a.nextDone&&p('ai',a,a.next,'Follow-up','AI follow-up')}
   if(a.status==='confirmed'){a.fnext&&!a.fDone&&p('cf',a,a.fnext,'Pregnancy','Pregnancy follow-up');
    if(a.due&&!a.dueDone&&dd(trig(a))<=0)p('due',a,a.due,'Pregnancy','Pre-due reminder')}
   if(a.status==='negative'&&a.rDate&&!a.rDone)p('rai',a,a.rDate,'Repeat AI','Repeat AI due')});
@@ -440,7 +455,7 @@ const aiFu=r=>r.status==='pending'?(r.next&&!r.nextDone&&(!r.pd||r.next<r.pd)?['
 /* ---------- views ---------- */
 const raiRow=f=>{const r=S.ai.find(x=>x.id===f.id),a=A(f.aid),c=C(a.cid);
  return `<div class="card rk-rai"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b('Repeat AI','wn')}</div><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${age(a)}</div><div>👤 ${esc(c?.name)} · ${esc(c?.village)}</div><div class="mut">Previous AI ${fmt(r.date)} · PD not confirmed ${fmt(pdOnOf(r))}</div>${r.rNote?`<div class="mut">📝 ${esc(r.rNote)}</div>`:''}</div><div class="end"><div class="mut" style="font-size:12px">Approx. repeat AI</div><div>${fmt(f.date)}</div>${due(f.date)}</div></div>
- <div class="btns"><button class="btn sm pri" data-a="reAI" data-id="${r.id}">Record Repeat AI</button><button class="btn sm" data-a="raiS" data-id="${r.id}">Change date</button>${fuBtns('rai',a.id,f.date,raiEx(r))}</div></div>`};
+ <div class="btns"><button class="btn sm pri" data-a="reAI" data-id="${r.id}">Record Repeat AI</button><button class="btn sm" data-a="raiS" data-id="${r.id}">Change date</button>${fuBtns('rai',a.id,f.date,raiEx(r))}${fuActs('rai',r.id)}</div>${allotTag(r)}</div>`};
 const pgRow=f=>{const r=S.ai.find(x=>x.id===f.id),a=A(f.aid),c=C(a.cid),isD=f.k==='due';
  return `<div class="card rk-pg"><div class="item"><div data-a="open" data-k="p" data-id="${r.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(isD?'Pre-due':'Pregnancy follow-up','ok')}</div><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${age(a)}</div><div>👤 ${esc(c?.name)} · ${esc(c?.village)}</div><div class="mut">AI ${fmt(r.date)} · PD confirmed ${fmt(pdOnOf(r))}</div><div class="mut">Due ${fmt(r.due)} · Reminder from ${fmt(trig(r))} · Next follow-up ${fmt(r.fnext)}</div></div><div class="end"><div class="mut" style="font-size:12px">${isD?'Expected due':'Follow-up'}</div><div>${fmt(f.date)}</div>${due(f.date)}</div></div>
  <div class="btns"><button class="btn sm" data-a="done" data-k="${f.k}" data-id="${r.id}">Mark done</button><button class="btn sm" data-a="open" data-k="p" data-id="${r.id}">Update dates</button>${fuBtns(f.k,a.id,f.date,isD?dueEx(r):cfEx(r))}</div></div>`};
@@ -448,12 +463,13 @@ const wtRow=f=>{const r=FD(f.id),a=A(f.aid),c=C(a.cid);
  return `<div class="card rk-wt"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b('Weight check','ok')} ${FREE}</div><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · ${age(a)}</div><div>👤 ${esc(c?.name)} · ${esc(c?.village)}</div><div class="mut">🌾 Feed supplied ${fmt(r.date)} · ${esc(r.feed)}${r.qty?' · '+esc(r.qty):''}</div>${(r.checks||[]).length?`<div class="mut">Last weight ${kg(r.checks[r.checks.length-1].kg)}</div>`:r.bw?`<div class="mut">Weight at supply ${kg(r.bw)}</div>`:''}</div><div class="end"><div class="mut" style="font-size:12px">3-month check</div><div>${fmt(f.date)}</div>${due(f.date)}</div></div>
  <div class="btns"><button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button><button class="btn sm" data-a="editF" data-id="${r.id}">Change date</button>${fuBtns('wt',a.id,f.date,fdEx(r))}</div></div>`};
 const fRow=f=>{if(f.k==='wt')return wtRow(f);if(f.k==='rai')return raiRow(f);if(f.k==='cf'||f.k==='due')return pgRow(f);const a=A(f.aid),c=C(a.cid),r=(f.k==='tr'?S.tr:S.ai).find(x=>x.id===f.id),ex=f.k==='tr'?(r.dx||''):'AI done on '+fmt(r.date)+(f.k==='cf'?' · pregnancy confirmed':'');
- return `<div class="card rk-${f.k}"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(f.type,f.type==='PD'?'':'ok')}</div><div class="mut">${f.label}</div><div class="mut">${esc(c?.name)} · ${esc(c?.village)}</div></div><div class="end"><div>${fmt(f.date)}</div>${due(f.date)}</div></div><div class="btns">${f.k==='pd'?`<button class="btn sm pri" data-a="pdr" data-id="${f.id}">Result</button>`:`<button class="btn sm" data-a="done" data-k="${f.k}" data-id="${f.id}">Done</button>`}${fuBtns(f.k,f.aid,f.date,ex)}</div></div>`};
+ return `<div class="card rk-${f.k}"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(f.type,f.type==='PD'?'':'ok')}</div><div class="mut">${f.label}</div><div class="mut">${esc(c?.name)} · ${esc(c?.village)}</div></div><div class="end"><div>${fmt(f.date)}</div>${due(f.date)}</div></div>${allotTag(r)}<div class="btns">${f.k==='pd'?`<button class="btn sm pri" data-a="pdr" data-id="${f.id}">Result</button>`:`<button class="btn sm" data-a="done" data-k="${f.k}" data-id="${f.id}">Done</button>`}${fuBtns(f.k,f.aid,f.date,ex)}${fuActs(f.k,f.id)}</div></div>`};
 function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F.filter(f=>dd(f.date)<0).length,td=F.filter(f=>dd(f.date)===0).length,pp=S.ai.filter(a=>a.status==='pending'&&A(a.aid)&&live(A(a.aid))).length;
  const st=(n,l,s,t)=>`<div class="card stat" data-a="tab" data-id="${t}"><small>${l}</small><b>${n}</b><small>${s}</small></div>`;
  const WT=F.filter(f=>f.k==='wt'&&dd(f.date)<=7),G=F.filter(f=>['tr','ai','pd'].includes(f.k)&&dd(f.date)<=7),RA=F.filter(f=>f.k==='rai'&&dd(f.date)<=7),PG=F.filter(f=>f.k==='due'||(f.k==='cf'&&dd(f.date)<=7));
  const sec=(t,L,ty,emp)=>`<div class="between"><h2>${t}${L.length?' ('+L.length+')':''}</h2><a href="#" data-a="trkT" data-id="${ty}" style="color:var(--pri);font-size:14px;white-space:nowrap">See all →</a></div>${L.slice(0,6).map(fRow).join('')||`<div class="empty" style="padding:14px">${emp}</div>`}`;
- return `${aiBanner()}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
+ const inN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length,fdN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='accepted').length;
+ return `${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${aiBanner()}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
  ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log treatments, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Treatment</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button></div>
  ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}`}
 function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,c.village,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -519,18 +535,18 @@ function custView(id){const c=C(id);return `${back}<div class="card" style="marg
  <div class="between"><h2>Animals (${own(id).length})</h2><button class="btn pri" data-a="addA" data-id="${id}">+ Animal</button></div>${ownAll(id).map(a=>`<div class="card item" data-a="open" data-k="a" data-id="${a.id}"><div><b>${emo(a.species)} ${esc(aname(a))}</b><div class="mut">${esc(a.breed||a.species)} · ${a.gender} · ${age(a)}</div></div>${stBadge(a)}</div>`).join('')||emptyBox('🐄','No animals registered for this farmer yet.','Register their first animal to start logging services.','addA','+ Add Animal',id)}`}
 function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.date),rs=S.ai.filter(r=>r.aid===id).sort(by),ts=S.tr.filter(r=>r.aid===id).sort(by),fem=a.gender==='Female';
  return `${back}<div class="card" style="margin-top:12px"><h3>${emo(a.species)} ${esc(aname(a))} ${stBadge(a)}</h3><div>${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · Age ${age(a)}${a.dob?' (DOB '+fmt(a.dob)+')':''}</div><div class="mut">ID / marks: ${esc(a.tag||'—')}</div><div>Owner: <a href="#" data-a="open" data-k="c" data-id="${c.id}" style="color:var(--pri)">${esc(c.name)}</a> · ${esc(c.village)}</div>${a.notes?`<p>${esc(a.notes)}</p>`:''}
- ${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">+ Treatment</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
- ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}<div class="btns">${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
+ ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)).map(x=>`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">+ Treatment</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
+ ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}${closedNote(r.fuClosure)}${closedNote(r.rClosure)}${allotTag(r)}<div class="btns">${live(a)?(r.status==='pending'&&r.next&&!r.nextDone?fuActs('ai',r.id):r.status==='pending'&&r.pd&&!r.pdClosed?fuActs('pd',r.id):r.status==='negative'&&r.rDate&&!r.rDone?fuActs('rai',r.id):''):''}${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
  ${(()=>{const L=S.fd.filter(r=>r.aid===id).sort((x,y)=>y.date.localeCompare(x.date));if(!L.length)return '';
   return `<h2>Feed supply and weight checks</h2>${L.map(r=>`<div class="card"><div class="between"><b>🌾 ${fmt(r.date)}</b>${FREE}</div><div>${esc(r.feed)}${r.qty?' · '+esc(r.qty):''}</div>${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${r.bw?`<div class="mut">Weight at supply: ${kg(r.bw)}</div>`:''}${wHist(r)}
   <div>${r.wDone?b('Weight verification completed','ok'):r.wDate?`3-month weight check: ${fmt(r.wDate)} ${due(r.wDate)}`:''}</div>
   <div class="btns">${!r.wDone&&r.wDate&&live(a)?`<button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button>${fuBtns('wt',a.id,r.wDate,fdEx(r))}`:''}${r.wDone&&live(a)?`<button class="btn sm" data-a="wtN" data-id="${r.id}">Schedule another check</button>`:''}<button class="btn sm" data-a="editF" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delF" data-id="${r.id}">Delete</button></div></div>`).join('')}`})()}
- <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
+ <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${closedNote(t.closure)}${allotTag(t)}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
  $('#hb').innerHTML=`${syncBadge()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
- const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):anView(d.id)):({dash,cust,ani,trk,pay})[ui.tab]();
- $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}</button>`).join('');if(d&&d.k==='p')pgUpd()}
+ const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle})[ui.tab]();
+ $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments'],['circle','👥','Circle']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}${k==='circle'?'<i class="nb" id="circleN" hidden>0</i>':''}</button>`).join('');if(d&&d.k==='p')pgUpd();updNav()}
 
 /* ---------- modal + forms ---------- */
 const closeM=()=>{$('#m').hidden=true;$('#m').innerHTML='';pend=null;remClosed()};
@@ -648,7 +664,7 @@ function open(k,id){if(ui.d)ui.hist.push(ui.d);ui.d={k,id};scrollTo(0,0)}
 function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  const del=(msg,fn)=>ask(msg,()=>{fn();ui.d=ui.d&&((ui.d.k==='a'&&!A(ui.d.id))||(ui.d.k==='c'&&!C(ui.d.id))||(ui.d.k==='p'&&!S.ai.find(x=>x.id===ui.d.id)))?ui.hist.pop()||null:ui.d;save();render()});
  switch(a){
- case'tab':ui.tab=id;ui.d=null;ui.hist=[];ui.q='';ui.sp='';scrollTo(0,0);return render();
+ case'tab':ui.tab=id;ui.d=null;ui.hist=[];ui.q='';ui.sp='';scrollTo(0,0);if(id==='circle')loadCircle();return render();
  case'open':ui.d&&(ui.d.k===k&&ui.d.id===id)||open(k,id);return render();
  case'back':ui.d=ui.hist.pop()||null;return render();
  case'close':return closeM();
@@ -679,6 +695,9 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'tgtE':return tgtForm();
  case'instGo':return doInstall();
  case'bell':return remPopup(true);
+ case'fuClose':{popOpen=false;const[k3,i3]=id.split('|');return closeForm(k3,i3)}
+ case'allot':{popOpen=false;const[k3,i3]=id.split('|');return allotForm(k3,i3)}
+ case'cCreate':case'cJoin':case'cLeave':case'cCopy':case'tAccept':case'tDecline':case'tCancel':case'tClose':popOpen=false;return circleAct(a,id);
  case'remSz':{const c=document.querySelector(`[data-a="remSz"][data-id="${CSS.escape(id)}"]`)?.closest('.rem')?.querySelector('.szo');if(c)c.hidden=!c.hidden;return}
  case'remSzGo':{const[key,m]=id.split('|');remSet(key,{until:SZ[m][1]()});toast('💤 Snoozed until '+fmtTs(S.rem[key].until));return remRefresh()}
  case'remStop':{remSet(id.startsWith('tgt:')?monthKey():id,{stop:1});toast(id.startsWith('tgt:')?'🔕 AI target reminder stopped for this month':'🔕 Reminder stopped');return remRefresh()}
@@ -709,6 +728,136 @@ function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==
 
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
 document.addEventListener('input',e=>{if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
+/* ---------- Inspector Circle: task allotment / handover (privacy-first) ----------
+   Each inspector keeps a private database. A circle only shares members' name cards.
+   When a task is allotted, ONLY that task (farmer contact, animal summary, task details, note) is sent.
+   Payment details are never included. Data lives in Supabase tables inspector_circles, circle_members, task_allotments. */
+const CI={circles:[],members:[],tasks:[],loaded:false,err:'',busy:false};
+const AK={tr:['treatment_followup','Treatment follow-up'],ai:['ai_followup','AI follow-up'],pd:['ai_followup','PD check after AI'],rai:['ai','Repeat AI (pending AI)'],req_tr:['treatment','Treatment visit'],req_ai:['ai','AI (insemination)']};
+const TSTAT={pending_acceptance:['Pending acceptance','wn'],accepted:['Accepted','ok'],declined:['Declined','bad'],closed:['Closed','ok'],cancelled:['Cancelled','']};
+const tb=st=>{const[l,c]=TSTAT[st]||[st,''];return b(l,c)};
+const others=()=>CI.members.filter(m=>m.user_id!==U.id);
+const inCircle=()=>others().length>0;
+const incoming=st=>CI.tasks.filter(t=>t.to_user===U.id&&(!st||t.status===st));
+const outgoing=()=>CI.tasks.filter(t=>t.from_user===U.id);
+const cErr=e=>{const m=String(e&&(e.message||e)||'');if(/relation .* does not exist|could not find the table|schema cache|42P01|PGRST205/i.test(m))return 'setup';return m};
+async function loadCircle(quiet){if(!sb||!U||!S||CI.busy)return;CI.busy=true;const me=U.id;
+ try{const[c,m,t]=await Promise.all([sb.from('inspector_circles').select('*'),sb.from('circle_members').select('*'),sb.from('task_allotments').select('*').order('created_at',{ascending:false})]);
+  if(!U||U.id!==me)return;const e=c.error||m.error||t.error;if(e)throw e;
+  CI.circles=c.data||[];CI.members=m.data||[];CI.tasks=t.data||[];CI.loaded=true;CI.err='';applyOutcomes()}
+ catch(e){CI.err=cErr(e);if(!quiet)console.warn('Circle load failed:',e)}
+ finally{CI.busy=false}
+ if(U&&U.id===me){updBell();updNav();if(!ui.d&&(ui.tab==='circle'||ui.tab==='dash'))softRender()}}
+/* re-draw only when it will not interrupt typing or an open form */
+function softRender(){const ae=document.activeElement;if(!$('#m').hidden||(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)))return;render()}
+function updNav(){const e=$('#circleN');if(!e)return;const n=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length;e.textContent=n;e.hidden=!n}
+setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false)loadCircle(true)},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U&&S)setTimeout(()=>loadCircle(true),800)});
+/* record + kind behind a source item */
+const srcRec=(k,id)=>k==='tr'?S.tr.find(x=>x.id===id):String(k).startsWith('req')?A(id):S.ai.find(x=>x.id===id);
+/* closing a follow-up on your own record (keeps the record, adds an audit note) */
+function closeRec(k,r,note,at,by){const c={at,note:note||'',by:by||'me'};const an=A(k.startsWith('req')?r.id:r.aid);
+ if(k==='tr'){r.done=true;r.closure=c}
+ else if(k==='ai'){r.nextDone=true;r.fuClosure=c}
+ else if(k==='pd'){r.pdClosed=true;r.fuClosure=c}
+ else if(k==='rai'){r.rDone=true;r.rAi='';r.rClosure=c}
+ const lbl=AK[k]?AK[k][1]:'Task';if(an)logH(an,`${lbl} closed${by&&by!=='me'?' by '+by:''}${note?' — '+note:''}`,String(at).slice(0,10))}
+const closedNote=c=>c?`<div class="closed-note">✔ Closed ${fmt(String(c.at).slice(0,10))}${c.by&&c.by!=='me'?' by '+esc(c.by):''}${c.note?' · '+esc(c.note):''}</div>`:'';
+/* sender side: reflect what happened to each allotted task in your own records */
+function applyOutcomes(){if(!S)return;let ch=false;
+ outgoing().forEach(t=>{const k=t.payload&&t.payload.k;if(!k||!t.source_record_id)return;const r=srcRec(k,t.source_record_id);if(!r)return;
+  const note=t.status==='closed'?(t.closure_note||''):(t.response_note||'');
+  if(k.startsWith('req')){r.allots=r.allots||[];let a=r.allots.find(x=>x.id===t.id);if(!a){a={id:t.id,k,to:t.to_name};r.allots.push(a);ch=true}
+   if(a.status!==t.status||a.note!==note){a.status=t.status;a.note=note;ch=true;if(['closed','declined','cancelled'].includes(t.status)&&!a.logged){a.logged=1;logH(r,`${AK[k][1]} allotted to ${t.to_name}: ${TSTAT[t.status][0].toLowerCase()}${note?' — '+note:''}`,String(t.closed_at||t.updated_at||new Date().toISOString()).slice(0,10))}}
+   return}
+  if(!r.allot||r.allot.id!==t.id){if(r.allot&&r.allot.at&&t.created_at&&r.allot.at>t.created_at)return;r.allot={id:t.id,k,to:t.to_name,at:t.created_at};ch=true}
+  if(r.allot.status!==t.status||r.allot.note!==note){r.allot.status=t.status;r.allot.note=note;ch=true;
+   if(t.status==='closed'&&!r.allot.applied){r.allot.applied=1;closeRec(k,r,t.closure_note,t.closed_at||new Date().toISOString(),t.closed_by===U.id?'me':t.to_name)}}});
+ if(ch){save();softRender()}}
+const allotTag=r=>{const a=r&&r.allot;if(!a||['declined','cancelled'].includes(a.status)&&!a.note)return '';return `<div class="allot-tag">👥 Allotted to ${esc(a.to)} · ${tb(a.status||'pending_acceptance')}${a.note&&a.status!=='pending_acceptance'?' <span class="mut">· '+esc(a.note)+'</span>':''}</div>`};
+const allotOpen=r=>r&&r.allot&&['pending_acceptance','accepted'].includes(r.allot.status);
+/* buttons for a pending item: ✔ Mark closed · 👥 Allot */
+const fuActs=(k,id)=>{const r=srcRec(k,id);if(!r)return '';return `<button class="btn sm" data-a="fuClose" data-id="${k}|${id}">✔ Mark closed</button>${allotOpen(r)?'':`<button class="btn sm allot-btn" data-a="allot" data-id="${k}|${id}">👥 Allot</button>`}`};
+const REASONS=['Completed by another person — confirmed with farmer on call','Handled by colleague','Done by private vet / outside service','Farmer says not needed now','Animal sold / moved / died'];
+function closeForm(k,id,taskId){const t=taskId&&CI.tasks.find(x=>x.id===taskId);const r=t?null:srcRec(k,id);if(!t&&!r)return;
+ const title=t?`✔ Close allotted task<div class="mut" style="font-weight:400;font-size:13px">${esc(t.title)} · from ${esc(t.from_user===U.id?'you':t.from_name)}</div>`:'✔ Mark as closed'+who(k.startsWith('req')?r.id:r.aid);
+ modal(title,`<p class="mut" style="margin-top:0">Use this when the work is finished, including when the farmer tells you on the phone that someone else already did it. The record is kept, with your note in its history.</p>
+ <div class="sub">Quick reason</div><div class="chips">${REASONS.map((x,i)=>`<button type="button" class="chip" data-rs="${i}">${esc(x)}</button>`).join('')}</div>
+ ${ta('Closure description / reason','note','')}${fl('Closed on','on',today(),'date','required max="'+today()+'"')}<p class="err"></p>`,()=>{},
+ f=>{f.querySelectorAll('[data-rs]').forEach(x=>x.onclick=()=>{f.note.value=REASONS[+x.dataset.rs];f.querySelectorAll('[data-rs]').forEach(y=>y.classList.toggle('on',y===x))});
+  f.onsubmit=async e=>{e.preventDefault();const note=f.note.value.trim(),on=f.on.value||today(),at=on===today()?new Date().toISOString():on+'T12:00:00.000Z',err=f.querySelector('.err');
+   if(t){err.textContent='Saving…';const{error}=await sb.from('task_allotments').update({status:'closed',closure_note:note}).eq('id',t.id);if(error)return err.textContent=errMsg(error);
+    closeM();toast('✔ Task closed');return loadCircle()}
+   if(allotOpen(r)&&r.allot.id){const{error}=await sb.from('task_allotments').update({status:'closed',closure_note:note}).eq('id',r.allot.id);if(!error){r.allot.status='closed';r.allot.note=note;r.allot.applied=1}}
+   closeRec(k,r,note,at,'me');save();closeM();render();toast('✔ Marked as closed');loadCircle(true)}})}
+/* payload = ONLY what the colleague needs for this task (never payments) */
+function taskPayload(k,r,an,extra){const c=C(an.cid)||{};const p={k,farmer:{name:c.name||'',phone:c.phone||'',village:c.village||'',address:c.address||''},
+ animal:{species:an.species,breed:an.breed||'',gender:an.gender,tag:an.tag||'',age:age(an)},from:{name:U.name,hospital:U.hosp,phone:U.phone},task:{}};
+ if(k==='tr')p.task={treated:r.date,diagnosis:r.dx||'',medicines:r.meds||'',notes:r.notes||'',followUp:r.next};
+ else if(k==='ai')p.task={aiDate:r.date,semen:r.semen||'',followUp:r.next,pdDue:r.pd||''};
+ else if(k==='pd')p.task={aiDate:r.date,semen:r.semen||'',pdDue:r.pd};
+ else if(k==='rai')p.task={previousAi:r.date,pdNotConfirmed:pdOnOf(r),repeatAiDate:r.rDate,note:r.rNote||''};
+ else p.task={requested:extra.when,visit:extra.what};
+ return p}
+function allotForm(k,id){const r=srcRec(k,id);if(!r)return;if(!CI.loaded&&!CI.err)return loadCircle().then(()=>allotForm(k,id));
+ if(CI.err==='setup')return ask('The circle tables are not set up yet. Run supabase-circles.sql in the Supabase SQL Editor first.',()=>{});
+ if(!inCircle())return ask('You are not in a circle with other inspectors yet. Open the Circle tab to create a circle or join one with an invite code.',()=>{ui.tab='circle';ui.d=null;render()});
+ const an=k.startsWith('req')?r:A(r.aid);const fem=an.gender==='Female';
+ const opts=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id&&m.user_id!==U.id);return ms.length?`<optgroup label="${esc(c.name)}">${ms.map(m=>`<option value="${c.id}|${m.user_id}">${esc(m.display_name||'Inspector')}${m.hospital?' · '+esc(m.hospital):''}${m.area?' · '+esc(m.area):''}</option>`).join('')}</optgroup>`:''}).join('');
+ const due0=k==='tr'||k==='ai'?r.next:k==='pd'?r.pd:k==='rai'?r.rDate:today();
+ modal('👥 Allot to inspector'+who(an.id),`${k.startsWith('req')?`<label>Task<select name="what">${['Treatment visit',...(fem?['AI (insemination)']:[])].map(x=>`<option>${x}</option>`).join('')}</select></label>`:`<p style="margin-top:0"><b>${AK[k][1]}</b> · due ${fmt(due0)}</p>`}
+ <label>Allot to *<select name="to" required>${opts}</select></label>${fl('Due / visit date','due',due0||today(),'date','required')}
+ ${ta('Description / note for your colleague * (clinical context, urgency, directions)','desc','')}
+ <p class="share-note">🔒 Only this task is shared: farmer name, phone and village; the animal's species, breed, tag and age; this task's clinical details and your note. Your other farmers, animals and all payment details stay private.</p><p class="err"></p>`,()=>{},
+ f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=f.querySelector('.err');if(!d.desc.trim())return err.textContent='Please add a short description for your colleague.';
+  const kk=k.startsWith('req')?(d.what==='Treatment visit'?'req_tr':'req_ai'):k;const[cid,to]=d.to.split('|');const m=CI.members.find(x=>x.circle_id===cid&&x.user_id===to);
+  const title=kk.startsWith('req')?`${AK[kk][1]}: ${an.species} ${aname(an)}`:`${AK[kk][1]}: ${kk==='tr'?(r.dx||''):an.species+' '+aname(an)}`;
+  err.textContent='Sending…';const row={circle_id:cid,from_user:U.id,to_user:to,from_name:U.name,to_name:m?m.display_name:'',task_type:AK[kk][0],source_record_id:k.startsWith('req')?an.id:r.id,title,due_date:d.due,description:d.desc.trim(),payload:taskPayload(kk,r,an,{when:d.due,what:d.what}),status:'pending_acceptance'};
+  const{data,error}=await sb.from('task_allotments').insert(row).select().maybeSingle();if(error)return err.textContent=errMsg(error);
+  const t=data||row;if(kk.startsWith('req')){an.allots=an.allots||[];an.allots.push({id:t.id,k:kk,to:row.to_name,status:'pending_acceptance'})}else r.allot={id:t.id,k:kk,to:row.to_name,status:'pending_acceptance',at:t.created_at||new Date().toISOString()};
+  save();closeM();render();toast('👥 Sent to '+(row.to_name||'inspector')+' · waiting for acceptance');loadCircle(true)}})}
+/* recipient: accept / decline */
+async function taskSet(id,patch,msg){const{error}=await sb.from('task_allotments').update(patch).eq('id',id);if(error)return toast('⚠️ '+errMsg(error));toast(msg);loadCircle()}
+function declineForm(id){modal('Decline task',ta('Reason (shared with the sender)','note','')+'<p class="err"></p>',()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();closeM();taskSet(id,{status:'declined',response_note:f.note.value.trim()},'Task declined')}})}
+/* clinical follow-up message to the farmer for an accepted task (no payment details) */
+function taskMsg(t){const p=t.payload||{},a=p.animal||{},f=p.farmer||{};const txt=`Namaste ${f.name||''},\nI am a Livestock Inspector from the same circle as ${p.from?.name||'your inspector'}${p.from?.hospital?' ('+p.from.hospital+')':''}. I will attend to your animal.\n\nAnimal: ${a.species||''}${a.breed?' ('+a.breed+')':''}${a.tag?' – '+a.tag:''}\nService: ${t.title}\nDate: ${fmt(t.due_date)}\n\nPlease keep the animal ready. Call me if you have any questions.\n– ${sig()}`;return f.phone?msgLinks(f.phone,txt):''}
+function taskCard(t,mode){const p=t.payload||{},a=p.animal||{},f=p.farmer||{},tk=p.task||{},mine=t.from_user===U.id;
+ const det=Object.entries(tk).filter(([,v])=>v).map(([k,v])=>`<span>${esc(k.replace(/([A-Z])/g,' $1').toLowerCase())}: <b>${/^\d{4}-\d\d-\d\d$/.test(v)?fmt(v):esc(v)}</b></span>`).join(' · ');
+ const full=mode==='feed'||mine;
+ return `<div class="card task ${t.status}"><div class="between" style="align-items:flex-start"><div><b>${esc(t.title)}</b><div class="mut">${mine?'To '+esc(t.to_name||'inspector'):'From '+esc(t.from_name||'inspector')} · ${fmt(String(t.created_at).slice(0,10))}</div></div><div class="end">${tb(t.status)}${t.due_date&&['pending_acceptance','accepted'].includes(t.status)?'<div style="margin-top:4px">'+due(t.due_date)+'</div>':''}</div></div>
+ <div style="margin-top:6px">${emo(a.species)} ${esc(a.species||'')} ${a.breed?'· '+esc(a.breed):''} ${a.tag?'· '+esc(a.tag):''} ${a.gender?'· '+esc(a.gender):''} ${a.age?'· '+esc(a.age):''}</div>
+ <div>👤 ${esc(f.name||'')} · 📍 ${esc(f.village||'')}${full&&f.phone?` · 📞 <a href="tel:${esc(f.phone)}">${esc(f.phone)}</a>`:''}</div>
+ ${full&&f.address?`<div class="mut">${esc(f.address)}</div>`:''}${det?`<div class="mut" style="margin-top:4px">${det}</div>`:''}
+ ${t.description?`<div class="t-desc">📝 ${esc(t.description)}</div>`:''}
+ ${t.response_note?`<div class="mut">Reply: ${esc(t.response_note)}</div>`:''}${t.status==='closed'?`<div class="closed-note">✔ Closed ${fmt(String(t.closed_at||'').slice(0,10))}${t.closure_note?' · '+esc(t.closure_note):''}</div>`:''}
+ <div class="btns">${mode==='in'?`<button class="btn sm pri" data-a="tAccept" data-id="${t.id}">✅ Accept</button><button class="btn sm" data-a="tDecline" data-id="${t.id}">Decline</button>`:''}
+ ${mode==='feed'?`${taskMsg(t)}<button class="btn sm pri" data-a="tClose" data-id="${t.id}">✔ Mark closed</button>`:''}
+ ${mode==='out'&&t.status==='pending_acceptance'?`<button class="btn sm" data-a="tCancel" data-id="${t.id}">Cancel</button>`:''}${mode==='out'&&['pending_acceptance','accepted'].includes(t.status)?`<button class="btn sm" data-a="tClose" data-id="${t.id}">✔ Mark closed</button>`:''}</div></div>`}
+function circle(){const ch=CI.err==='setup'?`<div class="card note">⚙️ Circle tables are not set up in Supabase yet. Run <b>supabase-circles.sql</b> in the Supabase SQL Editor, then reopen this tab.</div>`:CI.err?`<div class="card note">⚠️ Could not load your circle (${esc(CI.err)}). Check the internet connection.</div>`:'';
+ const inT=incoming('pending_acceptance'),feed=incoming('accepted'),out=outgoing().filter(t=>['pending_acceptance','accepted'].includes(t.status)),hist=CI.tasks.filter(t=>['closed','declined','cancelled'].includes(t.status));
+ const cards=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id);const share=encodeURIComponent(`Join my Livestock Inspector circle "${c.name}" in the Field Officer app.\nInvite code: ${c.invite_code}\n${location.origin+location.pathname}`);
+  return `<div class="card circ"><div class="between"><div><b>👥 ${esc(c.name)}</b><div class="mut">${ms.length} member${ms.length>1?'s':''}</div></div><div class="end"><div class="mut" style="font-size:12px">Invite code</div><b class="code">${esc(c.invite_code)}</b></div></div>
+  <div class="mem">${ms.map(m=>`<span class="mchip">${esc(m.display_name||'Inspector')}${m.user_id===U.id?' (you)':''}${m.role==='owner'?' ★':''}<small>${esc([m.hospital,m.area].filter(Boolean).join(' · '))}</small></span>`).join('')}</div>
+  <div class="btns"><button class="btn sm" data-a="cCopy" data-id="${esc(c.invite_code)}">📋 Copy code</button><a class="btn sm wa" href="https://wa.me/?text=${share}" target="_blank" rel="noopener">💬 Invite on WhatsApp</a><button class="btn sm dng" data-a="cLeave" data-id="${c.id}">Leave</button></div></div>`}).join('');
+ return `<h2 style="margin-top:0">👥 Inspector Circle</h2><p class="mut" style="margin:-6px 0 10px;font-size:13px">🔒 Your records stay private. Circle members see only each other's names, and only the tasks you choose to allot.</p>${ch}
+ ${!CI.loaded&&!CI.err?'<div class="empty">⏳ Loading your circle…</div>':''}
+ ${inT.length?`<h2>📥 Waiting for you (${inT.length})</h2>${inT.map(t=>taskCard(t,'in')).join('')}`:''}
+ <h2>📋 My allotted feed${feed.length?' ('+feed.length+')':''}</h2>${feed.map(t=>taskCard(t,'feed')).join('')||'<div class="empty" style="padding:14px">No accepted tasks. Tasks you accept appear here with the farmer\'s contact and the note.</div>'}
+ ${out.length?`<h2>📤 Sent by me (${out.length})</h2>${out.map(t=>taskCard(t,'out')).join('')}`:''}
+ <h2>My circles</h2>${cards||(CI.loaded?'<div class="empty" style="padding:14px">You are not in a circle yet.</div>':'')}
+ <div class="card"><b>Create a circle</b><div class="mut" style="font-size:13px">For your block, panchayat or hospital team. You get an invite code to share.</div><div class="row2"><input id="cName" placeholder="Circle name, e.g. Kadampuzha Block" maxlength="60"><button class="btn pri" data-a="cCreate">Create</button></div>
+ <div style="margin-top:12px"><b>Join a circle</b></div><div class="row2"><input id="cCode" placeholder="Invite code" maxlength="10" style="text-transform:uppercase"><button class="btn" data-a="cJoin">Join</button></div></div>
+ ${hist.length?`<details style="margin-top:8px"><summary class="mut" style="cursor:pointer">Task history (${hist.length})</summary><div style="margin-top:8px">${hist.map(t=>taskCard(t,'hist')).join('')}</div></details>`:''}`}
+async function circleAct(a,id){
+ if(a==='cCreate'){const n=($('#cName')?.value||'').trim();if(n.length<2)return toast('Enter a circle name');const{data,error}=await sb.rpc('create_circle',{p_name:n});if(error)return toast('⚠️ '+(cErr(error)==='setup'?'Run supabase-circles.sql in Supabase first':errMsg(error)));toast('👥 Circle created · invite code '+(data?.invite_code||''));return loadCircle()}
+ if(a==='cJoin'){const c=($('#cCode')?.value||'').trim().toUpperCase();if(!c)return toast('Enter the invite code');const{data,error}=await sb.rpc('join_circle',{p_code:c});if(error)return toast('⚠️ '+(/no circle/i.test(error.message)?'No circle found with that invite code':cErr(error)==='setup'?'Run supabase-circles.sql in Supabase first':errMsg(error)));toast('👥 Joined '+(data?.name||'circle'));return loadCircle()}
+ if(a==='cLeave')return ask('Leave this circle? Members will no longer see your name, and you cannot receive new tasks from it. Task history is kept.',async()=>{const{error}=await sb.from('circle_members').delete().eq('circle_id',id).eq('user_id',U.id);if(error)return toast('⚠️ '+errMsg(error));toast('You left the circle');loadCircle()});
+ if(a==='cCopy'){try{await navigator.clipboard.writeText(id);toast('📋 Invite code copied: '+id)}catch(e){toast('Invite code: '+id)}return}
+ if(a==='tAccept')return taskSet(id,{status:'accepted'},'✅ Accepted · added to your allotted feed');
+ if(a==='tDecline')return declineForm(id);
+ if(a==='tCancel')return ask('Cancel this allotment? Your colleague will see it as cancelled.',()=>taskSet(id,{status:'cancelled',response_note:'Cancelled by sender'},'Allotment cancelled'));
+ if(a==='tClose')return closeForm(null,null,id)}
+
 /* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
 /* Each alert has a key (type : record : date [: stage]). Snooze / Stop are stored in S.rem, which is saved to the
    inspector's Supabase profile (settings), so they survive refresh, re-login and other devices. Records are never changed. */
@@ -716,9 +865,10 @@ const RK={tr:['💉','Treatment follow-up','rk-tr'],ai:['🧬','AI follow-up','r
 const recOf=a=>(a.k==='tr'?S.tr:a.k==='wt'?S.fd:S.ai).find(x=>x.id===a.id);
 const monthKey=()=>'tgt:'+today().slice(0,7);
 function alerts(){const L=[];
- fups().forEach(f=>{const n=dd(f.date);
+ fups().forEach(f=>{const n=dd(f.date);const rr=f.k==='wt'?null:recOf(f);if(rr&&rr.allot&&rr.allot.status==='accepted')return;  /* a colleague accepted it */
   if(f.k==='due'){L.push({...f,stage:n<=1?'d1':'lead',key:`due:${f.id}:${f.date}:${n<=1?'d1':'lead'}`});return}  /* 10/20-day window, then a separate 1-day-before alert */
   if(n<=1)L.push({...f,key:`${f.k}:${f.id}:${f.date}`})});                                                        /* tomorrow, today or overdue */
+ CI.tasks.filter(x=>x.to_user===U.id&&x.status==='accepted'&&x.due_date&&dd(x.due_date)<=1).forEach(x=>L.push({k:'at',id:x.id,date:x.due_date,key:`at:${x.id}:${x.due_date}`,task:x}));  /* allotted to me */
  const t=aiStats();if(S.cs.length&&t.left>0)L.push({k:'tgt',key:'tgt:'+today(),t});
  return L}
 /* null = active · 'snooze' · 'stop' · 'seen' (daily AI target already shown today) */
@@ -736,7 +886,7 @@ function remDetail(a,r){if(a.k==='rai')return `Previous AI ${fmt(r.date)} · PD 
  if(a.k==='pd')return `AI ${fmt(r.date)} · record the PD result`;
  if(a.k==='ai')return `AI done ${fmt(r.date)}`;
  return esc(r.dx||'')}
-function remCard(a,st){const sb=st==='stop'?'<div class="rem-st">🔕 Stopped</div>':st==='snooze'?`<div class="rem-st">💤 Snoozed until ${fmtTs((S.rem[a.key]||{}).until)}</div>`:'';
+function remCard(a,st){if(a.k==='at')return atCard(a,st);const sb=st==='stop'?'<div class="rem-st">🔕 Stopped</div>':st==='snooze'?`<div class="rem-st">💤 Snoozed until ${fmtTs((S.rem[a.key]||{}).until)}</div>`:'';
  const ctl=st&&st!=='seen'?`<button class="btn sm" data-a="remRes" data-id="${a.key}">↩ Resume</button>`:`<button class="btn sm" data-a="remSz" data-id="${a.key}">💤 Snooze</button><button class="btn sm" data-a="remStop" data-id="${a.key}">🔕 Stop</button>`;
  const szo=`<div class="szo" hidden><span class="mut">Snooze for:</span>${Object.entries(SZ).map(([m,[l]])=>`<button class="chip" data-a="remSzGo" data-id="${a.key}|${m}">${l}</button>`).join('')}</div>`;
  if(a.k==='tgt'){const t=a.t;return `<div class="card rem rk-ai"><div class="between"><div><b>🎯 Daily AI target</b><div>${t.left} more AI procedure${t.left>1?'s':''} remaining out of ${t.T} this month</div><div class="mut">${t.done} done · ${t.dl} day${t.dl>1?'s':''} left · aim for about ${t.perDay} per day</div></div><div class="end">${b(t.pct+'%','wn')}</div></div>${sb}
@@ -745,7 +895,11 @@ function remCard(a,st){const sb=st==='stop'?'<div class="rem-st">🔕 Stopped</d
  const main=a.k==='pd'?`<button class="btn sm pri" data-a="remGo" data-id="pdr|${r.id}">Record result</button>`:a.k==='rai'?`<button class="btn sm pri" data-a="remGo" data-id="reAI|${r.id}">Record Repeat AI</button>`:a.k==='wt'?`<button class="btn sm pri" data-a="remGo" data-id="wtV|${r.id}">⚖️ Verify Weight</button>`:(a.k==='cf'||a.k==='due')?`<button class="btn sm pri" data-a="remGo" data-id="p|${r.id}">Open pregnancy page</button>`:`<button class="btn sm pri" data-a="remGo" data-id="a|${an.id}">Open animal</button>`;
  const ex=a.k==='tr'?(r.dx||''):a.k==='rai'?raiEx(r):a.k==='cf'?cfEx(r):a.k==='due'?dueEx(r):a.k==='wt'?fdEx(r):'AI done on '+fmt(r.date);
  return `<div class="card rem ${cls}"><div class="between" style="align-items:flex-start"><div><b>${ic} ${lbl}</b><div>${emo(an.species)} ${esc(aname(an))} · 👤 ${esc(c?.name)}</div><div class="mut">${remDetail(a,r)}</div></div><div class="end"><div style="font-size:13px">${fmt(a.date)}</div>${due(a.date)}</div></div>${sb}
- <div class="btns">${main}${fuBtns(a.k,an.id,a.date,ex)}${ctl}</div>${szo}</div>`}
+ <div class="btns">${main}${fuBtns(a.k,an.id,a.date,ex)}${['tr','ai','pd','rai'].includes(a.k)?fuActs(a.k,r.id):''}${ctl}</div>${szo}</div>`}
+function atCard(a,st){const t=a.task,p=t.payload||{},an=p.animal||{},f=p.farmer||{};const sb2=st==='stop'?'<div class="rem-st">🔕 Stopped</div>':st==='snooze'?`<div class="rem-st">💤 Snoozed until ${fmtTs((S.rem[a.key]||{}).until)}</div>`:'';
+ const ctl=st&&st!=='seen'?`<button class="btn sm" data-a="remRes" data-id="${a.key}">↩ Resume</button>`:`<button class="btn sm" data-a="remSz" data-id="${a.key}">💤 Snooze</button><button class="btn sm" data-a="remStop" data-id="${a.key}">🔕 Stop</button>`;
+ return `<div class="card rem rk-at"><div class="between" style="align-items:flex-start"><div><b>👥 Allotted task</b><div>${esc(t.title)}</div><div class="mut">${emo(an.species)} ${esc(an.tag||an.species||'')} · 👤 ${esc(f.name||'')} · from ${esc(t.from_name||'colleague')}</div></div><div class="end"><div style="font-size:13px">${fmt(a.date)}</div>${due(a.date)}</div></div>${sb2}
+ <div class="btns"><button class="btn sm pri" data-a="remGo" data-id="tab|circle">Open in Circle</button>${taskMsg(t)}<button class="btn sm" data-a="tClose" data-id="${t.id}">✔ Mark closed</button>${ctl}</div><div class="szo" hidden><span class="mut">Snooze for:</span>${Object.entries(SZ).map(([m,[l]])=>`<button class="chip" data-a="remSzGo" data-id="${a.key}|${m}">${l}</button>`).join('')}</div></div>`}
 let popSeen=new Set(),popOpen=false,hiddenAt=0;
 /* all = opened from the 🔔 button: also lists snoozed / stopped alerts so they can be resumed */
 function remPopup(all){const L=alerts(),act=L.filter(a=>!remState(a)),rest=L.filter(a=>remState(a));
