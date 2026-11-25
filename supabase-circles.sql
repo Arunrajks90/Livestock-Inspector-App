@@ -2,6 +2,8 @@
 -- Livestock Inspector – Inspector Circles, Task Allotment / Handover,
 -- and Follow-up Closure columns.
 -- Run this AFTER supabase-setup.sql, in Supabase → SQL Editor → New query → Run.
+-- Already ran an earlier version? Just run this whole file again: it adds the new
+-- return-to-sender fields and updates the rules without touching existing data.
 -- Safe to run again. It does not change or expose any existing records:
 -- farmers, animals, treatments, ai_records and feed_supplies stay
 -- strictly private (auth.uid() = user_id).
@@ -59,6 +61,22 @@ create table if not exists public.task_allotments (
   updated_at       timestamptz not null default now(),
   check (from_user <> to_user)
 );
+-- Return-to-sender workflow (added in v2; "add column if not exists" makes re-running safe)
+alter table public.task_allotments add column if not exists closed_date        date;
+alter table public.task_allotments add column if not exists returned_to_sender boolean not null default false;  -- closed by the assignee, back with the sender
+alter table public.task_allotments add column if not exists follow_up_owner_id uuid references auth.users(id) on delete set null; -- always the original sender
+alter table public.task_allotments add column if not exists follow_up_status   text;   -- null = waiting for the sender · scheduled · not_needed
+alter table public.task_allotments add column if not exists follow_up_set_at   timestamptz;
+alter table public.task_allotments add column if not exists closure_description text generated always as (closure_note) stored;
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'task_allotments_follow_up_status_check') then
+    alter table public.task_allotments add constraint task_allotments_follow_up_status_check
+      check (follow_up_status is null or follow_up_status in ('scheduled','not_needed'));
+  end if;
+end $$;
+-- NOTE: the next follow-up DATE is saved only in the sender's own private record
+-- (treatments / ai_records), never in this shared row, so the assignee can never see it.
+
 create index if not exists task_allot_to_idx   on public.task_allotments (to_user, status);
 create index if not exists task_allot_from_idx on public.task_allotments (from_user, status);
 
@@ -124,8 +142,10 @@ grant select, update, delete on public.circle_members    to authenticated;
 grant select, insert, update on public.task_allotments   to authenticated;
 
 -- Allowed status changes, and nobody can rewrite who/what a task is.
---   recipient: pending_acceptance → accepted / declined;  accepted → closed
+--   recipient (assignee): pending_acceptance → accepted / declined;  accepted → closed (a description is REQUIRED)
+--                         after the task is closed / declined / cancelled the assignee can change nothing more.
 --   sender:    pending_acceptance → cancelled;  pending_acceptance / accepted → closed (handled elsewhere)
+--   sender only: follow_up_status / follow_up_set_at, once the task is closed (the next follow-up belongs to the sender).
 create or replace function public.task_allotment_guard() returns trigger
 language plpgsql set search_path = '' as $$
 declare me uuid := auth.uid();
@@ -136,6 +156,24 @@ begin
      or new.description is distinct from old.description or new.title is distinct from old.title
      or new.created_at is distinct from old.created_at then
     raise exception 'Task details cannot be changed after allotment';
+  end if;
+  -- the assignee's involvement ends once the task is finished
+  if me is not null and me = old.to_user and old.status in ('declined','closed','cancelled') then
+    raise exception 'This task is already % – no further changes by the assignee', old.status;
+  end if;
+  -- these are set by the system or by the original sender only
+  if new.returned_to_sender is distinct from old.returned_to_sender
+     or new.follow_up_owner_id is distinct from old.follow_up_owner_id then
+    raise exception 'Return-to-sender fields are set automatically';
+  end if;
+  if new.follow_up_status is distinct from old.follow_up_status or new.follow_up_set_at is distinct from old.follow_up_set_at then
+    if me is not null and me <> old.from_user then
+      raise exception 'Only the original sender can set the next follow-up';
+    end if;
+    if new.status <> 'closed' then
+      raise exception 'The next follow-up can be set only after the task is closed';
+    end if;
+    new.follow_up_set_at := coalesce(new.follow_up_set_at, now());
   end if;
   if new.status is distinct from old.status then
     if old.status in ('declined','closed','cancelled') then
@@ -152,7 +190,22 @@ begin
       raise exception 'Sender cannot change status from % to %', old.status, new.status;
     end if;
     if new.status = 'accepted' then new.accepted_at := now(); end if;
-    if new.status = 'closed' then new.closed_at := coalesce(new.closed_at, now()); new.closed_by := me; end if;
+    if new.status = 'closed' then
+      new.closed_at  := coalesce(new.closed_at, now());
+      new.closed_by  := me;
+      new.closed_date := coalesce(new.closed_date, (new.closed_at at time zone 'Asia/Kolkata')::date);
+      new.follow_up_owner_id := old.from_user;            -- any further follow-up belongs to the sender
+      if me = old.to_user then
+        if length(trim(coalesce(new.closure_note, ''))) < 3 then
+          raise exception 'A closure description is required to close an allotted task';
+        end if;
+        new.returned_to_sender := true;                   -- goes back to the sender to set the next follow-up
+      end if;
+    end if;
+  elsif new.closed_date is distinct from old.closed_date or new.closure_note is distinct from old.closure_note then
+    if old.status = 'closed' and (me is null or me <> old.from_user) then
+      raise exception 'Closure details cannot be changed after closing';
+    end if;
   end if;
   new.updated_at := now();
   return new;
@@ -226,5 +279,14 @@ alter table public.ai_records add column if not exists repeat_ai_closed_at text
   generated always as (data->'rClosure'->>'at') stored;
 alter table public.ai_records add column if not exists repeat_ai_closure_note text
   generated always as (data->'rClosure'->>'note') stored;
+
+alter table public.treatments add column if not exists next_follow_up_owner text
+  generated always as (case when coalesce(data->>'next','') <> '' then 'self' else null end) stored;
+alter table public.treatments add column if not exists performed_by_colleague text
+  generated always as (data->>'byOther') stored;
+alter table public.ai_records add column if not exists next_follow_up text
+  generated always as (data->>'next') stored;
+alter table public.ai_records add column if not exists performed_by_colleague text
+  generated always as (data->>'byOther') stored;
 
 -- Done. Private tables are unchanged and still visible only to their owner (auth.uid() = user_id).
