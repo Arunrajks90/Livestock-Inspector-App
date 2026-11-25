@@ -328,6 +328,11 @@ create or replace view public.my_follow_up_tracker with (security_invoker = true
     from public.ai_records a
    where a.data->>'status' = 'confirmed' and coalesce(a.data->>'fnext','') <> '' and not public.safe_bool(a.data->>'fDone')
   union all
+  select a.user_id, 'Post-abortion follow-up / heat check', a.id, a.data->>'aid', a.data->>'hcDate', a.data->>'byOther',
+         a.data->'fuFrom'->>'by', a.data->'fuFrom'->>'cd', a.data->'fuFrom'->>'note'
+    from public.ai_records a
+   where a.data->>'status' = 'aborted' and coalesce(a.data->>'hcDate','') <> '' and not public.safe_bool(a.data->>'hcDone')
+  union all
   select f.user_id, '3-month weight check', f.id, f.data->>'aid', f.data->>'wDate', null, null, null, null
     from public.feed_supplies f
    where coalesce(f.data->>'wDate','') <> '' and not public.safe_bool(f.data->>'wDone');

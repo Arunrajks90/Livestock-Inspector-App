@@ -20,12 +20,12 @@ your-repo/
     └── apple-touch-icon.png
 ```
 
-`supabase-setup.sql`, `supabase-circles.sql` and `supabase-messages.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
+`supabase-setup.sql`, `supabase-circles.sql`, `supabase-messages.sql` and `supabase-abortion.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
 
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) and then `supabase-messages.sql` (circle messaging). All are safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging) and `supabase-abortion.sql` (abortion columns). All are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -82,6 +82,12 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - **Animal page → 📜 Clinical history timeline:** every treatment, follow-up visit, closure note, AI, PD result, feed supply, weight check and animal event, newest first.
 - **Farmer page → 📜 Clinical history · all animals of this farmer:** the same, for all of that farmer's animals together.
 - **📜 Activity log** (Home, Tracker, or 👤 profile): your own actions, newest first: treatments, AI & PD, follow-ups scheduled / closed, feed & weight, payments received, animal events, and circle tasks (allotted, accepted, declined, closed, follow-up set). Filter by type, by 7 / 30 / 90 days / all time, or search; tap an event to open the animal. It is built from your own private records, so only you see it.
+
+## Mark as Aborted (confirmed pregnancies)
+- **⚠️ Mark as Aborted** is on every confirmed pregnancy: the animal's AI card, the pregnancy page, pregnancy reminders in the Tracker / Home, and the 🔔 popup cards.
+- Enter the **abortion date** (today by default, editable) and the **reason / clinical notes** (required). Saving changes the status from Confirmed to **Aborted** and permanently stops that pregnancy's calving-date, 10 / 20-day and 1-day reminders. Other pregnancies are not affected.
+- Optional **post-abortion follow-up / next heat check** date and note: it goes into your Follow-Up Tracker with the normal 1-day-before reminder and WhatsApp / SMS options.
+- The abortion (date and notes) shows in the animal's AI card, its clinical timeline, the farmer's timeline and your 📜 Activity log. **↩ Undo "Aborted"** restores the pregnancy if it was marked by mistake.
 
 ## Reminder popup (🔔)
 - When the app opens (and every 30 seconds while it is open) a popup lists reminders that are **due tomorrow, today or overdue**: treatment and AI follow-ups, PD checks, repeat AI dates, pregnancy follow-ups, expected due dates and 3-month weight checks.

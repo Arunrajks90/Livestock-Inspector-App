@@ -221,6 +221,9 @@ nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:
 .tl summary{cursor:pointer;list-style:none}.tl summary::-webkit-details-marker{display:none}.tl summary b::before{content:'▸ ';color:var(--mut)}.tl[open] summary b::before{content:'▾ '}.tl-list{margin-top:8px}
 .log-btn{color:#0f766e;border-color:#99f6e4;background:#f0fdfa;font-weight:600}
 .dec-tag .btns{margin-top:6px}
+.ab-btn{color:#b91c1c;border-color:#fecaca;background:#fff5f5;font-weight:600}
+.ab-box{margin-top:8px;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:8px 10px;font-size:14px}.ab-box b{color:#b91c1c}
+.ab-warn{margin-top:0;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;border-radius:10px;padding:8px 10px;font-size:13.5px}
 /* install banner */
 .inst{position:fixed;z-index:15;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #a7f3d0;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px #0f3d2a33;animation:instUp .3s ease-out}
 body.auth .inst{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
@@ -436,6 +439,7 @@ function purgeOldSamples(){if(!S)return;const dc=new Set(S.cs.filter(x=>x.demo).
 function fups(){const L=[],p=(k,r,date,type,label)=>A(r.aid)&&live(A(r.aid))&&L.push({k,id:r.id,aid:r.aid,date,type,label});
  S.tr.forEach(t=>t.next&&!t.done&&p('tr',t,t.next,'Follow-up',t.visit?'📌 '+t.dx:'Treatment follow-up'+(t.dx?': '+t.dx:'')));
  S.ai.forEach(a=>{if(a.status==='pending'){a.pd&&!a.pdClosed&&p('pd',a,a.pd,'PD','Pregnancy detection due');a.next&&!a.nextDone&&p('ai',a,a.next,'Follow-up','AI follow-up')}
+  if(a.status==='aborted'&&a.hcDate&&!a.hcDone)p('hc',a,a.hcDate,'Follow-up','Post-abortion follow-up / heat check');
   if(a.status==='confirmed'){a.fnext&&!a.fDone&&p('cf',a,a.fnext,'Pregnancy','Pregnancy follow-up');
    if(a.due&&!a.dueDone&&dd(trig(a))<=0)p('due',a,a.due,'Pregnancy','Pre-due reminder')}
   if(a.status==='negative'&&a.rDate&&!a.rDone)p('rai',a,a.rDate,'Repeat AI','Repeat AI due')});
@@ -475,13 +479,15 @@ const ph=p=>{let d=String(p||'').replace(/\D/g,'');if(d.length===11&&d[0]==='0')
 const sig=()=>S.sig||(U?U.name+(U.hosp?', '+U.hosp:''):'Livestock Inspector');
 const msgLinks=(phone,text)=>{const n=ph(phone);if(!n)return '';const t=encodeURIComponent(text);return `<a class="btn sm wa" href="https://wa.me/${n}?text=${t}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="btn sm" href="sms:+${n}?body=${t}" target="_blank" rel="noopener">✉️ SMS</a>`};
 const FU={tr:'Treatment follow-up',ai:'Artificial Insemination (AI) follow-up',pd:'PD Check (pregnancy diagnosis)',cf:'Pregnancy follow-up (after PD Check)',rai:'Repeat Artificial Insemination (AI)',due:'Pre-calving / expected due date reminder'};
+FU.hc='Post-abortion follow-up / heat check';
 FU.wt='3-month weight check (free feed supply scheme)';
 const DL={rai:'Approx. repeat AI date',due:'Expected due (calving) date',wt:'Weight check date'},CL={wt:'Please keep the animal at home on that day so we can weigh it. This visit is free of cost.',rai:'Please call me as soon as the animal shows heat signs so the repeat AI can be done on time.',due:'Please keep the animal comfortable, give extra feed as advised, and call me at the first signs of calving.'};
 function fuTxt(k,aid,date,extra){const a=A(aid),c=C(a.cid);
  return `Namaste ${c.name},\nReminder from your Livestock Inspector.\n\nAnimal: ${a.species}${a.breed?' ('+a.breed+')':''}${a.tag?' – '+a.tag:''}\nService: ${FU[k]}${extra?'\nDetails: '+extra:''}\n${DL[k]||'Next follow-up date'}: ${fmt(date)}\n\n${CL[k]||'Please keep the animal ready on that day. Call me if you have any questions.'}\n– ${sig()}`}
 const fuBtns=(k,aid,date,extra)=>{const a=A(aid),c=a&&C(a.cid);return c&&date?msgLinks(c.phone,fuTxt(k,aid,date,extra)):''};
 /* the follow-up a record is waiting on: [kind,date,extra] */
-const aiFu=r=>r.status==='pending'?(r.next&&!r.nextDone&&(!r.pd||r.next<r.pd)?['ai',r.next,'AI done on '+fmt(r.date)]:r.pd?['pd',r.pd,'AI done on '+fmt(r.date)]:null)
+const hcEx=r=>`Pregnancy was lost on ${fmt(r.abDate)}. Post-abortion check-up / watch for heat signs${r.hcNote?' ('+r.hcNote+')':''}.`;
+const aiFu=r=>r.status==='aborted'?(r.hcDate&&!r.hcDone?['hc',r.hcDate,hcEx(r)]:null):r.status==='pending'?(r.next&&!r.nextDone&&(!r.pd||r.next<r.pd)?['ai',r.next,'AI done on '+fmt(r.date)]:r.pd?['pd',r.pd,'AI done on '+fmt(r.date)]:null)
  :r.status==='confirmed'?(r.fnext&&!r.fDone?['cf',r.fnext,cfEx(r)]:r.due&&!r.dueDone?['due',r.due,dueEx(r)]:null)
  :r.status==='negative'&&r.rDate&&!r.rDone?['rai',r.rDate,raiEx(r)]:null;
 /* payments are inspector-only: no payment messages are ever sent to farmers */
@@ -492,7 +498,7 @@ const raiRow=f=>{const r=S.ai.find(x=>x.id===f.id),a=A(f.aid),c=C(a.cid);
  <div class="btns"><button class="btn sm pri" data-a="reAI" data-id="${r.id}">Record Repeat AI</button><button class="btn sm" data-a="raiS" data-id="${r.id}">Change date</button>${fuBtns('rai',a.id,f.date,raiEx(r))}${fuActs('rai',r.id)}</div>${allotTag(r,'rai')}</div>`};
 const pgRow=f=>{const r=S.ai.find(x=>x.id===f.id),a=A(f.aid),c=C(a.cid),isD=f.k==='due';
  return `<div class="card rk-pg${hl(r.id)}" data-rid="${r.id}"><div class="item"><div data-a="open" data-k="p" data-id="${r.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(isD?'Pre-due':'Pregnancy follow-up','ok')}</div><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${age(a)}</div><div>👤 ${esc(c?.name)} · ${esc(c?.village)}</div><div class="mut">AI ${fmt(r.date)} · PD confirmed ${fmt(pdOnOf(r))}</div><div class="mut">Due ${fmt(r.due)} · Reminder from ${fmt(trig(r))} · Next follow-up ${fmt(r.fnext)}</div></div><div class="end"><div class="mut" style="font-size:12px">${isD?'Expected due':'Follow-up'}</div><div>${fmt(f.date)}</div>${due(f.date)}</div></div>${hoTag(r)}
- <div class="btns"><button class="btn sm" data-a="done" data-k="${f.k}" data-id="${r.id}">Mark done</button><button class="btn sm" data-a="open" data-k="p" data-id="${r.id}">Update dates</button>${fuBtns(f.k,a.id,f.date,isD?dueEx(r):cfEx(r))}</div></div>`};
+ <div class="btns"><button class="btn sm ab-btn" data-a="abort" data-id="${r.id}">⚠️ Aborted</button><button class="btn sm" data-a="done" data-k="${f.k}" data-id="${r.id}">Mark done</button><button class="btn sm" data-a="open" data-k="p" data-id="${r.id}">Update dates</button>${fuBtns(f.k,a.id,f.date,isD?dueEx(r):cfEx(r))}</div></div>`};
 const wtRow=f=>{const r=FD(f.id),a=A(f.aid),c=C(a.cid);
  return `<div class="card rk-wt"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b('Weight check','ok')} ${FREE}</div><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · ${age(a)}</div><div>👤 ${esc(c?.name)} · ${esc(c?.village)}</div><div class="mut">🌾 Feed supplied ${fmt(r.date)} · ${esc(r.feed)}${r.qty?' · '+esc(r.qty):''}</div>${(r.checks||[]).length?`<div class="mut">Last weight ${kg(r.checks[r.checks.length-1].kg)}</div>`:r.bw?`<div class="mut">Weight at supply ${kg(r.bw)}</div>`:''}</div><div class="end"><div class="mut" style="font-size:12px">3-month check</div><div>${fmt(f.date)}</div>${due(f.date)}</div></div>
  <div class="btns"><button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button><button class="btn sm" data-a="editF" data-id="${r.id}">Change date</button>${fuBtns('wt',a.id,f.date,fdEx(r))}</div></div>`};
@@ -517,7 +523,7 @@ function aniList(){const q=ui.q.toLowerCase(),L=S.an.filter(a=>(!ui.sp||a.specie
  return L.map(a=>`<div class="card item" data-a="open" data-k="a" data-id="${a.id}"><div><b>${emo(a.species)} ${esc(aname(a))}</b><div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · ${age(a)}</div><div class="mut">Owner: ${esc(C(a.cid)?.name)}</div></div>${stBadge(a)}</div>`).join('')||(S.an.length?'<div class="empty">No animals match this search or filter.</div>':S.cs.length?emptyBox('🐄','No animals registered yet.','Click “+ Add Animal” to register a farmer’s cow, buffalo, goat and more.','addA','+ Add Animal'):emptyBox('🐄','No animals registered yet.','Add a farmer first, then register their animals.','addC','+ Add Farmer'))}
 const statusBlock=a=>{const h=(a.hist||[]).slice().reverse().map(x=>`<div class="mut">${fmt(x.date)} · ${esc(x.text)}</div>`).join('');return(live(a)?'':`<p>${stBadge(a)} ${fmt(a.sdate)}${a.snote?' · '+esc(a.snote):''}</p>`)+(h?`<div style="margin-top:8px"><b>History</b>${h}</div>`:'')};
 const lastAI=a=>S.ai.filter(r=>r.aid===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
-const stBadge=a=>{if(!live(a))return b(a.status==='dead'?'Deceased':'Sold','bad');const r=lastAI(a);if(r&&r.status==='negative'&&r.rDate&&!r.rDone)return b('Repeat AI due','wn');return r?(r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')):''};
+const stBadge=a=>{const la=(S.ai||[]).filter(r=>r.aid===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];if(live(a)&&la&&la.status==='aborted')return b('Aborted','bad');if(!live(a))return b(a.status==='dead'?'Deceased':'Sold','bad');const r=lastAI(a);if(r&&r.status==='negative'&&r.rDate&&!r.rDone)return b('Repeat AI due','wn');return r?(r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')):''};
 function ani(){const sps=[...new Set(S.an.map(a=>a.species))];
  return `<div class="between"><h2 style="margin:0">Livestock</h2><button class="btn pri" data-a="addA">+ Add</button></div><div class="chips"><input id="q" placeholder="Search tag, breed or owner" value="${esc(ui.q)}"></div><div class="chips">${['',...sps].map(s=>`<button class="chip ${ui.sp===s?'on':''}" data-a="sp" data-id="${esc(s)}">${s||'All'}</button>`).join('')}</div><div class="chips">${[['active','Active'],['dead','Deceased'],['sold','Sold'],['all','All']].map(([v,l])=>`<button class="chip ${ui.st===v?'on':''}" data-a="ast" data-id="${v}">${l}</button>`).join('')}</div><div id="list">${aniList()}</div>`}
 function trkList(){const F=fups().filter(f=>{let n=dd(f.date);if(f.k==='due'&&n>0)n=0;const rr=f.k==='wt'?null:recOf(f);return(ui.t==='all'||ui.t===f.type||(ui.t==='handover'&&rr&&(rr.fuFrom||(rr.allot&&rr.allot.status==='declined'&&(rr.allot.k===f.k||(rr.allot.k==='visit'&&f.k==='tr'))))))&&(ui.r==='all'||(ui.r==='over'&&n<0)||(ui.r==='today'&&n===0)||(ui.r==='week'&&n<=7)||(ui.r==='month'&&n<=30))});return F.map(fRow).join('')||(S.cs.length?'<div class="empty">Nothing in this view.</div>':emptyBox('📅','No reminders yet.','Follow-ups, PD checks, repeat AI, pregnancy and weight-check reminders appear here once you add records.','addC','+ Add Farmer'))}
@@ -533,11 +539,13 @@ function pay(){const A_=pays(),P=A_.filter(x=>x.st==='Pending'),m=today().slice(
  const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data-a="flt" data-k="${k}" data-id="${v}">${l}</button>`;
  return `<h2 style="margin-top:0">Payments</h2><p class="mut" style="margin:-6px 0 10px;font-size:13px">🔒 For your records only. Payment details are never sent to farmers.</p><div class="sum"><div class="card"><small class="mut">Total pending</small><b style="color:var(--bad)">${rs(sum(P))}</b><small class="mut">${P.length} records · ${new Set(P.map(x=>x.cid)).size} farmers</small></div><div class="card"><small class="mut">Collected this month</small><b style="color:var(--pri)">${rs(sum(M))}</b><small class="mut">${M.length} payments</small></div></div>
  <div class="chips" style="margin-top:12px"><input id="q" placeholder="Search farmer, phone or village" value="${esc(ui.q)}"></div><div class="chips">${ch('ps','Pending','Pending')}${ch('ps','Paid','Paid')}${ch('ps','all','All')}</div><div class="chips">${ch('pt','all','All services')}${ch('pt','tr','Treatment')}${ch('pt','ai','AI')}${ch('pt','pd','PD Check')}</div><div id="list">${payList()}</div>`}
-const aiExtra=(r,a)=>r.status==='confirmed'?`${r.due?`<div>Expected due: ${fmt(r.due)} ${r.dueDone?b('Done','ok'):due(r.due)}</div>`:''}<div class="btns"><button class="btn sm pri" data-a="open" data-k="p" data-id="${r.id}">🤰 Pregnancy page</button></div>`
+const abBox=r=>`<div class="ab-box"><b>⚠️ Pregnancy aborted</b> · ${fmt(r.abDate)}${r.abNotes?`<div>📝 ${esc(r.abNotes)}</div>`:''}<div class="mut" style="font-size:12.5px">PD had confirmed the pregnancy${r.due?' (due '+fmt(r.due)+')':''}. All calving reminders were stopped.</div>${r.hcDate?`<div>🩺 Post-abortion follow-up / heat check: ${fmt(r.hcDate)} ${r.hcDone?b('Done','ok'):due(r.hcDate)}${r.hcNote?' · '+esc(r.hcNote):''}</div>`:''}${closedNote(r.hcClosure)}</div>`;
+const aiExtra=(r,a)=>r.status==='aborted'?`${abBox(r)}<div class="btns">${live(a)&&r.hcDate&&!r.hcDone?`<button class="btn sm" data-a="done" data-k="hc" data-id="${r.id}">✔ Heat check done</button>`:''}${live(a)&&!r.hcDate?`<button class="btn sm" data-a="abort" data-id="${r.id}">🩺 Add heat-check date</button>`:''}<button class="btn sm" data-a="abUndo" data-id="${r.id}">↩ Undo “Aborted”</button></div>`:r.status==='confirmed'?`${r.due?`<div>Expected due: ${fmt(r.due)} ${r.dueDone?b('Done','ok'):due(r.due)}</div>`:''}<div class="btns"><button class="btn sm pri" data-a="open" data-k="p" data-id="${r.id}">🤰 Pregnancy page</button>${live(a)?`<button class="btn sm ab-btn" data-a="abort" data-id="${r.id}">⚠️ Mark as Aborted</button>`:''}</div>`
  :r.status==='negative'&&live(a)?(r.rDone?`<div class="mut">Repeat AI: ${r.rAi?'recorded':'not planned'}</div>`:`<div>${r.rDate?`Approx. repeat AI: ${fmt(r.rDate)} ${due(r.rDate)}`:'<span class="mut">No repeat AI scheduled yet</span>'}</div>${r.rDate&&r.rNote?`<div class="mut">📝 ${esc(r.rNote)}</div>`:''}<div class="btns"><button class="btn sm pri" data-a="reAI" data-id="${r.id}">Record Repeat AI</button><button class="btn sm" data-a="raiS" data-id="${r.id}">${r.rDate?'Change date':'Schedule repeat AI'}</button></div>`):'';
 /* dedicated confirmed-pregnancy page */
 function pregView(id){const r=S.ai.find(x=>x.id===id);if(!r||!A(r.aid))return back+'<div class="empty">Record not found.</div>';
  const a=A(r.aid),c=C(a.cid),g=gest(a),L=leadOf(r),cu=![10,20].includes(L),ad=autoDue(r),tg=trig(r);
+ if(r.status==='aborted')return `${back}<div style="margin-top:12px">${abBox(r)}</div><div class="btns"><button class="btn" data-a="open" data-k="a" data-id="${a.id}">Open the animal</button></div>`;
  if(r.status!=='confirmed')return `${back}<div class="card" style="margin-top:12px">This AI record is no longer marked as a confirmed pregnancy. <a href="#" data-a="open" data-k="a" data-id="${a.id}" style="color:var(--pri)">Open the animal</a>.</div>`;
  const tile=(l,v,x)=>`<div class="card"><small class="mut">${l}</small><b>${v?fmt(v):'—'}</b><small>${x||''}</small></div>`;
  const fuS=r.fnext?(r.fDone?b('Done','ok'):due(r.fnext)):'',duS=!r.due?'':r.dueDone?b('Completed','ok'):dd(tg)>0?b('Reminder starts '+rel(tg),''):b('Reminder active','wn');
@@ -549,6 +557,7 @@ function pregView(id){const r=S.ai.find(x=>x.id===id);if(!r||!A(r.aid))return ba
  <h2>Reminders</h2>
  <div class="card"><div class="between"><div><b>Follow-up</b><div class="mut">${r.fnext?fmt(r.fnext):'No date set'}</div></div>${fuS}</div>${r.fnext&&!r.fDone?`<div class="btns"><button class="btn sm" data-a="done" data-k="cf" data-id="${r.id}">Mark done</button>${fuBtns('cf',a.id,r.fnext,cfEx(r))}</div>`:''}</div>
  <div class="card"><div class="between"><div><b>Pre-due / calving</b><div class="mut">${r.due?'Due '+fmt(r.due)+' · reminder from '+fmt(tg):'No due date set'}</div></div>${duS}</div>${r.due&&!r.dueDone?`<div class="btns"><button class="btn sm" data-a="done" data-k="due" data-id="${r.id}">Mark completed</button>${fuBtns('due',a.id,r.due,dueEx(r))}</div>`:''}</div>
+ <div class="btns" style="margin:4px 0 0"><button class="btn ab-btn" data-a="abort" data-id="${r.id}">⚠️ Mark as Aborted</button></div>
  <h2>Set dates and reminders</h2><form id="pgf" data-id="${r.id}" class="card">
  ${fl('Next follow-up date (check-up / care guidance)','fnext',r.fnext,'date')}
  ${fl('Approx. expected due (calving) date','due',r.due||ad,'date')}${g&&ad?`<div class="chips" style="margin-top:-4px"><button type="button" class="chip" data-a="pgAuto" data-id="${ad}">Auto: AI date + ${g} days (${esc(a.species)}) = ${fmt(ad)}</button></div>`:''}
@@ -575,7 +584,7 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
  return `${back}<div class="card" style="margin-top:12px"><h3>${emo(a.species)} ${esc(aname(a))} ${stBadge(a)}</h3><div>${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · Age ${age(a)}${a.dob?' (DOB '+fmt(a.dob)+')':''}</div><div class="mut">ID / marks: ${esc(a.tag||'—')}</div><div>Owner: <a href="#" data-a="open" data-k="c" data-id="${c.id}" style="color:var(--pri)">${esc(c.name)}</a> · ${esc(c.village)}</div>${a.notes?`<p>${esc(a.notes)}</p>`:''}
  ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)||(x.status==='closed'&&x.ret&&!x.fs)).map(x=>x.status==='closed'?retTag(x):`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">+ Treatment</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
  ${timelineBox([id],'Clinical history timeline')}
- ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}${(r.fuLog||[]).map(closedNote).join('')}${closedNote(r.fuClosure)}${closedNote(r.rClosure)}${allotTag(r)}${r.byOther?`<div class="mut">👥 AI done by ${esc(r.byOther)} (circle) · not counted in your monthly target</div>`:''}<div class="btns">${live(a)?(r.status==='pending'&&r.next&&!r.nextDone?fuActs('ai',r.id):r.status==='pending'&&r.pd&&!r.pdClosed?fuActs('pd',r.id):r.status==='negative'&&r.rDate&&!r.rDone?fuActs('rai',r.id):''):''}${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
+ ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):r.status==='aborted'?b('Aborted','bad'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}${(r.fuLog||[]).map(closedNote).join('')}${closedNote(r.fuClosure)}${closedNote(r.rClosure)}${allotTag(r)}${r.byOther?`<div class="mut">👥 AI done by ${esc(r.byOther)} (circle) · not counted in your monthly target</div>`:''}<div class="btns">${live(a)?(r.status==='pending'&&r.next&&!r.nextDone?fuActs('ai',r.id):r.status==='pending'&&r.pd&&!r.pdClosed?fuActs('pd',r.id):r.status==='negative'&&r.rDate&&!r.rDone?fuActs('rai',r.id):''):''}${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
  ${(()=>{const L=S.fd.filter(r=>r.aid===id).sort((x,y)=>y.date.localeCompare(x.date));if(!L.length)return '';
   return `<h2>Feed supply and weight checks</h2>${L.map(r=>`<div class="card"><div class="between"><b>🌾 ${fmt(r.date)}</b>${FREE}</div><div>${esc(r.feed)}${r.qty?' · '+esc(r.qty):''}</div>${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${r.bw?`<div class="mut">Weight at supply: ${kg(r.bw)}</div>`:''}${wHist(r)}
   <div>${r.wDone?b('Weight verification completed','ok'):r.wDate?`3-month weight check: ${fmt(r.wDate)} ${due(r.wDate)}`:''}</div>
@@ -726,7 +735,7 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'paid':return paidForm(k,id);
  case'paidF':{const c=flowCid;return paidForm(k,id,()=>pickAnimalOf(c))}
  case'openC':closeM();ui.d&&(ui.d.k==='c'&&ui.d.id===id)||open('c',id);return render();
- case'done':{const r=k==='tr'?rec(S.tr):rec(S.ai);if(k==='tr')r.done=true;else if(k==='ai')r.nextDone=true;else if(k==='due')r.dueDone=true;else r.fDone=true;save();return render()}
+ case'done':{const r=k==='tr'?rec(S.tr):rec(S.ai);if(k==='tr')r.done=true;else if(k==='ai')r.nextDone=true;else if(k==='due')r.dueDone=true;else if(k==='hc')r.hcDone=true;else r.fDone=true;save();return render()}
  case'qT':return pickFarmer('T');
  case'qAI':return pickFarmer('AI');
  case'qPD':return pickFarmer('PD');
@@ -736,6 +745,8 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'bell':return remPopup(true);
  case'fuClose':{popOpen=false;const[k3,i3]=id.split('|');return closeForm(k3,i3)}
  case'allot':{popOpen=false;const[k3,i3]=id.split('|');return allotForm(k3,i3)}
+ case'abort':closeM();popOpen=false;return abortForm(id);
+ case'abUndo':return abortUndo(id);
  case'fuDo':{popOpen=false;const[k3,i3]=id.split('|');return doForm(k3,i3)}
  case'logMore':ui.lmax=(ui.lmax||200)+200;$('#loglist').innerHTML=logList();return;
  case'logOpen':closeM();ui.tab='log';ui.d=null;ui.hist=[];scrollTo(0,0);return render();
@@ -780,7 +791,7 @@ document.addEventListener('input',e=>{if(e.target.id==='lq'){ui.lq=e.target.valu
    When a task is allotted, ONLY that task (farmer contact, animal summary, task details, note) is sent.
    Payment details are never included. Data lives in Supabase tables inspector_circles, circle_members, task_allotments. */
 const CI={circles:[],members:[],tasks:[],loaded:false,err:'',busy:false};
-const AK={visit:['treatment','Planned visit'],tr:['treatment_followup','Treatment follow-up'],ai:['ai_followup','AI follow-up'],pd:['ai_followup','PD check after AI'],rai:['ai','Repeat AI (pending AI)'],req_tr:['treatment','Treatment visit'],req_ai:['ai','AI (insemination)']};
+const AK={hc:['ai_followup','Post-abortion follow-up / heat check'],visit:['treatment','Planned visit'],tr:['treatment_followup','Treatment follow-up'],ai:['ai_followup','AI follow-up'],pd:['ai_followup','PD check after AI'],rai:['ai','Repeat AI (pending AI)'],req_tr:['treatment','Treatment visit'],req_ai:['ai','AI (insemination)']};
 const TSTAT={pending_acceptance:['Pending acceptance','wn'],accepted:['Accepted','ok'],declined:['Declined','bad'],closed:['Closed','ok'],cancelled:['Cancelled','']};
 const tb=st=>{const[l,c]=TSTAT[st]||[st,''];return b(l,c)};
 const tbT=t=>t.status==='closed'&&t.returned_to_sender?b(t.from_user===U.id?'Closed by Assignee':'Closed by you','ok'):tb(t.status);
@@ -812,6 +823,7 @@ function closeRec(k,r,note,at,by){const c={at,note:note||'',by:by||'me'};const a
  else if(k==='ai'){r.nextDone=true;r.fuClosure=c}
  else if(k==='pd'){r.pdClosed=true;r.fuClosure=c}
  else if(k==='rai'){r.rDone=true;r.rAi='';r.rClosure=c}
+ else if(k==='hc'){r.hcDone=true;r.hcClosure=c}
  const lbl=AK[k]?AK[k][1]:'Task';if(an)logH(an,`${lbl} closed${by&&by!=='me'?' by '+by:''}${note?' — '+note:''}`,String(at).slice(0,10))}
 const closedNote=c=>c?`<div class="closed-note">✔ Closed ${fmt(String(c.at).slice(0,10))}${c.by&&c.by!=='me'?' by '+esc(c.by):''}${c.note?' · '+esc(c.note):''}</div>`:'';
 /* sender side: reflect what happened to each allotted task in your own records */
@@ -863,6 +875,7 @@ function taskPayload(k,r,an,extra){const c=C(an.cid)||{};const p={k,farmer:{name
  else if(k==='tr')p.task={treated:r.date,diagnosis:r.dx||'',medicines:r.meds||'',notes:r.notes||'',followUp:r.next};
  else if(k==='ai')p.task={aiDate:r.date,semen:r.semen||'',followUp:r.next,pdDue:r.pd||''};
  else if(k==='pd')p.task={aiDate:r.date,semen:r.semen||'',pdDue:r.pd};
+ else if(k==='hc')p.task={aiDate:r.date,aborted:r.abDate,heatCheck:r.hcDate,note:r.hcNote||''};
  else if(k==='rai')p.task={previousAi:r.date,pdNotConfirmed:pdOnOf(r),repeatAiDate:r.rDate,note:r.rNote||''};
  else p.task={requested:extra.when,visit:extra.what};
  return p}
@@ -871,7 +884,7 @@ function allotForm(k,id){const r=srcRec(k,id);if(!r)return;if(!CI.loaded&&!CI.er
  if(!inCircle())return ask('You are not in a circle with other inspectors yet. Open the Circle tab to create a circle or join one with an invite code.',()=>{ui.tab='circle';ui.d=null;render()});
  const an=k.startsWith('req')?r:A(r.aid);const fem=an.gender==='Female';
  const opts=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id&&m.user_id!==U.id);return ms.length?`<optgroup label="${esc(c.name)}">${ms.map(m=>`<option value="${c.id}|${m.user_id}">${esc(m.display_name||'Inspector')}${m.hospital?' · '+esc(m.hospital):''}${m.area?' · '+esc(m.area):''}</option>`).join('')}</optgroup>`:''}).join('');
- const due0=k==='tr'||k==='ai'||k==='visit'?r.next:k==='pd'?r.pd:k==='rai'?r.rDate:today();
+ const due0=k==='tr'||k==='ai'||k==='visit'?r.next:k==='hc'?r.hcDate:k==='pd'?r.pd:k==='rai'?r.rDate:today();
  modal('👥 Allot to inspector'+who(an.id),`${k.startsWith('req')?`<label>Task<select name="what">${['Treatment visit',...(fem?['AI (insemination)']:[])].map(x=>`<option>${x}</option>`).join('')}</select></label>`:`<p style="margin-top:0"><b>${AK[k][1]}</b> · due ${fmt(due0)}</p>`}
  <label>Allot to *<select name="to" required>${opts}</select></label>${fl('Due / visit date','due',due0||today(),'date','required')}
  ${ta('Description / note for your colleague * (clinical context, urgency, directions)','desc','')}
@@ -898,6 +911,7 @@ function nextFuForm(tid){const t=CI.tasks.find(x=>x.id===tid);if(!t||t.from_user
    const by=t.to_name||'colleague',cn=t.closure_note||'',from={by,cd,note:cn,task:t.id};
    let tid2=r.id;if(k==='tr'){if(r.closure)r.fuLog=(r.fuLog||[]).concat([r.closure]);delete r.closure;r.next=nd;r.done=false;r.fuFrom=from;if(nn)r.notes=[r.notes,nn].filter(Boolean).join(' · ')}
    else if(k==='ai'){if(r.fuClosure)r.fuLog=(r.fuLog||[]).concat([r.fuClosure]);delete r.fuClosure;r.next=nd;r.nextDone=false;r.fuFrom=from;if(nn)r.notes=[r.notes,nn].filter(Boolean).join(' · ')}
+   else if(k==='hc'){if(r.hcClosure)r.fuLog=(r.fuLog||[]).concat([r.hcClosure]);delete r.hcClosure;r.hcDate=nd;r.hcDone=false;r.fuFrom=from;if(nn)r.hcNote=[r.hcNote,nn].filter(Boolean).join(' · ')}
    else if(k==='pd'){if(r.fuClosure)r.fuLog=(r.fuLog||[]).concat([r.fuClosure]);delete r.fuClosure;r.pd=nd;r.pdClosed=false;r.fuFrom=from;if(nn)r.notes=[r.notes,nn].filter(Boolean).join(' · ')}
    else if(k==='rai'||k==='req_ai')S.ai.push({id:tid2=uid(),fuFrom:from,aid:an.id,date:cd||today(),semen:'',pd:nd,next:'',status:'pending',prev:k==='rai'?r.id:undefined,byOther:by,notes:`AI done by ${by} (circle): ${cn}${nn?' · '+nn:''}`});
    else if(k==='req_tr')S.tr.push({id:tid2=uid(),fuFrom:from,aid:an.id,date:cd||today(),dx:`Treatment visit by ${by} (circle)`,meds:'',notes:cn+(nn?' · '+nn:''),next:nd,byOther:by});
@@ -1043,6 +1057,8 @@ function msgInbox(){if(CM.err==='setup')return `<h2>💬 Messages</h2><div class
 
 /* ---------- ✅ Do / Complete a returned (declined) follow-up yourself, and keep the follow-up cycle going ---------- */
 function doForm(k,id){let r=srcRec(k,id);if(!r)return;if(k==='tr'&&r.visit)k='visit';
+ if(k==='hc'){const an=A(r.aid);return modal('✅ Post-abortion check done'+who(an.id),`${fl('Checked on *','date',today(),'date','required max="'+today()+'"')}${fl('Findings / advice *','dx','','text','required')}${fl('Next check (leave blank to close)','next','','date','min="'+today()+'"')}`,
+  d=>{const at=d.date===today()?new Date().toISOString():d.date+'T12:00:00.000Z';r.fuLog=(r.fuLog||[]).concat([{at,note:`Post-abortion check by me — ${d.dx}`,by:'me'}]);if(d.next){r.hcDate=d.next;r.hcDone=false;r.cycle=true}else{r.hcDone=true;r.hcClosure={at,note:`Post-abortion check by me — ${d.dx}`,by:'me'}}toast('✅ Saved')})}
  if(k==='pd')return pdForm(r.id);                                   /* doing a PD check = recording its result */
  const an=A(r.aid);if(!an)return;const isAI=k==='rai'||(k==='visit'&&r.visit==='ai');const nowIso=()=>new Date().toISOString();
  if(isAI){
@@ -1071,6 +1087,28 @@ function doForm(k,id){let r=srcRec(k,id);if(!r)return;if(k==='tr'&&r.visit)k='vi
   toast(d.next?'✅ Done · next follow-up '+fmt(d.next)+' is in your Follow-Up Tracker':'✅ Done · follow-up closed')},
  f=>{if(trk)payInit(f);f.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>f.next.value=add(f.date.value||today(),+x.dataset.n))})}
 
+/* ---------- ⚠️ Mark as Aborted (confirmed pregnancy) ---------- */
+function abortForm(id){const r=S.ai.find(x=>x.id===id);if(!r)return;const an=A(r.aid);const add2=r.status==='aborted';
+ if(!add2&&r.status!=='confirmed')return ask('Only a confirmed pregnancy can be marked as aborted.',()=>{});
+ modal((add2?'🩺 Post-abortion follow-up':'⚠️ Mark pregnancy as aborted')+who(an.id),`${add2?'':`<p class="ab-warn">PD confirmed${r.due?' · expected due '+fmt(r.due):''}. Saving changes the status to <b>Aborted</b> and permanently stops the calving-date, 10 / 20-day and 1-day reminders for this pregnancy.</p>
+ ${fl('Abortion date *','abDate',today(),'date','required max="'+today()+'" min="'+(r.date||'')+'"')}
+ ${ta('Reason / clinical notes * (symptoms, fever, injury, observations)','abNotes','')}`}
+ <div class="sub" style="margin-top:4px">Post-abortion follow-up / next heat check (optional)</div>
+ ${fl('Follow-up / heat check date','hcDate',add2?add(today(),7):'','date','min="'+today()+'"')}<div class="chips" style="margin-top:-4px">${[7,21,30,45].map(n=>`<button type="button" class="chip" data-h="${n}">+${n} days</button>`).join('')}</div>
+ ${ta('Follow-up note (optional)','hcNote','')}<p class="mut" style="font-size:13px;margin-top:-4px">If set, it goes into your Follow-Up Tracker with the normal 1-day-before reminder.</p><p class="err"></p>`,()=>{},
+ f=>{f.querySelectorAll('[data-h]').forEach(x=>x.onclick=()=>f.hcDate.value=add(add2?today():(f.abDate.value||today()),+x.dataset.h));
+  f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=f.querySelector('.err');
+   if(!add2){if(!d.abDate)return err.textContent='Enter the abortion date.';if(!(d.abNotes||'').trim())return err.textContent='Please add the reason / clinical notes.';
+    r.status='aborted';r.abDate=d.abDate;r.abNotes=d.abNotes.trim();r.abortedAt=new Date().toISOString();
+    S.rem=S.rem||{};Object.keys(S.rem).forEach(k=>{if(k.startsWith('due:'+r.id+':')||k.startsWith('cf:'+r.id+':'))delete S.rem[k]});   /* old calving alerts gone for good */
+    logH(an,`Pregnancy aborted on ${fmt(d.abDate)} — ${r.abNotes}`,d.abDate)}
+   else if(!d.hcDate)return err.textContent='Choose the follow-up / heat check date.';
+   if(d.hcDate){r.hcDate=d.hcDate;r.hcNote=(d.hcNote||'').trim();r.hcDone=false;delete r.hcClosure}
+   save();closeM();popOpen=false;
+   if(ui.d&&ui.d.k==='p'&&ui.d.id===r.id)ui.d={k:'a',id:an.id};render();
+   toast(add2?'🩺 Follow-up added to your Tracker':'⚠️ Marked as aborted · calving reminders stopped'+(d.hcDate?' · heat check '+fmt(d.hcDate)+' added to your Tracker':''))}})}
+function abortUndo(id){const r=S.ai.find(x=>x.id===id);if(!r||r.status!=='aborted')return;ask('Undo “Aborted” and make this a confirmed pregnancy again? Calving reminders will start again; the post-abortion follow-up is removed.',()=>{
+ const an=A(r.aid);r.status='confirmed';['abDate','abNotes','abortedAt','hcDate','hcNote','hcDone','hcClosure'].forEach(k=>delete r[k]);logH(an,'Abortion record undone — pregnancy confirmed again',today());save();render();toast('↩ Pregnancy restored')})}
 /* ---------- 📜 History: clinical timeline (animal / farmer) and the inspector's Activity Log ----------
    Built from the inspector's own records (private) plus their own circle tasks. Nothing new is stored. */
 const LCAT={tr:['💉','Treatments'],ai:['🧬','AI & PD'],fu:['📅','Follow-ups'],circle:['👥','Circle'],feed:['🌾','Feed & weight'],pay:['💰','Payments'],animal:['🐄','Animals']};
@@ -1085,13 +1123,14 @@ function histEvents(opt={}){const E=[],ev=(ts,cat,title,sub,aid,extra)=>{if(ts)E
   if(!opt.clinical&&+t.amt&&t.pst==='Paid')ev(t.paidOn||t.date,'pay',`Payment received ${rs(t.amt)}${t.mode&&t.mode!=='None'?' · '+t.mode:''}`,'Treatment'+(t.dx?': '+t.dx:''),t.aid,{who:w})});
  S.ai.forEach(r=>{const w=anm(r.aid);
   ev(r.date,'ai',r.byOther?`AI by ${r.byOther} (circle)`:'AI recorded',[r.semen&&'Semen / bull: '+r.semen,r.notes].filter(Boolean).join(' · '),r.aid,{who:w});
-  if(r.status!=='pending')ev(r.pdOn||r.pd,'ai',r.status==='confirmed'?'PD: pregnancy confirmed ✅':'PD: not confirmed ❌',r.status==='confirmed'&&r.due?'Expected due '+fmt(r.due):r.rDate?'Repeat AI planned '+fmt(r.rDate):'',r.aid,{who:w});
+  if(r.status==='aborted'){ev(r.abDate,'ai','⚠️ Pregnancy aborted',[r.abNotes,r.due&&'was due '+fmt(r.due)].filter(Boolean).join(' · '),r.aid,{who:w});if(r.hcDate)ev(r.abDate,'fu',`Post-abortion follow-up / heat check scheduled for ${fmt(r.hcDate)}`,r.hcNote,r.aid,{who:w});cl(r.hcClosure,'Post-abortion follow-up',r.aid)}
+  if(r.status!=='pending')ev(r.pdOn||r.pd,'ai',r.status==='confirmed'||r.status==='aborted'?'PD: pregnancy confirmed ✅':'PD: not confirmed ❌',r.status==='confirmed'&&r.due?'Expected due '+fmt(r.due):r.rDate?'Repeat AI planned '+fmt(r.rDate):'',r.aid,{who:w});
   (r.fuLog||[]).forEach(c=>cl(c,'AI follow-up',r.aid));cl(r.fuClosure,'AI follow-up',r.aid);cl(r.rClosure,'Repeat AI',r.aid);
   if(!opt.clinical){if(+r.amt&&r.pst==='Paid')ev(r.paidOn||r.date,'pay',`Payment received ${rs(r.amt)}${r.mode&&r.mode!=='None'?' · '+r.mode:''}`,'AI',r.aid,{who:w});
    if(+r.pdAmt&&r.pdPst==='Paid')ev(r.pdPaidOn||r.pdOn||r.pd,'pay',`Payment received ${rs(r.pdAmt)}${r.pdMode&&r.pdMode!=='None'?' · '+r.pdMode:''}`,'PD Check',r.aid,{who:w})}});
  S.fd.forEach(f=>{const w=anm(f.aid);ev(f.date,'feed','Free feed supplied',[f.feed,f.qty,f.bw&&'weight '+kg(f.bw)].filter(Boolean).join(' · '),f.aid,{who:w});
   (f.checks||[]).forEach(c=>ev(c.date,'feed',`Weight check: ${kg(c.kg)}`,c.note,f.aid,{who:w}))});
- S.an.forEach(a=>(a.hist||[]).forEach(h=>{const t=h.text||'';if(/closed( by .+?)?( —|$)| was declined|allotted to .+: (closed|declined|cancelled)|completed by me|done by me/.test(t))return;   /* shown from the records / circle instead */
+ S.an.forEach(a=>(a.hist||[]).forEach(h=>{const t=h.text||'';if(/^Pregnancy aborted|^Abortion record undone|closed( by .+?)?( —|$)| was declined|allotted to .+: (closed|declined|cancelled)|completed by me|done by me/.test(t))return;   /* shown from the records / circle instead */
   ev(h.date,/^Next follow-up set|follow-up/i.test(t)?'fu':/allotted/i.test(t)?'circle':'animal',t,'',a.id,{who:anm(a.id)})}));
  if(!opt.clinical)CI.tasks.forEach(t=>{const mine=t.from_user===U.id,o=mine?t.to_name||'colleague':t.from_name||'colleague',ti=t.title;
   if(mine){ev(t.created_at,'circle',`Allotted to ${o}`,ti);t.accepted_at&&ev(t.accepted_at,'circle',`${o} accepted`,ti);t.declined_at&&ev(t.declined_at,'circle',`${o} declined`,[ti,t.response_note].filter(Boolean).join(' · '));
@@ -1122,7 +1161,7 @@ function logList(){const q=(ui.lq||'').toLowerCase(),from=ui.lr==='all'?'':add(t
 /* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
 /* Each alert has a key (type : record : date [: stage]). Snooze / Stop are stored in S.rem, which is saved to the
    inspector's Supabase profile (settings), so they survive refresh, re-login and other devices. Records are never changed. */
-const RK={tr:['💉','Treatment follow-up','rk-tr'],ai:['🧬','AI follow-up','rk-ai'],pd:['🩺','PD check due','rk-pd'],rai:['🔁','Repeat AI due','rk-rai'],cf:['🤰','Pregnancy follow-up','rk-pg'],due:['🍼','Expected due (calving) date','rk-pg'],wt:['⚖️','3-month weight check','rk-wt']};
+const RK={hc:['🩺','Post-abortion follow-up / heat check','rk-ai'],tr:['💉','Treatment follow-up','rk-tr'],ai:['🧬','AI follow-up','rk-ai'],pd:['🩺','PD check due','rk-pd'],rai:['🔁','Repeat AI due','rk-rai'],cf:['🤰','Pregnancy follow-up','rk-pg'],due:['🍼','Expected due (calving) date','rk-pg'],wt:['⚖️','3-month weight check','rk-wt']};
 const recOf=a=>(a.k==='tr'?S.tr:a.k==='wt'?S.fd:S.ai).find(x=>x.id===a.id);
 const monthKey=()=>'tgt:'+today().slice(0,7);
 function alerts(){const L=[];
@@ -1141,7 +1180,7 @@ const tomorrow8=()=>{const d=new Date();d.setDate(d.getDate()+1);d.setHours(8,0,
 const SZ={'2h':['2 hours',()=>Date.now()+2*36e5],'tm':['Tomorrow 8 AM',tomorrow8],'1d':['1 day',()=>Date.now()+864e5]};
 /* drop old snooze / stop entries so the saved list stays small */
 function pruneRem(){const R=S.rem||{},now=Date.now(),old=now-120*864e5;Object.keys(R).forEach(k=>{const v=R[k]||{};if((v.until&&v.until<now-7*864e5&&!v.stop)||(v.t&&v.t<old))delete R[k]});S.rem=R}
-function remDetail(a,r){if(a.k==='rai')return `Previous AI ${fmt(r.date)} · PD not confirmed ${fmt(pdOnOf(r))}`;
+function remDetail(a,r){if(a.k==='hc')return `Aborted ${fmt(r.abDate)}${r.hcNote?' · '+esc(r.hcNote):''}`;if(a.k==='rai')return `Previous AI ${fmt(r.date)} · PD not confirmed ${fmt(pdOnOf(r))}`;
  if(a.k==='cf')return `Pregnant · AI ${fmt(r.date)}${r.due?' · due '+fmt(r.due):''}`;
  if(a.k==='due')return a.stage==='lead'?`Advance reminder (${leadOf(r)} days before) · AI ${fmt(r.date)}`:`1 day before / due now · AI ${fmt(r.date)}`;
  if(a.k==='wt')return `Free feed supplied ${fmt(r.date)} · ${esc(r.feed)}`;
@@ -1154,8 +1193,8 @@ function remCard(a,st){if(a.k==='at')return atCard(a,st);if(a.k==='ret')return r
  if(a.k==='tgt'){const t=a.t;return `<div class="card rem rk-ai"><div class="between"><div><b>🎯 Daily AI target</b><div>${t.left} more AI procedure${t.left>1?'s':''} remaining out of ${t.T} this month</div><div class="mut">${t.done} done · ${t.dl} day${t.dl>1?'s':''} left · aim for about ${t.perDay} per day</div></div><div class="end">${b(t.pct+'%','wn')}</div></div>${sb}
   <div class="btns"><button class="btn sm pri" data-a="remGo" data-id="qAI|">+ Log AI</button>${st&&st!=='seen'?ctl:`<button class="btn sm" data-a="remSz" data-id="${a.key}">💤 Snooze</button><button class="btn sm" data-a="remStop" data-id="${a.key}">🔕 Stop this month</button>`}</div>${szo}</div>`}
  const r=recOf(a),an=A(a.aid);if(!r||!an)return '';const c=C(an.cid),[ic,lbl,cls]=RK[a.k];
- const main=a.k==='pd'?`<button class="btn sm pri" data-a="remGo" data-id="pdr|${r.id}">Record result</button>`:a.k==='rai'?`<button class="btn sm pri" data-a="remGo" data-id="reAI|${r.id}">Record Repeat AI</button>`:a.k==='wt'?`<button class="btn sm pri" data-a="remGo" data-id="wtV|${r.id}">⚖️ Verify Weight</button>`:(a.k==='cf'||a.k==='due')?`<button class="btn sm pri" data-a="remGo" data-id="p|${r.id}">Open pregnancy page</button>`:`<button class="btn sm pri" data-a="remGo" data-id="a|${an.id}">Open animal</button>`;
- const ex=a.k==='tr'?(r.dx||''):a.k==='rai'?raiEx(r):a.k==='cf'?cfEx(r):a.k==='due'?dueEx(r):a.k==='wt'?fdEx(r):'AI done on '+fmt(r.date);
+ const main=a.k==='pd'?`<button class="btn sm pri" data-a="remGo" data-id="pdr|${r.id}">Record result</button>`:a.k==='rai'?`<button class="btn sm pri" data-a="remGo" data-id="reAI|${r.id}">Record Repeat AI</button>`:a.k==='wt'?`<button class="btn sm pri" data-a="remGo" data-id="wtV|${r.id}">⚖️ Verify Weight</button>`:(a.k==='cf'||a.k==='due')?`<button class="btn sm pri" data-a="remGo" data-id="p|${r.id}">Open pregnancy page</button><button class="btn sm ab-btn" data-a="abort" data-id="${r.id}">⚠️ Mark as Aborted</button>`:`<button class="btn sm pri" data-a="remGo" data-id="a|${an.id}">Open animal</button>`;
+ const ex=a.k==='tr'?(r.dx||''):a.k==='hc'?hcEx(r):a.k==='rai'?raiEx(r):a.k==='cf'?cfEx(r):a.k==='due'?dueEx(r):a.k==='wt'?fdEx(r):'AI done on '+fmt(r.date);
  return `<div class="card rem ${cls}"><div class="between" style="align-items:flex-start"><div><b>${ic} ${lbl}</b><div>${emo(an.species)} ${esc(aname(an))} · 👤 ${esc(c?.name)}</div><div class="mut">${remDetail(a,r)}</div></div><div class="end"><div style="font-size:13px">${fmt(a.date)}</div>${due(a.date)}</div></div>${sb}
  <div class="btns">${main}${fuBtns(a.k,an.id,a.date,ex)}${['tr','ai','pd','rai'].includes(a.k)?fuActs(a.k,r.id):''}${ctl}</div>${szo}</div>`}
 function atCard(a,st){const t=a.task,p=t.payload||{},an=p.animal||{},f=p.farmer||{};const sb2=st==='stop'?'<div class="rem-st">🔕 Stopped</div>':st==='snooze'?`<div class="rem-st">💤 Snoozed until ${fmtTs((S.rem[a.key]||{}).until)}</div>`:'';
