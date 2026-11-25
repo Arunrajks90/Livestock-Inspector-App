@@ -2,12 +2,27 @@
 
 A single-file web app (`index.html`) for Livestock Inspectors to manage farmers, animals, treatments, artificial insemination (AI), PD checks, free feed supply with weight checks, and inspector-only payment tracking. Accounts and records are stored in **Supabase**, so an inspector can log in from any phone or computer.
 
-## Files
-| File | Purpose |
-|---|---|
-| `index.html` | The whole app (HTML, CSS and JavaScript). Upload this to GitHub. |
-| `supabase-setup.sql` | Database setup. Run once in Supabase. Do **not** upload it to the website. |
-| `README.md` | This guide. |
+## Files and where they go in your GitHub repository
+Put everything in the **root** of the repository (the same folder), with the icons inside an `icons` folder:
+
+```
+your-repo/
+├── index.html            ← the app
+├── manifest.json         ← makes it installable (name, colours, icons)
+├── sw.js                 ← service worker (fast start, opens offline)
+├── README.md             ← this guide (optional)
+└── icons/
+    ├── icon.svg
+    ├── icon-192.png
+    ├── icon-512.png
+    ├── maskable-192.png
+    ├── maskable-512.png
+    └── apple-touch-icon.png
+```
+
+`supabase-setup.sql` is **not** part of the website. Run it once in Supabase (below); you do not need to upload it.
+
+**Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
 1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. It is safe to run again later.
@@ -22,9 +37,20 @@ A single-file web app (`index.html`) for Livestock Inspectors to manage farmers,
 The app uses the project URL and the **publishable** key, which are safe to put in a public web page. Your data is protected by Row Level Security: each inspector can only read and change their own rows. **Never** put the `service_role` or secret key in `index.html`.
 
 ## Publish on GitHub Pages
-1. Upload `index.html` (and this README) to the root of your repository.
+1. Upload the files as shown above.
 2. **Settings → Pages → Deploy from a branch → `main` / `root` → Save.**
-3. Open the link GitHub gives you. On a phone, use **Add to Home screen** to keep it like an app.
+3. Open the link GitHub gives you (it must be the **https** address; installing does not work from a file on your computer).
+
+## Install on a phone
+- **Android (Chrome, Edge, Samsung Internet):** a banner at the bottom offers **Install**. Or tap the menu **⋮ → Install app / Add to Home screen**.
+- **iPhone / iPad (Safari):** a short guide appears. Tap **Share** → **Add to Home Screen** → **Add**.
+- The app is also available any time from **👤 your name → 📲 Install app**. Closing the banner with ✕ hides it for 14 days.
+- Long-press the installed icon (Android) for shortcuts: **Log treatment**, **Log AI**, **Record PD result**.
+
+## Updating the app later
+- Upload a new `index.html`: phones pick it up automatically the next time the app is opened online.
+- If you change `sw.js`, `manifest.json` or the icons, also change `const VERSION = 'v1'` in `sw.js` (for example to `'v2'`) so phones refresh their saved copy.
+- The service worker never stores Supabase sign-in or database requests, so logins and records are always live.
 
 ## Features
 - **Sign up** with name, hospital / centre, qualification, age, gender, phone, email, area / panchayat and a password / PIN. **Log in** with email ID **or** phone number. **Forgot password** sends a reset link by email. Profile and Logout are under the name button at the top right.
