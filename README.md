@@ -61,6 +61,16 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - **Payments (inspector only):** amount, mode, Paid / Pending. Each record keeps its own status, you get an alert when you pick a farmer with dues, and **no payment messages are ever sent to farmers**.
 - **WhatsApp / SMS** pre-filled messages for clinical and service follow-ups only.
 
+## Reminder popup (🔔)
+- When the app opens (and every 30 seconds while it is open) a popup lists reminders that are **due tomorrow, today or overdue**: treatment and AI follow-ups, PD checks, repeat AI dates, pregnancy follow-ups, expected due dates and 3-month weight checks.
+- Expected due dates also pop up during your **10 / 20-day advance window**, and again as a separate **1-day-before** alert.
+- The **daily AI target** (default 20 / month) shows once a day while AIs remain.
+- **💤 Snooze:** 2 hours, until tomorrow 8 AM, or 1 day. It pops up again when the time is up.
+- **🔕 Stop:** silences that reminder for that date (the AI target is stopped for the rest of the month). If the date is changed later, a new reminder is created.
+- Snooze / Stop never change your records. They are saved to your Supabase profile, so they stay after refresh, re-login or on another device.
+- The **🔔 bell** in the header shows how many reminders need attention and lists snoozed / stopped ones with a **Resume** button.
+- No payment information is ever included in reminders or in messages to farmers.
+
 ## Saving and offline use
 - Every change is saved to the cloud automatically. The badge in the header shows **☁️ Saved**, **⏳ Saving…** or **⚠️ Offline**.
 - Without internet, changes are kept on the device and uploaded automatically when the connection returns. Don't log out while offline, or the changes stay on that device until you log in there again.

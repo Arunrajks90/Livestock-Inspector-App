@@ -160,6 +160,12 @@ input[type=checkbox],input[type=radio]{min-height:0;width:20px;height:20px;accen
 .toast{bottom:calc(100px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);text-align:center}
 img,svg{max-width:100%}
 @media (max-width:360px){.two{grid-template-columns:1fr;gap:0}.grid{grid-template-columns:1fr 1fr}.grid .stat b{font-size:24px}.tg3 b{font-size:20px}header h1{font-size:16px}}
+/* reminder popup */
+.bell{position:relative;padding:8px 11px}.bdg{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-weight:700;line-height:19px;text-align:center;box-shadow:0 0 0 2px #0d9488}
+.b{white-space:nowrap}.rem .end{min-width:96px}.rem .btns{margin-top:10px}.rem-st{margin-top:6px;font-size:13px;font-weight:600;color:#6d28d9}
+.szo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:8px;background:#f5f3ff;border-radius:10px}.szo .mut{font-size:13px;margin-right:2px}
+@media (max-width:420px){.sync .lbl{display:none}.sync{padding:5px 8px}}
+@media (max-width:340px){header .pn{display:none}}
 /* install banner */
 .inst{position:fixed;z-index:15;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #a7f3d0;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px #0f3d2a33;animation:instUp .3s ease-out}
 body.auth .inst{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
@@ -206,11 +212,12 @@ let U=null,snap=null,known=null,syncT=null,rT=null,syncing=false,again=false,net
 const ph10=p=>String(p||'').replace(/\D/g,'').slice(-10);
 /* canonical JSON (sorted keys) so local records and cloud jsonb compare equal */
 const cj=v=>Array.isArray(v)?'['+v.map(x=>x===undefined?'null':cj(x)).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+cj(v[k])).join(',')+'}':JSON.stringify(v===undefined?null:v);
-const setOf=s=>({aiTarget:s.aiTarget||null,sig:s.sig||'',ucNo:s.ucNo||[]});
+const setOf=s=>({aiTarget:s.aiTarget||null,sig:s.sig||'',ucNo:s.ucNo||[],rem:s.rem||{}});
 const ck=()=>K+'_cloud_'+U.id; /* offline copy of this account on this device */
 const syncLbl={ok:'☁️ Saved',busy:'⏳ Saving…',load:'⏳ Loading…',off:'⚠️ Offline'};
-function setSync(st){net=st;const e=$('#sync');if(e){e.className='sync '+st;e.textContent=syncLbl[st];e.title=st==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}}
-const syncBadge=()=>`<span id="sync" class="sync ${net}" title="${net==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}">${syncLbl[net]}</span>`;
+function setSync(st){net=st;const e=$('#sync');if(e){e.className='sync '+st;e.innerHTML=syncHtml(st);e.title=st==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}}
+const syncHtml=st=>{const[i,...w]=syncLbl[st].split(' ');return `${i}<span class="lbl"> ${w.join(' ')}</span>`};
+const syncBadge=()=>`<span id="sync" class="sync ${net}" title="${net==='off'?'Changes are kept on this device and will be saved to the cloud automatically when you are back online.':''}">${syncHtml(net)}</span>`;
 function writeCache(dirty){if(!U||!S)return;const kn=snap?Object.fromEntries(FLDS.map(f=>[f,[...snap[f].keys()]])):known;try{localStorage.setItem(ck(),JSON.stringify({U,S,dirty,known:kn}))}catch(e){}}
 function save(){if(!U||!S)return;writeCache(true);clearTimeout(syncT);syncT=setTimeout(sync,400)}
 async function fetchAll(t){let out=[],from=0;for(;;){const{data,error}=await sb.from(t).select('id,data').order('id').range(from,from+999);if(error)throw error;out=out.concat(data||[]);if(!data||data.length<1000)break;from+=1000}return out}
@@ -233,19 +240,19 @@ function mergeOffline(cloud){if(!known)return;FLDS.forEach(f=>{const have=new Se
 addEventListener('online',()=>{if(U)sync()});
 /* refresh from the cloud when the app comes back to the screen (e.g. edited on another device) */
 document.addEventListener('visibilitychange',async()=>{if(document.hidden||!U||!snap||syncing||net==='busy'||!$('#m').hidden)return;let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty)return;
- try{const me=U.id,c=await pullCloud();if(!U||U.id!==me||!$('#m').hidden)return;const set=c.prof?.settings||{};S={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[]};snap=mkSnap(c.data,setOf(S));if(c.prof)U=profU(c.prof,{id:me,email:U.email});writeCache(false);render()}catch(e){}});
+ try{const me=U.id,c=await pullCloud();if(!U||U.id!==me||!$('#m').hidden)return;const set=c.prof?.settings||{};S={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{}};snap=mkSnap(c.data,setOf(S));if(c.prof)U=profU(c.prof,{id:me,email:U.email});writeCache(false);render()}catch(e){}});
 /* after sign in: load this inspector's records from the cloud (or the offline copy) */
 async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,email:user.email,name:user.user_metadata?.full_name||user.email||''};S=null;snap=null;known=null;ui.auth='loading';ui.note='';setSync('load');render();
  let cache=null;try{cache=JSON.parse(localStorage.getItem(ck()))}catch(e){}known=cache?.known||null;
  try{const c=await pullCloud();if(!U||U.id!==user.id)return;let prof=c.prof;
   if(!prof){const m=user.user_metadata||{};const row={id:user.id,email:user.email,full_name:m.full_name||'',hospital:m.hospital||'',qualification:m.qualification||'',age:+m.age||null,gender:m.gender||null,phone:m.phone||null,area:m.area||''};const r=await sb.from('profiles').upsert(row).select().maybeSingle();prof=r.data||row}
-  U=profU(prof,user);const set=prof.settings||{};const cloudS={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[]};
+  U=profU(prof,user);const set=prof.settings||{};const cloudS={...c.data,aiTarget:set.aiTarget||undefined,sig:set.sig||'',ucNo:set.ucNo||[],rem:set.rem||{}};
   if(cache&&cache.dirty&&cache.S){S=cache.S;mergeOffline(c.data)}else S=cloudS;snap=mkSnap(c.data,setOf(cloudS));setSync('ok')}
  catch(e){console.warn('Cloud load failed:',e);if(cache&&cache.S){S=cache.S;U=cache.U||U;snap=null;setSync('off')}
   else{U=null;S=null;ui.auth='login';ui.note='⚠️ Could not load your records from the cloud. Check the internet connection (and that the Supabase SQL setup script has been run), then log in again.';await sb.auth.signOut().catch(()=>{});return render()}}
  FLDS.forEach(f=>S[f]=S[f]||[]);
  purgeOldSamples();
- ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();ucPrompt();runShortcut()}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();setTimeout(checkPopup,1500)}
 function endSession(){clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
 async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
@@ -515,12 +522,12 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
  <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
- $('#hb').innerHTML=`${syncBadge()}<button class="btn" data-a="prof">👤 ${esc((U.name||'Me').split(' ')[0])}</button>`;
+ $('#hb').innerHTML=`${syncBadge()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
  const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):anView(d.id)):({dash,cust,ani,trk,pay})[ui.tab]();
  $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}</button>`).join('');if(d&&d.k==='p')pgUpd()}
 
 /* ---------- modal + forms ---------- */
-const closeM=()=>{$('#m').hidden=true;$('#m').innerHTML='';pend=null};
+const closeM=()=>{$('#m').hidden=true;$('#m').innerHTML='';pend=null;remClosed()};
 function modal(title,body,onSave,init){const m=$('#m');m.innerHTML=`<div class="sheet"><h3>${title}</h3><form>${body}<div class="btns" style="justify-content:flex-end"><button type="button" class="btn" data-a="close">Cancel</button><button class="btn pri">Save</button></div></form></div>`;m.hidden=false;const f=m.querySelector('form');f.onsubmit=e=>{e.preventDefault();onSave(Object.fromEntries(new FormData(f)));save();closeM();render()};init&&init(f)}
 function ask(msg,fn){pend=fn;$('#m').innerHTML=`<div class="sheet"><p>${msg}</p><div class="btns" style="justify-content:flex-end"><button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="yes">Confirm</button></div></div>`;$('#m').hidden=false}
 const fl=(l,n,v='',t='text',x='')=>`<label>${l}<input name="${n}" type="${t}" value="${esc(v)}" ${x}></label>`;
@@ -665,6 +672,13 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'qFD':return pickFarmer('FD');
  case'tgtE':return tgtForm();
  case'instGo':return doInstall();
+ case'bell':return remPopup(true);
+ case'remSz':{const c=document.querySelector(`[data-a="remSz"][data-id="${CSS.escape(id)}"]`)?.closest('.rem')?.querySelector('.szo');if(c)c.hidden=!c.hidden;return}
+ case'remSzGo':{const[key,m]=id.split('|');remSet(key,{until:SZ[m][1]()});toast('💤 Snoozed until '+fmtTs(S.rem[key].until));return remRefresh()}
+ case'remStop':{remSet(id.startsWith('tgt:')?monthKey():id,{stop:1});toast(id.startsWith('tgt:')?'🔕 AI target reminder stopped for this month':'🔕 Reminder stopped');return remRefresh()}
+ case'remRes':{remSet(id,null);if(id.startsWith('tgt:'))remSet(monthKey(),null);toast('↩ Reminder resumed');return remRefresh()}
+ case'remAll':{const u=SZ[id][1]();activeAlerts().forEach(a=>remSet(a.key,{until:u}));toast('💤 All reminders snoozed until '+fmtTs(u));popOpen=false;return closeM()}
+ case'remGo':{const[k2,i2]=id.split('|');popOpen=false;closeM();if(k2==='a'||k2==='p'){open(k2,i2);return render()}return act(k2,i2)}
  case'instNo':{try{localStorage.setItem(IK,String(Date.now()+14*864e5))}catch(e){}$('#inst').hidden=true;return}
  case'addF':return fdForm({},id);case'editF':return fdForm(FD(id));
  case'delF':return del('Delete this feed supply record and its weight checks?',()=>S.fd=S.fd.filter(x=>x.id!==id));
@@ -689,6 +703,61 @@ function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==
 
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
 document.addEventListener('input',e=>{if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
+/* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
+/* Each alert has a key (type : record : date [: stage]). Snooze / Stop are stored in S.rem, which is saved to the
+   inspector's Supabase profile (settings), so they survive refresh, re-login and other devices. Records are never changed. */
+const RK={tr:['💉','Treatment follow-up','rk-tr'],ai:['🧬','AI follow-up','rk-ai'],pd:['🩺','PD check due','rk-pd'],rai:['🔁','Repeat AI due','rk-rai'],cf:['🤰','Pregnancy follow-up','rk-pg'],due:['🍼','Expected due (calving) date','rk-pg'],wt:['⚖️','3-month weight check','rk-wt']};
+const recOf=a=>(a.k==='tr'?S.tr:a.k==='wt'?S.fd:S.ai).find(x=>x.id===a.id);
+const monthKey=()=>'tgt:'+today().slice(0,7);
+function alerts(){const L=[];
+ fups().forEach(f=>{const n=dd(f.date);
+  if(f.k==='due'){L.push({...f,stage:n<=1?'d1':'lead',key:`due:${f.id}:${f.date}:${n<=1?'d1':'lead'}`});return}  /* 10/20-day window, then a separate 1-day-before alert */
+  if(n<=1)L.push({...f,key:`${f.k}:${f.id}:${f.date}`})});                                                        /* tomorrow, today or overdue */
+ const t=aiStats();if(S.cs.length&&t.left>0)L.push({k:'tgt',key:'tgt:'+today(),t});
+ return L}
+/* null = active · 'snooze' · 'stop' · 'seen' (daily AI target already shown today) */
+function remState(a){const R=S.rem||{},now=Date.now();if(a.k==='tgt'){if(R[monthKey()]&&R[monthKey()].stop)return 'stop'}const s=R[a.key];if(!s)return null;if(s.stop)return 'stop';if(s.until&&s.until>now)return 'snooze';if(s.seen)return 'seen';return null}
+const activeAlerts=()=>alerts().filter(a=>!remState(a));
+const fmtTs=ms=>new Date(ms).toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+const tomorrow8=()=>{const d=new Date();d.setDate(d.getDate()+1);d.setHours(8,0,0,0);return d.getTime()};
+const SZ={'2h':['2 hours',()=>Date.now()+2*36e5],'tm':['Tomorrow 8 AM',tomorrow8],'1d':['1 day',()=>Date.now()+864e5]};
+/* drop old snooze / stop entries so the saved list stays small */
+function pruneRem(){const R=S.rem||{},now=Date.now(),old=now-120*864e5;Object.keys(R).forEach(k=>{const v=R[k]||{};if((v.until&&v.until<now-7*864e5&&!v.stop)||(v.t&&v.t<old))delete R[k]});S.rem=R}
+function remDetail(a,r){if(a.k==='rai')return `Previous AI ${fmt(r.date)} · PD not confirmed ${fmt(pdOnOf(r))}`;
+ if(a.k==='cf')return `Pregnant · AI ${fmt(r.date)}${r.due?' · due '+fmt(r.due):''}`;
+ if(a.k==='due')return a.stage==='lead'?`Advance reminder (${leadOf(r)} days before) · AI ${fmt(r.date)}`:`1 day before / due now · AI ${fmt(r.date)}`;
+ if(a.k==='wt')return `Free feed supplied ${fmt(r.date)} · ${esc(r.feed)}`;
+ if(a.k==='pd')return `AI ${fmt(r.date)} · record the PD result`;
+ if(a.k==='ai')return `AI done ${fmt(r.date)}`;
+ return esc(r.dx||'')}
+function remCard(a,st){const sb=st==='stop'?'<div class="rem-st">🔕 Stopped</div>':st==='snooze'?`<div class="rem-st">💤 Snoozed until ${fmtTs((S.rem[a.key]||{}).until)}</div>`:'';
+ const ctl=st&&st!=='seen'?`<button class="btn sm" data-a="remRes" data-id="${a.key}">↩ Resume</button>`:`<button class="btn sm" data-a="remSz" data-id="${a.key}">💤 Snooze</button><button class="btn sm" data-a="remStop" data-id="${a.key}">🔕 Stop</button>`;
+ const szo=`<div class="szo" hidden><span class="mut">Snooze for:</span>${Object.entries(SZ).map(([m,[l]])=>`<button class="chip" data-a="remSzGo" data-id="${a.key}|${m}">${l}</button>`).join('')}</div>`;
+ if(a.k==='tgt'){const t=a.t;return `<div class="card rem rk-ai"><div class="between"><div><b>🎯 Daily AI target</b><div>${t.left} more AI procedure${t.left>1?'s':''} remaining out of ${t.T} this month</div><div class="mut">${t.done} done · ${t.dl} day${t.dl>1?'s':''} left · aim for about ${t.perDay} per day</div></div><div class="end">${b(t.pct+'%','wn')}</div></div>${sb}
+  <div class="btns"><button class="btn sm pri" data-a="remGo" data-id="qAI|">+ Log AI</button>${st&&st!=='seen'?ctl:`<button class="btn sm" data-a="remSz" data-id="${a.key}">💤 Snooze</button><button class="btn sm" data-a="remStop" data-id="${a.key}">🔕 Stop this month</button>`}</div>${szo}</div>`}
+ const r=recOf(a),an=A(a.aid);if(!r||!an)return '';const c=C(an.cid),[ic,lbl,cls]=RK[a.k];
+ const main=a.k==='pd'?`<button class="btn sm pri" data-a="remGo" data-id="pdr|${r.id}">Record result</button>`:a.k==='rai'?`<button class="btn sm pri" data-a="remGo" data-id="reAI|${r.id}">Record Repeat AI</button>`:a.k==='wt'?`<button class="btn sm pri" data-a="remGo" data-id="wtV|${r.id}">⚖️ Verify Weight</button>`:(a.k==='cf'||a.k==='due')?`<button class="btn sm pri" data-a="remGo" data-id="p|${r.id}">Open pregnancy page</button>`:`<button class="btn sm pri" data-a="remGo" data-id="a|${an.id}">Open animal</button>`;
+ const ex=a.k==='tr'?(r.dx||''):a.k==='rai'?raiEx(r):a.k==='cf'?cfEx(r):a.k==='due'?dueEx(r):a.k==='wt'?fdEx(r):'AI done on '+fmt(r.date);
+ return `<div class="card rem ${cls}"><div class="between" style="align-items:flex-start"><div><b>${ic} ${lbl}</b><div>${emo(an.species)} ${esc(aname(an))} · 👤 ${esc(c?.name)}</div><div class="mut">${remDetail(a,r)}</div></div><div class="end"><div style="font-size:13px">${fmt(a.date)}</div>${due(a.date)}</div></div>${sb}
+ <div class="btns">${main}${fuBtns(a.k,an.id,a.date,ex)}${ctl}</div>${szo}</div>`}
+let popSeen=new Set(),popOpen=false,hiddenAt=0;
+/* all = opened from the 🔔 button: also lists snoozed / stopped alerts so they can be resumed */
+function remPopup(all){const L=alerts(),act=L.filter(a=>!remState(a)),rest=L.filter(a=>remState(a));
+ if(!all&&!act.length)return;popOpen=true;act.forEach(a=>popSeen.add(a.key));
+ const head=act.length?`<p class="mut" style="margin-top:0">${act.length} reminder${act.length>1?'s':''} due tomorrow, today or overdue. Snooze to see it again later; Stop to silence that reminder (records are not changed).</p>`:'<p class="mut" style="margin-top:0">No reminders need attention right now. 🎉</p>';
+ sheet(`🔔 Reminders${act.length?' ('+act.length+')':''}`,`${head}${act.map(a=>remCard(a,null)).join('')}
+ ${act.length>1?`<div class="btns" style="margin:4px 0 10px"><button class="btn" data-a="remAll" data-id="tm">💤 Snooze all until tomorrow 8 AM</button></div>`:''}
+ ${all&&rest.length?`<details style="margin-top:6px"><summary class="mut" style="cursor:pointer">Snoozed / stopped / already seen today (${rest.length})</summary><div style="margin-top:8px">${rest.map(a=>remCard(a,remState(a))).join('')}</div></details>`:''}`)}
+/* closing the popup counts the daily AI target as seen for today */
+function remClosed(){if(!popOpen)return;popOpen=false;if(!S)return;const a=alerts().find(x=>x.k==='tgt');if(a&&!remState(a)){S.rem=S.rem||{};S.rem[a.key]={seen:1,t:Date.now()};save()}updBell()}
+function remSet(key,v){S.rem=S.rem||{};if(v)S.rem[key]={...v,t:Date.now()};else delete S.rem[key];save();updBell()}
+function remRefresh(){const was=$('#m .sheet h3')?.textContent||'';popOpen=false;$('#m').hidden=true;$('#m').innerHTML='';render();if(was.startsWith('🔔'))remPopup(true)}
+function checkPopup(){if(!U||!S||document.hidden||!$('#m').hidden||document.body.classList.contains('auth'))return;
+ if(activeAlerts().some(a=>!popSeen.has(a.key)))remPopup(false)}
+function updBell(){const e=$('#bellN');if(!e||!S)return;const n=activeAlerts().length;e.textContent=n;e.hidden=!n}
+setInterval(()=>{updBell();checkPopup()},30000);   /* also brings a snoozed reminder back when its time is up */
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();return}if(hiddenAt&&Date.now()-hiddenAt>2*36e5)popSeen.clear();setTimeout(checkPopup,1200)});
+
 /* ---------- installable mobile app (PWA) ---------- */
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
