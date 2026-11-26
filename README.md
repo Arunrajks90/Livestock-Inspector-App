@@ -20,12 +20,12 @@ your-repo/
     └── apple-touch-icon.png
 ```
 
-`supabase-setup.sql`, `supabase-circles.sql`, `supabase-messages.sql` and `supabase-abortion.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
+`supabase-setup.sql`, `supabase-circles.sql`, `supabase-messages.sql`, `supabase-abortion.sql` and `supabase-subscriptions.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
 
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging) and `supabase-abortion.sql` (abortion columns). All are safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging), `supabase-abortion.sql` (abortion columns) and finally `supabase-subscriptions.sql` (₹99/month plans — first change `owner@example.com` in its last section to **your** login email). All are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -99,6 +99,21 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - The **🔔 bell** in the header shows how many reminders need attention and lists snoozed / stopped ones with a **Resume** button.
 - No payment information is ever included in reminders or in messages to farmers.
 
+## ₹99/month subscription (⭐ chip in the header)
+| Plan | What works |
+|---|---|
+| 🧪 **Trial** (every new inspector, no time limit) | Up to 5 farmers and 5 animals, treatments, AI / PD, feed, payments, reminders, Mark as Aborted. Activity log shows the latest 10 events. Inspector Circle, task allotment and circle chat show **“Pro Feature — Upgrade for ₹99/month”**. |
+| ⭐ **Pro** (`active`, 30 days per ₹99) | Everything. Days left show in the header chip and the profile. 5 days before the end a renew banner appears; a renewal is added after the current end date. |
+| ⛔ **Expired** (end date passed or revoked) | **Nothing is deleted.** All records stay visible; adding / editing / deleting is paused and Pro features lock, with **“Subscription Expired — Renew ₹99/month to Continue”**. Everything resumes immediately after renewal. |
+
+**How an inspector pays:** ⭐ chip → pay ₹99 to your UPI ID / QR → paste the UPI transaction / reference ID (UTR) → **Submit for verification** (shows *Pending Verification*).
+
+**How you approve (admin only):** your account shows 🛡 in the header and a “payment requests waiting” banner on Home. Open **🛡 Subscription Manager** → check the UPI reference in your bank / UPI app → **✅ Activate 30 Days** (or **✕ Reject** with a reason). For any inspector you can also **+30 days**, **Extend…** (any number of days) or **Revoke**. Set your **UPI ID, payee name and QR image** once under **⚙ Payment settings** in the Subscription Manager.
+
+**Security:** the rules are enforced by Supabase itself, not only by the app — inspectors can read only their own subscription, cannot change it, cannot reuse a UPI reference, and the database refuses circle / chat use without Pro, more than 5 farmers or animals on trial, and any record change when expired. Only accounts listed in `app_admins` can approve. The admin screen shows only names, contact details and plan status — never anyone's clinical or payment records.
+
+**Automatic payments later (Razorpay):** a Supabase Edge Function that verifies the Razorpay webhook signature can call `select public.apply_provider_payment('<user id>', 'razorpay', '<payment id>', '<order id>', 99, 30);` with the service-role key. It extends `subscription_end` by 30 days and ignores a payment id it has already applied.
+
 ## Saving and offline use
 - Every change is saved to the cloud automatically. The badge in the header shows **☁️ Saved**, **⏳ Saving…** or **⚠️ Offline**.
 - Without internet, changes are kept on the device and uploaded automatically when the connection returns. Don't log out while offline, or the changes stay on that device until you log in there again.
@@ -106,4 +121,6 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - New accounts start with a completely **empty workspace**: no sample or demo records are ever added. Sample records left over from earlier test versions are removed automatically at login.
 
 ## Database tables
+Subscription tables: `subscriptions` (one row per inspector: `subscription_status`, `plan_price`, `subscription_start`, `subscription_end`, `upi_ref_id`, `request_status` …), `subscription_payments` (every UPI / Razorpay payment), `app_settings` (your UPI ID, payee name, QR, price ₹99, 30 days, trial limit 5) and `app_admins` (you).
+
 `profiles`, `farmers`, `animals`, `treatments`, `ai_records` (AI + PD Check + repeat AI + pregnancy), `feed_supplies`. Every record table has `user_id` linked to `auth.users(id)` and Row Level Security. The full record is stored in the `data` column, and readable columns such as name, dates, amount and payment status are filled in automatically for viewing and export in Supabase's Table Editor.

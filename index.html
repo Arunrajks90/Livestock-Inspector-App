@@ -172,6 +172,29 @@ img,svg{max-width:100%}
 .szo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:8px;background:#f5f3ff;border-radius:10px}.szo .mut{font-size:13px;margin-right:2px}
 @media (max-width:420px){.sync .lbl{display:none}.sync{padding:5px 8px}}
 @media (max-width:340px){header .pn{display:none}}
+/* subscription */
+.plan{padding:4px 9px;font-size:12px;font-weight:700;border-radius:99px;white-space:nowrap}.plan.pro{background:#fef3c7;border-color:#fcd34d;color:#92400e}.plan.trl{background:#e0f2fe;border-color:#7dd3fc;color:#075985}.plan.exp{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}.plan.adm{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6}
+@media(max-width:420px){.plan .pl{display:none}}
+#hb{flex-wrap:nowrap}@media(max-width:440px){#hb .pn{display:none}header h1{font-size:16px}}
+.sub-ban{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px;line-height:1.45}.sub-ban .btn{flex-shrink:0}
+.sub-ban.exp{background:#fee2e2;border:1.5px solid #fca5a5;color:#7f1d1d}.sub-ban.warn{background:#fef3c7;border:1px solid #fcd34d;color:#78350f}.sub-ban.trl{background:linear-gradient(135deg,#e0f2fe,#ede9fe);border:1px solid #c7d2fe;color:#1e1b4b}.sub-ban.adm{background:#ede9fe;border:1px solid #c4b5fd;color:#4c1d95;cursor:pointer}
+@media(max-width:520px){.sub-ban{flex-direction:column;align-items:stretch}}
+.pro-tag{display:inline-block;background:linear-gradient(135deg,#f59e0b,#f43f5e);color:#fff;border-radius:99px;padding:0 7px;font-size:11px;font-weight:700}
+.sub-pend{margin-top:8px;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:10px;padding:8px 10px;font-size:13px}.sub-rej{margin-top:8px;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:10px;padding:8px 10px;font-size:13px}
+.lock-hero{text-align:center;display:grid;gap:6px;justify-items:center;background:linear-gradient(135deg,#fffbeb,#f5f3ff);border:1.5px dashed #c4b5fd;border-radius:14px;padding:16px}.lock-hero.exp{background:#fef2f2;border-color:#fca5a5}.lock-hero .lk{font-size:34px}.lock-hero b{font-size:16px}.lock-hero.small{margin-top:10px;padding:12px}.lock-hero.small b{font-size:14px}
+.lock-list{text-align:left;margin:4px 0;padding-left:20px;font-size:14px;color:var(--mut)}
+nav .lkn{position:absolute;top:2px;left:calc(50% + 6px);font-style:normal;font-size:11px}
+body.nopro .allot-btn::after{content:' 🔒'}
+.plan-card{border-radius:14px;padding:14px;margin-bottom:12px;display:grid;gap:3px}.plan-card .big{font-size:26px;font-weight:800}.plan-card.pro{background:linear-gradient(135deg,#fef3c7,#dcfce7);color:#713f12}.plan-card.trl{background:linear-gradient(135deg,#e0f2fe,#ede9fe);color:#1e1b4b}.plan-card.exp{background:#fee2e2;color:#7f1d1d}.plan-card.adm{background:#ede9fe;color:#4c1d95}
+.cmp{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0}.cmp th,.cmp td{padding:6px 6px;border-bottom:1px solid var(--bd);text-align:center}.cmp td:first-child{text-align:left}.cmp th{color:var(--mut);font-weight:600}.cmp th:last-child,.cmp td:last-child{background:#fffbeb;font-weight:600}.cmp .yes{color:#059669;font-weight:800}
+.pay-box{display:flex;gap:14px;align-items:flex-start;background:#f8fafc;border:1px solid var(--bd);border-radius:14px;padding:12px}.pay-box .qr{flex-shrink:0;width:150px}.pay-box .qr img{width:150px;height:auto;border-radius:10px;background:#fff;display:block}
+.qr-ph{width:150px;height:150px;border:2px dashed #cbd5e1;border-radius:12px;display:grid;place-content:center;text-align:center;color:#64748b;font-weight:700;gap:4px;background:#fff}.qr-ph small{font-weight:400;font-size:11px;padding:0 8px}
+.pay-info{min-width:0}.pay-info .upi{font-size:17px;font-weight:700;word-break:break-all}.pay-info .amt{font-size:26px;font-weight:800;color:#047857;margin:4px 0}
+@media(max-width:420px){.pay-box{flex-direction:column;align-items:center;text-align:center}}
+.steps{font-size:13px;color:var(--mut);padding-left:20px;margin:10px 0}.steps li{margin-bottom:3px}
+.pay-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.adm-stats .stat{cursor:default}.adm-row.pend{border-color:#fdba74;box-shadow:0 0 0 2px #ffedd5}.adm-pay{margin-top:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px}.adm-pay .ref{font-family:ui-monospace,monospace;letter-spacing:.5px}
+.qr-prev{margin:-4px 0 10px}.qr-prev img{width:160px;border-radius:10px;border:1px solid var(--bd)}
 /* inspector circle */
 nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px}
 .allot-tag{margin-top:6px;font-size:13px;color:#1e40af;background:#eef4ff;border:1px solid #c7d7fe;border-radius:10px;padding:5px 8px}
@@ -286,7 +309,7 @@ const profU=(p,user)=>({id:user.id,name:p.full_name||user.user_metadata?.full_na
 /* push every local change (new, edited, deleted records + settings) to the cloud */
 async function sync(){if(!U||!S||!sb)return;if(syncing){again=true;return}const me=U.id;syncing=true;setSync('busy');
  try{if(!snap){const c=await pullCloud();if(!U||U.id!==me)return;mergeOffline(c.data);snap=mkSnap(c.data,setOf(c.prof?.settings||{}))}
-  for(const f of FLDS){const cur=new Map(S[f].map(r=>[r.id,cj(r)])),old=snap[f];
+  if(canWrite())for(const f of FLDS){const cur=new Map(S[f].map(r=>[r.id,cj(r)])),old=snap[f];
    const up=[...cur].filter(([id,j])=>old.get(id)!==j),del=[...old.keys()].filter(id=>!cur.has(id));
    for(let i=0;i<up.length;i+=500){const ch=up.slice(i,i+500);const{error}=await sb.from(TB[f]).upsert(ch.map(([id,j])=>({user_id:me,id,data:JSON.parse(j)})),{onConflict:'user_id,id'});if(error)throw error;ch.forEach(([id,j])=>old.set(id,j))}
    for(let i=0;i<del.length;i+=200){const ch=del.slice(i,i+200);const{error}=await sb.from(TB[f]).delete().eq('user_id',me).in('id',ch);if(error)throw error;ch.forEach(id=>old.delete(id))}}
@@ -309,9 +332,10 @@ async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,e
  catch(e){console.warn('Cloud load failed:',e);if(cache&&cache.S){S=cache.S;U=cache.U||U;snap=null;setSync('off')}
   else{U=null;S=null;ui.auth='login';ui.note='⚠️ Could not load your records from the cloud. Check the internet connection (and that the Supabase SQL setup script has been run), then log in again.';await sb.auth.signOut().catch(()=>{});return render()}}
  FLDS.forEach(f=>S[f]=S[f]||[]);
+ await loadSub(true);if(!U||U.id!==user.id||!S)return;   /* plan: trial / active / expired (also expires an ended Pro period) */
  purgeOldSamples();
- ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
-function endSession(){stopRealtime();popSeen.clear();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();if(SUB.admin)loadAdmin();loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
+function endSession(){stopRealtime();Object.assign(SUB,SUB0());Object.assign(ADM,{rows:[],loaded:false,busy:false,err:'',f:'pending',q:''});popSeen.clear();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
 async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
 
@@ -383,9 +407,9 @@ document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;i
  ui.auth='login';ui.note=`✅ Account created. A confirmation link was sent to ${P.email}. Open it, then log in here with your email or phone number.`;render()}
  catch(x){err(errMsg(x))}});
 function profile(){const u=U,row=(k,v)=>`<dt>${k}</dt><dd>${esc(v||'—')}</dd>`;
- sheet('👤 My profile',`<dl class="kv">${row('Name',u.name)}${row('Hospital / centre',u.hosp)}${row('Qualification',u.qual)}${row('Age',u.age)}${row('Gender',u.gender)}${row('Phone',u.phone)}${row('Email',u.email)}${row('Area / Panchayat',u.area)}${row('Registered on',fmt(u.created))}</dl>
+ sheet('👤 My profile',`<dl class="kv">${row('Name',u.name)}${row('Hospital / centre',u.hosp)}${row('Qualification',u.qual)}${row('Age',u.age)}${row('Gender',u.gender)}${row('Phone',u.phone)}${row('Email',u.email)}${row('Area / Panchayat',u.area)}${row('Registered on',fmt(u.created))}<dt>Plan</dt><dd>${SUB.legacy?'—':SUB.admin?'🛡 Admin (all features)':subEff()==='active'?`⭐ Pro · ${subDays()} days left (until ${fmtD(SUB.end)})`:subEff()==='expired'?'⛔ Expired — renew to continue':'🧪 Free trial'}</dd></dl>
  <p class="mut" style="font-size:13px">☁️ Records are stored in your secure cloud account. Status: ${syncLbl[net]}</p>
- <div class="btns"><button class="btn" data-a="profE">Edit profile</button><button class="btn" data-a="logOpen">📜 Activity log</button><button class="btn" data-a="profP">Change password</button><button class="btn" data-a="tools">Data ⚙</button>${isStandalone()?'':'<button class="btn" data-a="instGo">📲 Install app</button>'}<button class="btn dng" data-a="logout">Logout</button></div>`)}
+ <div class="btns">${SUB.legacy?'':`<button class="btn pri" data-a="sub">⭐ Subscription</button>`}${SUB.admin?'<button class="btn" data-a="admin">🛡 Subscription Manager</button>':''}<button class="btn" data-a="profE">Edit profile</button><button class="btn" data-a="logOpen">📜 Activity log</button><button class="btn" data-a="profP">Change password</button><button class="btn" data-a="tools">Data ⚙</button>${isStandalone()?'':'<button class="btn" data-a="instGo">📲 Install app</button>'}<button class="btn dng" data-a="logout">Logout</button></div>`)}
 function profEdit(){modal('Edit profile',profFields(U,1)+'<p class="err"></p>',()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),P=profObj(d);
  if(P.phone.length!==10)return el.textContent='Enter a valid 10-digit phone number.';el.textContent='Saving…';
  const{error}=await sb.from('profiles').update({full_name:P.name,hospital:P.hosp,qualification:P.qual,age:+P.age||null,gender:P.gender,phone:P.phone,area:P.area}).eq('id',U.id);
@@ -512,7 +536,7 @@ function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F
  const sec=(t,L,ty,emp)=>`<div class="between"><h2>${t}${L.length?' ('+L.length+')':''}</h2><a href="#" data-a="trkT" data-id="${ty}" style="color:var(--pri);font-size:14px;white-space:nowrap">See all →</a></div>${L.slice(0,6).map(fRow).join('')||`<div class="empty" style="padding:14px">${emp}</div>`}`;
  const inN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length,fdN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='accepted').length,rtN=returnedToMe().length;
  const muN=msgUnreadTotal();
- return `${muN?`<div class="card circle-cta msg" data-a="tab" data-id="circle"><b>💬 ${muN} new message${muN>1?'s':''} in your circle</b><div class="mut">Private chats and circle announcements · open the Circle tab</div></div>`:''}${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${aiBanner()}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
+ return `${muN?`<div class="card circle-cta msg" data-a="tab" data-id="circle"><b>💬 ${muN} new message${muN>1?'s':''} in your circle</b><div class="mut">Private chats and circle announcements · open the Circle tab</div></div>`:''}${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${canWrite()?aiBanner():''}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
  ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log treatments, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Treatment</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button><button class="btn log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>
  ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}`}
 function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,c.village,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -528,7 +552,7 @@ function ani(){const sps=[...new Set(S.an.map(a=>a.species))];
  return `<div class="between"><h2 style="margin:0">Livestock</h2><button class="btn pri" data-a="addA">+ Add</button></div><div class="chips"><input id="q" placeholder="Search tag, breed or owner" value="${esc(ui.q)}"></div><div class="chips">${['',...sps].map(s=>`<button class="chip ${ui.sp===s?'on':''}" data-a="sp" data-id="${esc(s)}">${s||'All'}</button>`).join('')}</div><div class="chips">${[['active','Active'],['dead','Deceased'],['sold','Sold'],['all','All']].map(([v,l])=>`<button class="chip ${ui.st===v?'on':''}" data-a="ast" data-id="${v}">${l}</button>`).join('')}</div><div id="list">${aniList()}</div>`}
 function trkList(){const F=fups().filter(f=>{let n=dd(f.date);if(f.k==='due'&&n>0)n=0;const rr=f.k==='wt'?null:recOf(f);return(ui.t==='all'||ui.t===f.type||(ui.t==='handover'&&rr&&(rr.fuFrom||(rr.allot&&rr.allot.status==='declined'&&(rr.allot.k===f.k||(rr.allot.k==='visit'&&f.k==='tr'))))))&&(ui.r==='all'||(ui.r==='over'&&n<0)||(ui.r==='today'&&n===0)||(ui.r==='week'&&n<=7)||(ui.r==='month'&&n<=30))});return F.map(fRow).join('')||(S.cs.length?'<div class="empty">Nothing in this view.</div>':emptyBox('📅','No reminders yet.','Follow-ups, PD checks, repeat AI, pregnancy and weight-check reminders appear here once you add records.','addC','+ Add Farmer'))}
 function trk(){const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data-a="flt" data-k="${k}" data-id="${v}">${l}</button>`;
- return `<h2 style="margin-top:0">Reminders and tracker</h2><div class="btns" style="margin:-4px 0 8px"><button class="btn sm log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>${aiBanner()}<div class="chips">${ch('r','over','Overdue')}${ch('r','today','Today')}${ch('r','week','Next 7 days + overdue')}${ch('r','month','30 days')}${ch('r','all','All')}</div><div class="chips">${ch('t','all','All types')}${ch('t','PD','PD checks')}${ch('t','Follow-up','Follow-ups')}${ch('t','Repeat AI','Repeat AI')}${ch('t','Pregnancy','Pregnancy')}${ch('t','Weight check','Weight checks')}${ch('t','handover','↩ Returned / declined')}</div>${(()=>{const L=returnedToMe();return L.length?`<div class="card ret-wait"><b>↩ Waiting for your next follow-up date (${L.length})</b><div class="mut" style="font-size:13px">Closed by a colleague. Once you set the date, the follow-up is tracked here with its reminders.</div>${L.map(t=>`<div class="ret-row"><div><b>${esc(t.title)}</b><div class="mut">Closed by ${esc(t.to_name||'colleague')} on ${fmt(t.closed_date||String(t.closed_at||'').slice(0,10))} · 📝 ${esc(t.closure_note||'')}</div></div><div class="btns"><button class="btn sm pri" data-a="retSet" data-id="${t.id}">📅 Set next follow-up</button><button class="btn sm" data-a="retNone" data-id="${t.id}">No further follow-up</button></div></div>`).join('')}</div>`:''})()}<div id="list">${trkList()}</div>`}
+ return `<h2 style="margin-top:0">Reminders and tracker</h2><div class="btns" style="margin:-4px 0 8px"><button class="btn sm log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>${canWrite()?aiBanner():''}<div class="chips">${ch('r','over','Overdue')}${ch('r','today','Today')}${ch('r','week','Next 7 days + overdue')}${ch('r','month','30 days')}${ch('r','all','All')}</div><div class="chips">${ch('t','all','All types')}${ch('t','PD','PD checks')}${ch('t','Follow-up','Follow-ups')}${ch('t','Repeat AI','Repeat AI')}${ch('t','Pregnancy','Pregnancy')}${ch('t','Weight check','Weight checks')}${ch('t','handover','↩ Returned / declined')}</div>${(()=>{const L=returnedToMe();return L.length?`<div class="card ret-wait"><b>↩ Waiting for your next follow-up date (${L.length})</b><div class="mut" style="font-size:13px">Closed by a colleague. Once you set the date, the follow-up is tracked here with its reminders.</div>${L.map(t=>`<div class="ret-row"><div><b>${esc(t.title)}</b><div class="mut">Closed by ${esc(t.to_name||'colleague')} on ${fmt(t.closed_date||String(t.closed_at||'').slice(0,10))} · 📝 ${esc(t.closure_note||'')}</div></div><div class="btns"><button class="btn sm pri" data-a="retSet" data-id="${t.id}">📅 Set next follow-up</button><button class="btn sm" data-a="retNone" data-id="${t.id}">No further follow-up</button></div></div>`).join('')}</div>`:''})()}<div id="list">${trkList()}</div>`}
 const payRow=(x,showC)=>{const a=A(x.aid),c=C(x.cid);return `<div class="card"><div class="between"><div><b>${esc(x.svc)}</b><div class="mut">${emo(a.species)} ${esc(aname(a))} · ${fmt(x.date)}${showC?' · '+esc(c.name):''}</div>${x.st==='Paid'?`<div class="mut">Paid ${fmt(x.paidOn)}${x.mode&&x.mode!=='None'?' · '+esc(x.mode):''}</div>`:''}</div><div class="end"><b>${rs(x.amt)}</b><div>${x.st==='Pending'?b('Pending','bad'):b('Paid','ok')}</div></div></div>${x.st==='Pending'?`<div class="btns"><button class="btn sm pri" data-a="paid" data-k="${x.src}" data-id="${x.id}">Mark paid</button></div>`:''}</div>`};
 function payList(){const q=ui.q.toLowerCase(),L=pays().filter(x=>(ui.ps==='all'||x.st===ui.ps)&&(ui.pt==='all'||x.src===ui.pt)&&(()=>{const c=C(x.cid);return [c.name,c.phone,c.village].join(' ').toLowerCase().includes(q)})());
  if(!L.length)return pays().length?'<div class="empty">No payments in this view.</div>':emptyBox('💰','No payments recorded yet.','Amounts you enter in Treatment, AI and PD Check forms appear here. Only you can see them.');
@@ -592,9 +616,10 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
  <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${t.visit?'📌 Planned visit · ':''}${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${(t.fuLog||[]).map(closedNote).join('')}${closedNote(t.closure)}${allotTag(t)}${t.byOther?`<div class="mut">👥 Done by ${esc(t.byOther)} (circle)</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
- $('#hb').innerHTML=`${syncBadge()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
- const d=ui.d;$('#app').innerHTML=d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):d.k==='chat'?chatView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle,log:logView})[ui.tab]();
- $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments'],['circle','👥','Circle']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}${k==='circle'?'<i class="nb" id="circleN" hidden>0</i>':''}</button>`).join('');if(d&&d.k==='p')pgUpd();updNav()}
+ const se=subEff();document.body.classList.toggle('nopro',!isPro());document.body.classList.toggle('expired',se==='expired');
+ $('#hb').innerHTML=`${syncBadge()}${subChip()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
+ const d=ui.d;if(ui.tab==='admin'&&!SUB.admin)ui.tab='dash';$('#app').innerHTML=subBanner()+(d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):d.k==='chat'?chatView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle,log:logView,admin:adminView})[ui.tab]());
+ $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments'],['circle','👥','Circle']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}${k==='circle'?(isPro()?'<i class="nb" id="circleN" hidden>0</i>':'<i class="lkn">🔒</i>'):''}</button>`).join('');if(d&&d.k==='p')pgUpd();updNav()}
 
 /* ---------- modal + forms ---------- */
 const closeM=()=>{$('#m').hidden=true;$('#m').innerHTML='';pend=null;remClosed()};
@@ -603,8 +628,8 @@ function ask(msg,fn){pend=fn;$('#m').innerHTML=`<div class="sheet"><p>${msg}</p>
 const fl=(l,n,v='',t='text',x='')=>`<label>${l}<input name="${n}" type="${t}" value="${esc(v)}" ${x}></label>`;
 const ta=(l,n,v='')=>`<label>${l}<textarea name="${n}" rows="2">${esc(v)}</textarea></label>`;
 
-function custForm(c={}){modal(c.id?'Edit farmer':'Add farmer',fl('Full name *','name',c.name,'text','required')+fl('Phone number *','phone',c.phone,'tel','required')+fl('Village / Ward / Panchayat *','village',c.village,'text','required')+ta('Address','address',c.address)+ta('Notes (optional)','notes',c.notes),d=>{c.id?Object.assign(c,d):S.cs.push({id:uid(),...d})})}
-function aniForm(a={},cid){if(!S.cs.length)return ask('Please add a farmer first.',()=>{});
+function custForm(c={}){if(!canWrite())return subLock('exp');if(!c.id&&trialFull('cs'))return subLock('pro',`Adding more than ${SUB.lim} farmers`);modal(c.id?'Edit farmer':'Add farmer',fl('Full name *','name',c.name,'text','required')+fl('Phone number *','phone',c.phone,'tel','required')+fl('Village / Ward / Panchayat *','village',c.village,'text','required')+ta('Address','address',c.address)+ta('Notes (optional)','notes',c.notes),d=>{c.id?Object.assign(c,d):S.cs.push({id:uid(),...d})})}
+function aniForm(a={},cid){if(!canWrite())return subLock('exp');if(!a.id&&trialFull('an'))return subLock('pro',`Adding more than ${SUB.lim} animals`);if(!S.cs.length)return ask('Please add a farmer first.',()=>{});
  const isOther=a.species&&!SP.includes(a.species);
  modal(a.id?'Edit animal':'Add animal',`<label>Owner *<select name="cid">${S.cs.map(c=>`<option value="${c.id}" ${c.id===(a.cid||cid)?'selected':''}>${esc(c.name)} · ${esc(c.village)}</option>`).join('')}</select></label>
  <div class="two"><label>Species<select name="sp">${[...SP,'Other'].map(s=>`<option ${s===(isOther?'Other':a.species||'Cow')?'selected':''}>${s}</option>`).join('')}</select></label>${fl('Breed','breed',a.breed,'text','placeholder="HF Cross, Gir, Labrador…"')}</div>
@@ -709,7 +734,14 @@ function tools(){modal('Data tools',`${fl('Sign-off for WhatsApp / SMS messages'
 
 /* ---------- actions ---------- */
 function open(k,id){if(ui.d)ui.hist.push(ui.d);ui.d={k,id};scrollTo(0,0)}
+/* plan gates: expired = read-only, trial = no circle / chat and a small record limit */
+const SUBW=new Set(['addC','editC','delC','addA','editA','delA','addT','editT','delT','addAI','editAI','delAI','pdr','reAI','raiS','paid','paidF','done','qT','qAI','qPD','qFD','tgtE','fuClose','abort','abUndo','fuDo','retSet','retNone','addF','editF','delF','wtV','wtN','flB','flF','flA','dead','sell','xfer','reinst','imp','clr','ucY']);
+const SUBP=new Set(['allot','chatOpen','chatSend','cCreate','cJoin','tAccept','tDecline','tClose','tCancel','retSet','retNone']);
 function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
+ if(SUBW.has(a)&&!canWrite())return subLock('exp');
+ if(SUBP.has(a)&&!isPro())return subLock('pro',a==='allot'?'Allotting tasks to circle colleagues':/^chat/.test(a)?'Circle chat':'Inspector Circle');
+ if(a==='addC'&&trialFull('cs'))return subLock('pro',`Adding more than ${SUB.lim} farmers`);
+ if(a==='addA'&&trialFull('an'))return subLock('pro',`Adding more than ${SUB.lim} animals`);
  const del=(msg,fn)=>ask(msg,()=>{fn();ui.d=ui.d&&((ui.d.k==='a'&&!A(ui.d.id))||(ui.d.k==='c'&&!C(ui.d.id))||(ui.d.k==='p'&&!S.ai.find(x=>x.id===ui.d.id)))?ui.hist.pop()||null:ui.d;save();render()});
  switch(a){
  case'tab':ui.hl=null;ui.tab=id;ui.d=null;ui.hist=[];ui.q='';ui.sp='';scrollTo(0,0);if(id==='circle'){loadCircle();loadMsgs(true)}return render();
@@ -773,6 +805,18 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'reinst':return ask('Mark this animal as active again?',()=>{const a=A(id);a.status='active';a.sdate='';a.snote='';logH(a,'Reinstated',today());save();render()});
  case'ast':ui.st=id;return render();
  case'tools':return tools();
+ case'sub':popOpen=false;return subOpen();
+ case'subReq':return subReq();
+ case'subCopy':{try{navigator.clipboard.writeText(SUB.upi);toast('📋 UPI ID copied')}catch(e){toast('UPI ID: '+SUB.upi)}return}
+ case'admin':if(!SUB.admin)return;closeM();ui.tab='admin';ui.d=null;ui.hist=[];scrollTo(0,0);render();return loadAdmin();
+ case'admRef':return loadAdmin();
+ case'admF':ADM.f=id;return render();
+ case'admAct':{const[u2,p2]=id.split('|');return admRpc('admin_activate',{p_user:u2,p_days:SUB.days,p_payment_id:p2},`⭐ Pro activated for ${SUB.days} days — ${admName(u2)}`)}
+ case'admExt':return admRpc('admin_activate',{p_user:id,p_days:SUB.days,p_payment_id:null},`⭐ +${SUB.days} days — ${admName(id)}`);
+ case'admCus':return admDays(id);
+ case'admRej':return admReject(id);
+ case'admRev':return admRevoke(id);
+ case'admSet':return admSettings();
  case'auth':ui.auth=id;return render();
  case'ucY':closeM();claim();render();return toast('Records added to your account');
  case'ucN':{const o=unclaimed();if(o)S.ucNo=[...(S.ucNo||[]),...FLDS.flatMap(f=>o[f].map(r=>r.id))];save();return closeM()}
@@ -785,7 +829,7 @@ function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==
 
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTx'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();const b=document.querySelector('[data-a="chatSend"]');if(b)chatSend(b.dataset.id)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
-document.addEventListener('input',e=>{if(e.target.id==='lq'){ui.lq=e.target.value;ui.lmax=200;$('#loglist').innerHTML=logList();return}if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
+document.addEventListener('input',e=>{if(e.target.id==='admq'){ADM.q=e.target.value;$('#admList').innerHTML=adminList();return}if(e.target.id==='lq'){ui.lq=e.target.value;ui.lmax=200;$('#loglist').innerHTML=logList();return}if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
 /* ---------- Inspector Circle: task allotment / handover (privacy-first) ----------
    Each inspector keeps a private database. A circle only shares members' name cards.
    When a task is allotted, ONLY that task (farmer contact, animal summary, task details, note) is sent.
@@ -803,7 +847,7 @@ const inCircle=()=>others().length>0;
 const incoming=st=>CI.tasks.filter(t=>t.to_user===U.id&&(!st||t.status===st));
 const outgoing=()=>CI.tasks.filter(t=>t.from_user===U.id);
 const cErr=e=>{const m=String(e&&(e.message||e)||'');if(/relation .* does not exist|could not find the table|schema cache|42P01|PGRST205/i.test(m))return 'setup';return m};
-async function loadCircle(quiet){if(!sb||!U||!S||CI.busy)return;CI.busy=true;const me=U.id;
+async function loadCircle(quiet){if(!sb||!U||!S||CI.busy)return;if(!isPro()){CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=true;CI.err='';return}CI.busy=true;const me=U.id;
  try{const[c,m,t]=await Promise.all([sb.from('inspector_circles').select('*'),sb.from('circle_members').select('*'),sb.from('task_allotments').select('*').order('created_at',{ascending:false})]);
   if(!U||U.id!==me)return;const e=c.error||m.error||t.error;if(e)throw e;
   CI.circles=c.data||[];CI.members=m.data||[];CI.tasks=t.data||[];CI.loaded=true;CI.err='';applyOutcomes()}
@@ -945,7 +989,7 @@ function taskCard(t,mode){const p=t.payload||{},a=p.animal||{},f=p.farmer||{},tk
  ${mode==='feed'?`${taskMsg(t)}<button class="btn sm pri" data-a="tClose" data-id="${t.id}">✔ Mark closed</button>`:''}
  ${mode==='ret'?`<button class="btn sm pri" data-a="retSet" data-id="${t.id}">📅 Set next follow-up</button><button class="btn sm" data-a="retNone" data-id="${t.id}">No further follow-up</button>`:''}
  ${mode==='out'&&t.status==='pending_acceptance'?`<button class="btn sm" data-a="tCancel" data-id="${t.id}">Cancel</button>`:''}${mode==='out'&&['pending_acceptance','accepted'].includes(t.status)?`<button class="btn sm" data-a="tClose" data-id="${t.id}">✔ Mark closed</button>`:''}</div></div>`}
-function circle(){const ch=CI.err==='setup'?`<div class="card note">⚙️ Circle tables are not set up in Supabase yet. Run <b>supabase-circles.sql</b> in the Supabase SQL Editor, then reopen this tab.</div>`:CI.err?`<div class="card note">⚠️ Could not load your circle (${esc(CI.err)}). Check the internet connection.</div>`:'';
+function circle(){if(!isPro())return circleLocked();const ch=CI.err==='setup'?`<div class="card note">⚙️ Circle tables are not set up in Supabase yet. Run <b>supabase-circles.sql</b> in the Supabase SQL Editor, then reopen this tab.</div>`:CI.err?`<div class="card note">⚠️ Could not load your circle (${esc(CI.err)}). Check the internet connection.</div>`:'';
  const inT=incoming('pending_acceptance'),feed=incoming('accepted'),out=outgoing().filter(t=>['pending_acceptance','accepted'].includes(t.status)),retL=returnedToMe(),hist=CI.tasks.filter(t=>['closed','declined','cancelled'].includes(t.status)&&!retL.includes(t));
  const cards=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id);const share=encodeURIComponent(`Join my Livestock Inspector circle "${c.name}" in the Field Officer app.\nInvite code: ${c.invite_code}\n${location.origin+location.pathname}`);
   return `<div class="card circ"><div class="between"><div><b>👥 ${esc(c.name)}</b><div class="mut">${ms.length} member${ms.length>1?'s':''}</div></div><div class="end"><div class="mut" style="font-size:12px">Invite code</div><b class="code">${esc(c.invite_code)}</b></div></div>
@@ -988,7 +1032,7 @@ const annSeen=cid=>(S&&S.annRead&&S.annRead[cid])||'';
 const annUnread=cid=>{const t=annSeen(cid);return annThread(cid).filter(m=>m.sender_id!==U.id&&m.created_at>t).length};
 const msgUnreadTotal=()=>!U||!S?0:CM.msgs.filter(m=>m.message_type==='direct'&&m.recipient_id===U.id&&!m.is_read).length+CI.circles.reduce((n,c)=>n+annUnread(c.id),0);
 const mErr=e=>{const m=String(e&&(e.message||e)||'');return /circle_messages|relation .* does not exist|schema cache|42P01|PGRST205/i.test(m)&&/does not exist|schema cache|PGRST205|42P01/i.test(m)?'setup':m};
-async function loadMsgs(quiet){if(!sb||!U||!S||CM.busy)return;CM.busy=true;const me=U.id;
+async function loadMsgs(quiet){if(!sb||!U||!S||CM.busy||!isPro())return;CM.busy=true;const me=U.id;
  try{const{data,error}=await sb.from('circle_messages').select('*').order('created_at',{ascending:true}).limit(2000);if(!U||U.id!==me)return;if(error)throw error;
   const before=new Set(CM.msgs.map(m=>m.id));const fresh=data||[];
   if(CM.loaded)fresh.filter(m=>!before.has(m.id)&&m.sender_id!==U.id).forEach(m=>notifyMsg(m));
@@ -997,7 +1041,7 @@ async function loadMsgs(quiet){if(!sb||!U||!S||CM.busy)return;CM.busy=true;const
  finally{CM.busy=false}
  if(U&&U.id===me)msgRefresh()}
 /* live updates (Realtime applies the same row security, so only allowed messages arrive) */
-function startRealtime(){if(!sb||!sb.channel||rtCh||!U)return;
+function startRealtime(){if(!sb||!sb.channel||rtCh||!U||!isPro())return;
  try{rtCh=sb.channel('circle-messages-'+U.id).on('postgres_changes',{event:'*',schema:'public',table:'circle_messages'},p=>onMsgEvent(p)).subscribe(st=>{CM.live=st==='SUBSCRIBED';updLive()})}catch(e){rtCh=null}
  clearInterval(msgPoll);msgPoll=setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false){const inChat=ui.d&&ui.d.k==='chat';if(inChat||!CM.live||Date.now()%60000<20000)loadMsgs(true)}},20000)}
 function stopRealtime(){clearInterval(msgPoll);msgPoll=null;if(rtCh){try{sb.removeChannel(rtCh)}catch(e){}rtCh=null}CM.live=false;CM.msgs=[];CM.loaded=false;CM.err=''}
@@ -1156,6 +1200,7 @@ function logView(){const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" 
 function logList(){const q=(ui.lq||'').toLowerCase(),from=ui.lr==='all'?'':add(today(),-(+ui.lr||30));
  const L=histEvents().filter(e=>(ui.lf==='all'||e.cat===ui.lf)&&(!from||e.ts.slice(0,10)>=from)&&(!q||[e.title,e.sub,e.who].join(' ').toLowerCase().includes(q)));
  ui.lmax=ui.lmax||200;if(!L.length)return emptyBox('📜','Nothing here yet.',S.cs.length?'Try another filter, a longer date range or a different search.':'Your actions will appear here once you start adding records.');
+ if(!isPro()){const n=L.length;return `<div class="mut" style="font-size:13px;margin-bottom:6px">Showing the latest ${Math.min(n,LOGFREE)} of ${n} event${n>1?'s':''}</div>${evGroups(L.slice(0,LOGFREE),true)}${n>LOGFREE?`<div class="card lock-hero small"><b>🔒 Full Activity Log — Pro Feature</b><div class="mut">${n-LOGFREE} older event${n-LOGFREE>1?'s are':' is'} kept safely. Upgrade for ₹${SUB.price}/month to see and search the full log.</div><div class="btns" style="justify-content:center"><button class="btn pri" data-a="sub">Upgrade ₹${SUB.price}/month</button></div></div>`:''}`}
  return `<div class="mut" style="font-size:13px;margin-bottom:6px">${L.length} event${L.length>1?'s':''}</div>${evGroups(L.slice(0,ui.lmax),true)}${L.length>ui.lmax?`<div class="btns" style="justify-content:center"><button class="btn" data-a="logMore">Show more</button></div>`:''}`}
 
 /* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
@@ -1221,6 +1266,137 @@ function checkPopup(){if(!U||!S||document.hidden||!$('#m').hidden||document.body
 function updBell(){const e=$('#bellN');if(!e||!S)return;const n=activeAlerts().length;e.textContent=n;e.hidden=!n}
 setInterval(()=>{updBell();checkPopup()},30000);   /* also brings a snoozed reminder back when its time is up */
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();return}if(hiddenAt&&Date.now()-hiddenAt>2*36e5)popSeen.clear();setTimeout(checkPopup,1200)});
+
+/* ---------- ₹99/month subscription: Trial → Pro (active) → Expired ----------
+   State comes from Supabase (table subscriptions, function my_subscription). The same rules are enforced by
+   the database (row security + triggers), so the app cannot be tricked into Pro. Nothing is ever deleted:
+   an expired inspector keeps every record; adding / editing is paused until renewal. */
+const SUB0=()=>({loaded:false,err:'',legacy:false,st:'trial',start:null,end:null,req:'none',ref:'',reqAt:null,note:'',admin:false,price:99,days:30,lim:5,upi:'',payee:'',hasQr:false,qr:'',pays:[]});
+const SUB=SUB0();
+const LOGFREE=10;
+const subKey=()=>K+'_sub_'+(U?U.id:'');
+function subEff(){if(SUB.legacy||SUB.admin)return 'active';if(SUB.st==='active'&&(!SUB.end||Date.parse(SUB.end)<=Date.now()))return 'expired';return SUB.st==='active'||SUB.st==='expired'?SUB.st:'trial'}
+const isPro=()=>subEff()==='active';
+const canWrite=()=>subEff()!=='expired';
+const subDays=()=>SUB.end?Math.max(0,Math.ceil((Date.parse(SUB.end)-Date.now())/864e5)):0;
+const trialFull=f=>!isPro()&&S&&(S[f]||[]).length>=SUB.lim;
+const fmtD=x=>x?fmt(ld(new Date(x))):'—';
+const fmtDT=x=>x?new Date(x).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}):'—';
+const subSig=()=>[subEff(),SUB.end,SUB.req,SUB.ref,SUB.admin,SUB.upi,SUB.payee,SUB.hasQr].join('|');
+function subApply(d){if(!d)return;Object.assign(SUB,{loaded:true,legacy:false,st:d.status||'trial',start:d.subscription_start||null,end:d.subscription_end||null,req:d.request_status||'none',ref:d.upi_ref_id||'',reqAt:d.requested_at||null,note:d.review_note||'',admin:!!d.is_admin,price:+d.plan_price||99,days:+d.plan_days||30,lim:d.trial_limit==null?5:+d.trial_limit,upi:d.upi_id||'',payee:d.payee_name||'',hasQr:!!d.has_qr});if(!SUB.hasQr)SUB.qr=''}
+/* checked on every login / app load, when the app comes back to the screen and every 5 minutes */
+async function loadSub(quiet){if(!sb||!U)return;const me=U.id,was=isPro(),sig=subSig(),first=!SUB.loaded;
+ try{const{data,error}=await sb.rpc('my_subscription');if(!U||U.id!==me)return;if(error)throw error;subApply(data);SUB.err='';try{localStorage.setItem(subKey(),JSON.stringify(data))}catch(e){}}
+ catch(e){if(!U||U.id!==me)return;const m=String(e&&(e.message||e.code)||e);
+  if(/my_subscription|PGRST202|42883|could not find the function/i.test(m)){Object.assign(SUB,{loaded:true,legacy:true,err:'setup'})}   /* subscription SQL not run yet: app works as before */
+  else{let c=null;try{c=JSON.parse(localStorage.getItem(subKey()))}catch(x){}if(c)subApply(c);SUB.loaded=true;SUB.err='offline';if(!quiet)console.warn('Subscription check failed:',e)}}
+ if(!U||U.id!==me||!S)return;
+ if(first)return;   /* first check at login: startSession loads the circle itself */
+ if(!was&&isPro()){loadCircle(true).then(()=>{loadMsgs(true);startRealtime()})}
+ if(was&&!isPro()){stopRealtime();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=true;CI.err=''}
+ if(SUB.admin&&!ADM.loaded)loadAdmin();
+ if(sig!==subSig()){if($('#subv'))subView();else softRender();updNav()}}
+setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false)loadSub(true)},5*60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U&&S)setTimeout(()=>loadSub(true),500)});
+
+/* header chip + banners + lock screens */
+function subChip(){if(SUB.legacy)return '';const e=subEff();
+ if(SUB.admin)return `<button class="btn plan adm" data-a="sub" title="Admin — all features">🛡<span class="pl"> Admin</span></button>`;
+ return e==='active'?`<button class="btn plan pro" data-a="sub" title="Pro subscription — ${subDays()} days left">⭐ ${subDays()}d</button>`
+  :e==='expired'?`<button class="btn plan exp" data-a="sub" title="Subscription expired">⛔<span class="pl"> Expired</span></button>`
+  :`<button class="btn plan trl" data-a="sub" title="Free trial">Trial</button>`}
+const subPendingNote=()=>SUB.req==='pending'?`<div class="sub-pend">⏳ <b>Pending Verification</b> — UPI ref <b>${esc(SUB.ref)}</b> submitted ${fmtDT(SUB.reqAt)}. Pro is switched on as soon as the payment is verified.</div>`
+ :SUB.req==='rejected'?`<div class="sub-rej">✕ <b>Payment not verified</b>${SUB.note?' — '+esc(SUB.note):''}. Please check the UPI reference ID and submit again.</div>`:'';
+function subBanner(){if(SUB.legacy||!SUB.loaded)return '';const e=subEff(),onDash=!ui.d&&ui.tab==='dash';let h='';
+ if(e==='expired')h=`<div class="sub-ban exp"><div><b>⛔ Subscription Expired — Renew ₹${SUB.price}/month to Continue</b><div>Your farmers, animals, treatments and history are safe and still visible. Adding and editing records is paused until you renew.</div>${subPendingNote()}</div><button class="btn pri" data-a="sub">Renew ₹${SUB.price}</button></div>`;
+ else if(e==='active'&&!SUB.admin&&subDays()<=5&&(onDash||ui.tab==='circle'))h=`<div class="sub-ban warn"><div><b>⭐ Pro ends in ${subDays()} day${subDays()===1?'':'s'}</b> (${fmtD(SUB.end)}). Renew now — the new 30 days are added after the current end date.${subPendingNote()}</div><button class="btn pri" data-a="sub">Renew</button></div>`;
+ else if(e==='trial'&&onDash)h=`<div class="sub-ban trl"><div><b>🧪 Free trial</b> · ${S.cs.length}/${SUB.lim} farmers · ${S.an.length}/${SUB.lim} animals used. <span class="pro-tag">Pro</span> unlocks unlimited records, Inspector Circle, task allotment, circle chat and the full activity log for ₹${SUB.price}/month.${subPendingNote()}</div><button class="btn pri" data-a="sub">Upgrade ₹${SUB.price}/month</button></div>`;
+ if(SUB.admin&&onDash){const n=ADM.rows.filter(r=>r.pending_payment_id).length;if(n)h+=`<div class="sub-ban adm" data-a="admin"><div><b>🛡 ${n} payment request${n>1?'s':''} waiting for verification</b><div>Open the Subscription Manager to check the UPI reference IDs and activate.</div></div><button class="btn pri" data-a="admin">Open</button></div>`}
+ return h}
+function subLock(kind,feat){const exp=kind==='exp'||subEff()==='expired';popOpen=false;
+ sheet(exp?'⛔ Subscription expired':'🔒 Pro feature',`<div class="lock-hero${exp?' exp':''}"><div class="lk">${exp?'⛔':'🔒'}</div>
+ <b>${exp?`Subscription Expired — Renew ₹${SUB.price}/month to Continue`:`Pro Feature — Upgrade for ₹${SUB.price}/month`}</b>
+ ${!exp&&feat?`<div class="mut">${esc(feat)} is included in Pro.</div>`:''}
+ <div class="mut">${exp?'All your farmers, animals, treatments, AI / PD, feed and payment records are safely stored and still visible. Adding and editing is paused until you renew — everything continues exactly where you left off.':`Pro unlocks unlimited farmers &amp; animals (trial: ${SUB.lim} each), Inspector Circle with task allotment, circle chat (1-on-1 and announcements) and the full activity log.`}</div></div>
+ ${subPendingNote()}<div class="btns" style="justify-content:center"><button class="btn pri" data-a="sub">${exp?'Renew':'Upgrade'} ₹${SUB.price}/month</button></div>`)}
+function circleLocked(){const exp=subEff()==='expired';
+ return `<h2 style="margin-top:0">👥 Inspector Circle</h2><div class="card lock-hero${exp?' exp':''}"><div class="lk">🔒</div><b>${exp?`Subscription Expired — Renew ₹${SUB.price}/month to Continue`:`Pro Feature — Upgrade for ₹${SUB.price}/month`}</b>
+ <ul class="lock-list"><li>Create or join a circle of fellow inspectors with an invite code</li><li>Allot follow-ups and visits to a colleague — Accept / Decline / Close with description</li><li>Closed tasks return to you to set the next follow-up in your Tracker</li><li>🔒 Private 1-on-1 chat and 📢 circle announcements</li></ul>
+ ${exp?'<div class="mut">Your earlier circle tasks and messages are kept and come back after renewal.</div>':''}${subPendingNote()}
+ <div class="btns" style="justify-content:center"><button class="btn pri" data-a="sub">${exp?'Renew':'Upgrade'} ₹${SUB.price}/month</button></div></div>`}
+
+/* Subscription / upgrade sheet */
+const upiLink=()=>`upi://pay?pa=${encodeURIComponent(SUB.upi)}&pn=${encodeURIComponent(SUB.payee||'Livestock Inspector App')}&am=${SUB.price}.00&cu=INR&tn=${encodeURIComponent('Pro '+SUB.days+' days '+(U.phone||U.email||''))}`;
+async function subPays(){if(!sb||!U||SUB.legacy)return;
+ try{const{data,error}=await sb.from('subscription_payments').select('id,upi_ref_id,provider,amount,days,status,submitted_at,reviewed_at,review_note,period_end').eq('user_id',U.id).order('submitted_at',{ascending:false}).limit(10);if(!error)SUB.pays=data||[]}catch(e){}
+ if(SUB.hasQr&&!SUB.qr){try{const{data}=await sb.from('app_settings').select('upi_qr').eq('id',1).maybeSingle();SUB.qr=(data&&data.upi_qr)||''}catch(e){}}}
+async function subOpen(){subView();await loadSub(true);await subPays();if($('#subv'))subView()}
+function subView(){const e=subEff(),P=SUB.price,pend=SUB.req==='pending';
+ const tick='<span class="yes">✓</span>',lock='<span class="no">🔒</span>';
+ const st=SUB.legacy?`<div class="card note">The subscription system is not switched on yet (run <b>supabase-subscriptions.sql</b> in Supabase). All features are open.</div>`
+  :SUB.admin?`<div class="plan-card adm"><b>🛡 Admin account</b><div>All features are always unlocked for you.</div></div>`
+  :e==='active'?`<div class="plan-card pro"><b>⭐ Pro — Active</b><div class="big">${subDays()} day${subDays()===1?'':'s'} left</div><div>Started ${fmtD(SUB.start)} · ends <b>${fmtD(SUB.end)}</b></div></div>`
+  :e==='expired'?`<div class="plan-card exp"><b>⛔ Subscription Expired</b><div>${SUB.end?'Ended '+fmtD(SUB.end)+'. ':''}Renew ₹${P}/month to continue. All your records are safe and still visible.</div></div>`
+  :`<div class="plan-card trl"><b>🧪 Free trial</b><div>${S.cs.length}/${SUB.lim} farmers · ${S.an.length}/${SUB.lim} animals used. Upgrade to Pro for everything.</div></div>`;
+ const rows=[['Farmers &amp; animals',`${SUB.lim} each`,'Unlimited'],['Treatments, AI, PD, feed, payments',tick,tick],['1-day reminders · Snooze / Stop',tick,tick],['Mark as Aborted · history timeline',tick,tick],['Inspector Circle &amp; task allotment',lock,tick],['Circle chat (1-on-1 + announcements)',lock,tick],['Activity log',`Last ${LOGFREE}`,'Full'],['Price','Free',`₹${P} / ${SUB.days} days`]];
+ const cmp=`<table class="cmp"><tr><th></th><th>Trial</th><th>Pro</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>`;
+ const pay=SUB.legacy||SUB.admin?'':`<h4 style="margin:14px 0 6px">${e==='active'?'Renew / extend':e==='expired'?'Renew':'Upgrade'} — ₹${P} for ${SUB.days} days by UPI</h4>
+ <div class="pay-box"><div class="qr">${SUB.qr?`<img src="${esc(SUB.qr)}" alt="UPI QR code for payment">`:`<div class="qr-ph">UPI QR<small>${SUB.hasQr?'loading…':'QR not added yet — pay to the UPI ID'}</small></div>`}</div>
+  <div class="pay-info"><div class="mut">UPI ID</div><div class="upi">${SUB.upi?esc(SUB.upi):'<span class="mut">Not set yet by the app owner</span>'}</div>${SUB.upi?'<button class="btn sm" data-a="subCopy">📋 Copy UPI ID</button>':''}
+  ${SUB.payee?`<div class="mut" style="margin-top:6px">Payee: <b>${esc(SUB.payee)}</b></div>`:''}<div class="amt">₹${P}</div>${SUB.upi&&isMobile()?`<a class="btn pri sm" href="${upiLink()}">Pay ₹${P} in a UPI app</a>`:''}</div></div>
+ <ol class="steps"><li>Pay <b>₹${P}</b> to the UPI ID / QR above from any UPI app (GPay, PhonePe, Paytm, BHIM…).</li><li>Open the payment receipt and copy the <b>UPI transaction / reference ID</b> (12-digit UTR).</li><li>Paste it below and submit. Your request is marked <b>Pending Verification</b>; Pro starts as soon as the payment is verified.</li></ol>
+ ${subPendingNote()}
+ <label>UPI Transaction / Reference ID *<input id="subRef" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="e.g. 412345678901" value="${pend?esc(SUB.ref):''}"></label><p class="err" id="subErr"></p>
+ <div class="btns" style="margin-top:0"><button class="btn pri" data-a="subReq">${pend?'Update reference ID':'Submit for verification'}</button></div>`;
+ const hist=SUB.pays.length?`<details style="margin-top:12px"><summary class="mut" style="cursor:pointer">Payment history (${SUB.pays.length})</summary>${SUB.pays.map(p=>`<div class="pay-row"><div><b>₹${p.amount}</b> · ${p.provider==='upi_manual'?'UPI ref '+esc(p.upi_ref_id||''):esc(p.provider)} <div class="mut">${fmtDT(p.submitted_at)}${p.period_end?' · Pro until '+fmtD(p.period_end):''}${p.review_note?' · '+esc(p.review_note):''}</div></div>${b(p.status==='approved'?'Verified':p.status==='rejected'?'Not verified':'Pending',p.status==='approved'?'ok':p.status==='rejected'?'bad':'wn')}</div>`).join('')}</details>`:'';
+ sheet('⭐ Subscription',`<div id="subv">${st}${SUB.err==='offline'?'<p class="mut" style="font-size:13px">⚠️ Offline — showing the last known plan.</p>':''}${cmp}${pay}${hist}
+ ${SUB.admin?'<div class="btns"><button class="btn pri" data-a="admin">🛡 Open Subscription Manager</button></div>':''}</div>`)}
+async function subReq(){const i=$('#subRef'),el=$('#subErr');if(!i||!el)return;const v=i.value.replace(/[\s-]/g,'').toUpperCase();
+ if(!/^[A-Z0-9]{6,35}$/.test(v)){el.textContent='Enter the UPI transaction / reference ID (UTR) from your payment receipt — 6 to 35 letters or digits.';return}
+ el.textContent='Submitting…';const{data,error}=await sb.rpc('request_subscription',{p_upi_ref:v});
+ if(error){el.textContent=/already been submitted/i.test(error.message)?'This UPI reference ID has already been submitted.':String(error.message||'Could not submit. Check the internet connection.').replace(/^ERROR:\s*/,'');return}
+ subApply(data);try{localStorage.setItem(subKey(),JSON.stringify(data))}catch(e){}toast('⏳ Submitted — Pending Verification');await subPays();subView();softRender()}
+
+/* ---------- Admin: Subscription Manager (only for accounts in app_admins; checked again by the database) ---------- */
+const ADM={rows:[],loaded:false,busy:false,err:'',f:'pending',q:''};
+async function loadAdmin(){if(!sb||!SUB.admin||ADM.busy)return;ADM.busy=true;
+ try{const{data,error}=await sb.rpc('admin_overview');if(error)throw error;ADM.rows=data||[];ADM.loaded=true;ADM.err=''}
+ catch(e){ADM.err=String(e&&e.message||e)}finally{ADM.busy=false}
+ if(!U)return;if(ui.tab==='admin'&&!ui.d){const l=$('#admList');if(l&&!$('#m').hidden)l.innerHTML=adminList();else softRender()}else if(ui.tab==='dash'&&!ui.d)softRender()}
+const admCount=k=>ADM.rows.filter(r=>k==='pending'?r.pending_payment_id:k==='all'?1:r.subscription_status===k).length;
+function adminView(){if(!SUB.admin)return `<div class="card note">This page is only for the app owner.</div>`;
+ const ch=(k,l)=>`<button class="chip ${ADM.f===k?'on':''}" data-a="admF" data-id="${k}">${l} (${admCount(k)})</button>`;
+ return `<div class="between"><h2 style="margin:0">🛡 Subscription Manager</h2><button class="btn sm" data-a="tab" data-id="dash" style="margin:0">← Home</button></div>
+ <p class="mut" style="margin:6px 0 10px;font-size:13px">Verify ₹${SUB.price} UPI payments and switch inspectors to Pro. You see only contact and plan details — never an inspector's farmers, animals, clinical or payment records.</p>
+ <div class="grid adm-stats"><div class="card stat"><small>Pending</small><b>${admCount('pending')}</b></div><div class="card stat"><small>Active Pro</small><b>${admCount('active')}</b></div><div class="card stat"><small>Trial</small><b>${admCount('trial')}</b></div><div class="card stat"><small>Expired</small><b>${admCount('expired')}</b></div></div>
+ <div class="btns"><button class="btn" data-a="admRef">↻ Refresh</button><button class="btn" data-a="admSet">⚙ Payment settings (UPI ID &amp; QR)</button></div>
+ ${!SUB.upi?'<div class="card note" style="margin-top:10px">⚠️ Add your UPI ID and QR code in <b>Payment settings</b> so inspectors can pay.</div>':''}
+ <div class="chips">${ch('pending','⏳ Pending')}${ch('active','⭐ Active')}${ch('trial','🧪 Trial')}${ch('expired','⛔ Expired')}${ch('all','All')}</div>
+ <div class="chips"><input id="admq" placeholder="Search name, email, phone, UPI ref…" value="${esc(ADM.q)}"></div>
+ <div id="admList">${adminList()}</div>`}
+function adminList(){if(ADM.err)return `<div class="card note">⚠️ ${esc(ADM.err)}</div>`;if(!ADM.loaded)return '<div class="empty">Loading…</div>';
+ const q=ADM.q.toLowerCase(),L=ADM.rows.filter(r=>(ADM.f==='all'||(ADM.f==='pending'?r.pending_payment_id:r.subscription_status===ADM.f))&&(!q||[r.full_name,r.email,r.phone,r.hospital,r.area,r.pending_ref,r.upi_ref_id].join(' ').toLowerCase().includes(q)));
+ if(!L.length)return emptyBox('🛡',ADM.f==='pending'?'No payment requests waiting.':'Nobody here.',ADM.f==='pending'?'New ₹'+SUB.price+' requests appear here with their UPI reference ID.':'Try another filter or search.');
+ return L.map(r=>{const s=r.subscription_status,stB=s==='active'?b('⭐ Pro','ok'):s==='expired'?b('⛔ Expired','bad'):b('🧪 Trial','wn');
+  return `<div class="card adm-row${r.pending_payment_id?' pend':''}"><div class="between" style="align-items:flex-start"><div style="min-width:0"><b>${esc(r.full_name||'(no name)')}</b>${r.is_admin?' '+b('Admin'):''}<div class="mut">${esc([r.hospital,r.area].filter(Boolean).join(' · '))}</div><div class="mut">${esc(r.email||'')}${r.phone?' · '+esc(r.phone):''}</div></div><div class="end">${stB}${s==='active'?`<div class="mut" style="font-size:12px">until ${fmtD(r.subscription_end)}<br>${r.days_left} day${r.days_left===1?'':'s'} left</div>`:r.subscription_end?`<div class="mut" style="font-size:12px">ended ${fmtD(r.subscription_end)}</div>`:''}</div></div>
+  ${r.pending_payment_id?`<div class="adm-pay">⏳ <b>₹${r.pending_amount}</b> · UPI ref <b class="ref">${esc(r.pending_ref)}</b><div class="mut">Submitted ${fmtDT(r.pending_at)}</div><div class="btns"><button class="btn pri" data-a="admAct" data-id="${r.user_id}|${r.pending_payment_id}">✅ Activate ${SUB.days} Days</button><button class="btn dng" data-a="admRej" data-id="${r.pending_payment_id}">✕ Reject</button></div></div>`:''}
+  ${r.request_status==='rejected'&&!r.pending_payment_id?`<div class="mut" style="font-size:13px">Last request not verified${r.review_note?': '+esc(r.review_note):''}</div>`:''}
+  <div class="btns"><button class="btn sm" data-a="admExt" data-id="${r.user_id}">+${SUB.days} days</button><button class="btn sm" data-a="admCus" data-id="${r.user_id}">Extend…</button>${s==='active'&&!r.is_admin?`<button class="btn sm dng" data-a="admRev" data-id="${r.user_id}">Revoke</button>`:''}</div></div>`}).join('')}
+const admName=id=>{const r=ADM.rows.find(x=>x.user_id===id);return r?(r.full_name||r.email||'this inspector'):'this inspector'};
+async function admRpc(fn,args,ok){const{error}=await sb.rpc(fn,args);if(error){toast('⚠️ '+String(error.message||error).replace(/^ERROR:\s*/,''));return false}toast(ok);await loadAdmin();if(args.p_user===U.id)loadSub(true);return true}
+function admDays(uid){modal(`Extend Pro · ${esc(admName(uid))}`,`${fl('Days to add *','days','30','number','required min="1" max="366" inputmode="numeric"')}<p class="mut" style="font-size:13px">Added after the current end date if Pro is still running, otherwise counted from today.</p><p class="err"></p>`,()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();const n=+f.days.value;if(!(n>=1&&n<=366))return f.querySelector('.err').textContent='Enter 1 to 366 days.';f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_activate',{p_user:uid,p_days:n,p_payment_id:null},`⭐ Pro extended by ${n} days`))closeM()}})}
+function admReject(pid){const r=ADM.rows.find(x=>x.pending_payment_id===pid);modal('Reject payment request',`<p style="margin-top:0">${esc(r?r.full_name||r.email:'')} · UPI ref <b>${esc(r?r.pending_ref:'')}</b></p>${ta('Reason shown to the inspector (optional)','note','')}<div class="chips">${['UPI reference ID not found','Amount does not match','Duplicate request'].map(x=>`<button type="button" class="chip" data-rr="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="err"></p>`,()=>{},f=>{f.querySelectorAll('[data-rr]').forEach(x=>x.onclick=()=>{f.note.value=x.dataset.rr});f.onsubmit=async e=>{e.preventDefault();f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_reject_payment',{p_payment_id:pid,p_note:f.note.value.trim()},'Request marked not verified'))closeM()}})}
+function admRevoke(uid){modal(`Revoke Pro · ${esc(admName(uid))}`,`<p style="margin-top:0">Pro ends now and the account becomes <b>Expired</b>. <b>No records are deleted</b> — the inspector keeps seeing everything and continues after renewal.</p>${ta('Note (optional)','note','')}<p class="err"></p>`,()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_revoke',{p_user:uid,p_note:f.note.value.trim()},'Pro revoked'))closeM()}})}
+/* owner's UPI details + QR image (stored in app_settings; the image is resized on the device before upload) */
+async function admSettings(){let cur={upi_id:SUB.upi,payee_name:SUB.payee,upi_qr:''};try{const{data}=await sb.from('app_settings').select('upi_id,payee_name,upi_qr').eq('id',1).maybeSingle();if(data)cur=data}catch(e){}
+ let qr=cur.upi_qr||'';
+ modal('⚙ Payment settings',`${fl('Your UPI ID *','upi',cur.upi_id,'text','required placeholder="yourname@okaxis" autocomplete="off"')}${fl('Payee name (shown to inspectors)','payee',cur.payee_name,'text')}
+ <label>UPI QR code image<input type="file" name="qrf" accept="image/*"></label><div class="qr-prev" id="qrp">${qr?`<img src="${esc(qr)}" alt="QR preview">`:'<span class="mut">No QR added</span>'}</div>${qr?'<label class="ck"><input type="checkbox" name="qrdel"> Remove QR image</label>':''}
+ <p class="mut" style="font-size:13px">Inspectors see these on the Upgrade screen. Price: ₹${SUB.price} for ${SUB.days} days.</p><p class="err"></p>`,()=>{},f=>{
+  f.qrf.onchange=()=>{const file=f.qrf.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const m=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);qr=c.toDataURL('image/png');if(qr.length>380000)qr=c.toDataURL('image/jpeg',.85);$('#qrp').innerHTML=`<img src="${qr}" alt="QR preview">`};im.onerror=()=>{f.querySelector('.err').textContent='That file is not an image.'};im.src=rd.result};rd.readAsDataURL(file)};
+  f.onsubmit=async e=>{e.preventDefault();const el=f.querySelector('.err'),upi=f.upi.value.trim();if(!/^[\w.\-]{2,}@[a-zA-Z][\w.\-]{1,}$/.test(upi))return el.textContent='Enter a valid UPI ID, e.g. name@okaxis';
+   if(f.qrdel&&f.qrdel.checked)qr='';el.textContent='Saving…';const{error}=await sb.from('app_settings').update({upi_id:upi,payee_name:f.payee.value.trim(),upi_qr:qr}).eq('id',1);
+   if(error)return el.textContent=String(error.message||error);SUB.upi=upi;SUB.payee=f.payee.value.trim();SUB.hasQr=!!qr;SUB.qr=qr;closeM();toast('Payment settings saved');loadSub(true);render()}})}
 
 /* ---------- installable mobile app (PWA) ---------- */
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
