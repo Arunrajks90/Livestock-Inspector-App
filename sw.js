@@ -4,9 +4,9 @@
      so login sessions and records are never stale.
    - The page itself is loaded network-first, so a new index.html uploaded to GitHub is picked up on the next online visit.
    Change VERSION whenever you change this file, the icons or manifest.json. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'field-officer-' + VERSION;
-const LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+const LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0';
 const SHELL = [
   './',
   './index.html',

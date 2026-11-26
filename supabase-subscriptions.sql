@@ -25,7 +25,7 @@
 --    * A Razorpay webhook (Edge Function with the service_role key) can
 --      call apply_provider_payment() later; it is not callable by users.
 --
---  LAST STEP (section 10): put YOUR login email in the admin insert.
+--  Admin (section 10): id.arunraj@gmail.com
 -- =====================================================================
 
 
@@ -41,6 +41,7 @@ drop policy if exists "admins: read own flag" on public.app_admins;
 create policy "admins: read own flag" on public.app_admins
   for select to authenticated using (user_id = (select auth.uid()));
 revoke insert, update, delete on public.app_admins from anon, authenticated;
+grant select on public.app_admins to authenticated;
 
 create or replace function public.is_app_admin(p_user uuid default auth.uid())
 returns boolean language sql stable security definer set search_path = '' as $$
@@ -74,6 +75,7 @@ create policy "settings: read (signed in)" on public.app_settings
 create policy "settings: admin update" on public.app_settings
   for update to authenticated using ((select public.is_app_admin())) with check ((select public.is_app_admin()));
 revoke insert, delete on public.app_settings from anon, authenticated;
+grant select, update on public.app_settings to authenticated;   -- update is limited to admins by the policy above
 alter table public.app_settings drop constraint if exists app_settings_qr_size;
 alter table public.app_settings add constraint app_settings_qr_size check (length(upi_qr) <= 400000);
 
@@ -131,6 +133,7 @@ create policy "subscriptions: admin read" on public.subscriptions
   for select to authenticated using ((select public.is_app_admin()));
 -- no insert / update / delete policies: users can never self-activate.
 revoke insert, update, delete on public.subscriptions from anon, authenticated;
+grant select on public.subscriptions to authenticated;
 
 drop trigger if exists subscriptions_touch on public.subscriptions;
 create trigger subscriptions_touch before update on public.subscriptions
@@ -174,6 +177,7 @@ create policy "payments: read own" on public.subscription_payments
 create policy "payments: admin read" on public.subscription_payments
   for select to authenticated using ((select public.is_app_admin()));
 revoke insert, update, delete on public.subscription_payments from anon, authenticated;
+grant select on public.subscription_payments to authenticated;
 
 
 -- ---------------------------------------------------------------------
@@ -532,12 +536,12 @@ grant execute on function public.apply_provider_payment(uuid, text, text, text, 
 
 
 -- ---------------------------------------------------------------------
--- 10. MAKE YOURSELF THE ADMIN
---     Replace owner@example.com with the email you log in with,
---     then run this statement (it does nothing if the email is wrong).
+-- 10. SUBSCRIPTION ADMIN: id.arunraj@gmail.com
+--     This account must already exist (signed up in the app). If you run
+--     this file before signing up, sign up first and run it again.
 -- ---------------------------------------------------------------------
 insert into public.app_admins (user_id)
-select id from auth.users where lower(email) = lower('owner@example.com')
+select id from auth.users where lower(email) = lower('id.arunraj@gmail.com')
 on conflict (user_id) do nothing;
 
 -- Check:  select u.email from public.app_admins a join auth.users u on u.id = a.user_id;

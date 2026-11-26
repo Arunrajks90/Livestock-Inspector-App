@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- Security: the page may only run its own code + the Supabase library, and may only talk to your Supabase project.
+     If you move to another Supabase project, change the project address in this line too. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://dmshweetbwaqcqyzvypf.supabase.co wss://dmshweetbwaqcqyzvypf.supabase.co https://cdn.jsdelivr.net; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="description" content="Livestock Inspector records: farmers, animals, treatment, AI, PD checks, feed supply, reminders and payments.">
 <meta name="theme-color" content="#0d9488">
@@ -16,7 +20,9 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Field Officer · Livestock Records</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<!-- Supabase library pinned to one exact version (a new, unreviewed release cannot slip in). Falls back to the latest 2.x only if that file cannot be loaded. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0" crossorigin="anonymous"></script>
+<script>window.supabase||document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"><\/script>')</script>
 <style>
 :root{--bg:#f2fbf7;--card:#fff;--tx:#122019;--mut:#56685f;--bd:#d6e9e0;--pri:#0e9f6e;--pri2:#0d9488;--prib:#dcfaec;--wn:#b45309;--wnb:#fff3d6;--bad:#dc2626;--badb:#ffe4e4;--inf:#2563eb;--infb:#e3edff;
  --em:#10b981;--teal:#14b8a6;--blue:#2563eb;--amber:#f59e0b;--coral:#f43f5e;--violet:#8b5cf6;color-scheme:light}
@@ -283,7 +289,7 @@ const add=(s,n)=>{const x=P(s);x.setDate(x.getDate()+n);return ld(x)};
 const dd=s=>Math.round((P(s)-P(today()))/864e5);
 const fmt=s=>s?P(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—';
 const rel=s=>{const n=dd(s);return n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':n>0?'in '+n+' days':-n+' days overdue'};
-const b=(t,c='')=>`<span class="b ${c}">${t}</span>`;
+const b=(t,c='')=>`<span class="b ${c}">${esc(t)}</span>`;
 const due=s=>{const n=dd(s);return b(rel(s),n<0?'bad':n<=2?'wn':'')};
 const SP=['Cow','Buffalo','Goat','Sheep','Pig','Dog','Cat','Poultry','Horse'];
 const EM={Cow:'🐄',Buffalo:'🐃',Goat:'🐐',Sheep:'🐑',Pig:'🐖',Dog:'🐕',Cat:'🐈',Poultry:'🐔',Horse:'🐎'};
@@ -345,7 +351,9 @@ async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,e
  ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();if(SUB.admin)loadAdmin();loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
 function endSession(){stopRealtime();Object.assign(SUB,SUB0());Object.assign(ADM,{rows:[],loaded:false,busy:false,err:'',f:'pending',q:''});popSeen.clear();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
-async function logout(){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync()}await sb.auth.signOut().catch(()=>{});endSession()}
+async function logout(force){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync();try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){c0=null}}
+ if(c0&&c0.dirty&&!force)return ask('⚠️ Some changes are not saved to the cloud yet (no internet). If you log out now they stay on this device until you log in here again, and are uploaded then.<br><br>On a shared phone, connect to the internet first and wait for “☁️ Saved”, then log out.<br><br>Log out anyway?',()=>logout(true));
+ await sb.auth.signOut().catch(()=>{});try{localStorage.removeItem(subKey())}catch(e){}endSession()}
 
 /* ---------- records saved earlier on this device (before cloud login) ---------- */
 /* sources: old single-user data, login-off test data, and an old on-device account with the same email or phone */
@@ -501,7 +509,7 @@ function payApply(r,d,p,src,aid){const g=n=>d[kf(src,n)],amt=g('amt'),st=g('pst'
  if(st==='Paid'){if(was!=='Paid'||!r[K('paidOn')])r[K('paidOn')]=today()}else r[K('paidOn')]='';
  if(!r[K('cid')]&&A(aid))r[K('cid')]=A(aid).cid}
 const payTag=(r,p,src,label)=>{const amt=+r[kf(p,'amt')]||0;if(!amt)return '';const pe=r[kf(p,'pst')]==='Pending',m=r[kf(p,'mode')];
- return `<div class="between" style="margin-top:6px"><span>💰 ${label}: <b>${rs(amt)}</b> ${pe?b('Payment pending','bad'):b('Paid'+(m&&m!=='None'?' · '+esc(m):''),'ok')}</span>${pe?`<button class="btn sm pri" data-a="paid" data-k="${src}" data-id="${r.id}">Mark paid</button>`:''}</div>`};
+ return `<div class="between" style="margin-top:6px"><span>💰 ${label}: <b>${rs(amt)}</b> ${pe?b('Payment pending','bad'):b('Paid'+(m&&m!=='None'?' · '+m:''),'ok')}</span>${pe?`<button class="btn sm pri" data-a="paid" data-k="${src}" data-id="${r.id}">Mark paid</button>`:''}</div>`};
 function paidForm(src,id,after){const r=(src==='tr'?S.tr:S.ai).find(x=>x.id===id),p=src==='pd'?'pd':'',a=A(r.aid);
  modal('Mark payment received'+who(r.aid),`<p class="mut">${SVC[src]} · ${fmt(src==='pd'?(r.pdOn||r.pd):r.date)}${src==='tr'&&r.dx?' · '+esc(r.dx):''}</p>${fl('Amount received (₹)','amt',r[kf(p,'amt')],'number','min="0" step="any" required inputmode="decimal"')}<label>Mode of payment<select name="mode">${PM.slice(0,3).map(m=>`<option>${m}</option>`).join('')}</select></label>${fl('Date received','on',today(),'date','required max="'+today()+'"')}`,
  d=>{r[kf(p,'amt')]=d.amt;r[kf(p,'mode')]=d.mode;r[kf(p,'pst')]='Paid';r[kf(p,'paidOn')]=d.on;if(!r[kf(p,'cid')]&&a)r[kf(p,'cid')]=a.cid;after&&setTimeout(after,0)})}
@@ -537,7 +545,7 @@ const wtRow=f=>{const r=FD(f.id),a=A(f.aid),c=C(a.cid);
 const hoTag=r=>r&&r.fuFrom?`<div class="ho-tag">↩ After handover · closed by ${esc(r.fuFrom.by)} on ${fmt(r.fuFrom.cd)}${r.fuFrom.note?' · '+esc(r.fuFrom.note):''}</div>`:'';
 const hl=id=>ui.hl===id?' hl':'';
 const fRow=f=>{if(f.k==='wt')return wtRow(f);if(f.k==='rai')return raiRow(f);if(f.k==='cf'||f.k==='due')return pgRow(f);const a=A(f.aid),c=C(a.cid),r=(f.k==='tr'?S.tr:S.ai).find(x=>x.id===f.id),ex=f.k==='tr'?(r.dx||''):'AI done on '+fmt(r.date)+(f.k==='cf'?' · pregnancy confirmed':'');
- return `<div class="card rk-${f.k}${hl(f.id)}" data-rid="${f.id}"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(f.type,f.type==='PD'?'':'ok')}</div><div class="mut">${f.label}</div><div class="mut">${esc(c?.name)} · ${esc(c?.village)}</div></div><div class="end"><div>${fmt(f.date)}</div>${due(f.date)}</div></div>${allotTag(r,f.k)}${hoTag(r)}<div class="btns">${f.k==='pd'?`<button class="btn sm pri" data-a="pdr" data-id="${f.id}">Result</button>`:`<button class="btn sm" data-a="done" data-k="${f.k}" data-id="${f.id}">Done</button>`}${fuBtns(f.k,f.aid,f.date,ex)}${fuActs(f.k,f.id)}</div></div>`};
+ return `<div class="card rk-${f.k}${hl(f.id)}" data-rid="${f.id}"><div class="item"><div data-a="open" data-k="a" data-id="${a.id}" style="flex:1"><div><b>${emo(a.species)} ${esc(aname(a))}</b> ${b(f.type,f.type==='PD'?'':'ok')}</div><div class="mut">${esc(f.label)}</div><div class="mut">${esc(c?.name)} · ${esc(c?.village)}</div></div><div class="end"><div>${fmt(f.date)}</div>${due(f.date)}</div></div>${allotTag(r,f.k)}${hoTag(r)}<div class="btns">${f.k==='pd'?`<button class="btn sm pri" data-a="pdr" data-id="${f.id}">Result</button>`:`<button class="btn sm" data-a="done" data-k="${f.k}" data-id="${f.id}">Done</button>`}${fuBtns(f.k,f.aid,f.date,ex)}${fuActs(f.k,f.id)}</div></div>`};
 function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F.filter(f=>dd(f.date)<0).length,td=F.filter(f=>dd(f.date)===0).length,pp=S.ai.filter(a=>a.status==='pending'&&A(a.aid)&&live(A(a.aid))).length;
  const st=(n,l,s,t)=>`<div class="card stat" data-a="tab" data-id="${t}"><small>${l}</small><b>${n}</b><small>${s}</small></div>`;
  const WT=F.filter(f=>f.k==='wt'&&dd(f.date)<=7),G=F.filter(f=>['tr','ai','pd'].includes(f.k)&&dd(f.date)<=7),RA=F.filter(f=>f.k==='rai'&&dd(f.date)<=7),PG=F.filter(f=>f.k==='due'||(f.k==='cf'&&dd(f.date)<=7));
