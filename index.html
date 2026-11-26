@@ -195,6 +195,9 @@ body.nopro .allot-btn::after{content:' 🔒'}
 .pay-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
 .adm-stats .stat{cursor:default}.adm-row.pend{border-color:#fdba74;box-shadow:0 0 0 2px #ffedd5}.adm-pay{margin-top:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px}.adm-pay .ref{font-family:ui-monospace,monospace;letter-spacing:.5px}
 .qr-prev{margin:-4px 0 10px}.qr-prev img{width:160px;border-radius:10px;border:1px solid var(--bd)}
+.upi-apps{margin-top:10px}.upi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.upi-app{display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 8px;border-radius:12px;border:1.5px solid var(--c,#0f766e);color:var(--c,#0f766e);background:#fff;font-weight:700;font-size:14px;text-decoration:none;text-align:center}
+.upi-app:active{background:#f1f5f9}.upi-app.other{--c:#0f766e;border-style:dashed}
 /* inspector circle */
 nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px}
 .allot-tag{margin-top:6px;font-size:13px;color:#1e40af;background:#eef4ff;border:1px solid #c7d7fe;border-radius:10px;padding:5px 8px}
@@ -1331,7 +1334,15 @@ function circleLocked(){const exp=subEff()==='expired';
  <div class="btns" style="justify-content:center"><button class="btn pri" data-a="sub">${exp?'Renew':'Upgrade'} ₹${SUB.price}/month</button></div></div>`}
 
 /* Subscription / upgrade sheet */
-const upiLink=()=>`upi://pay?pa=${encodeURIComponent(SUB.upi)}&pn=${encodeURIComponent(SUB.payee||'Livestock Inspector App')}&am=${SUB.price}.00&cu=INR&tn=${encodeURIComponent('Pro '+SUB.days+' days '+(U.phone||U.email||''))}`;
+const upiLink=()=>`upi://pay?pa=${encodeURIComponent(SUB.upi).replace(/%40/g,'@')}&pn=${encodeURIComponent(SUB.payee||'Livestock Inspector App')}&am=${SUB.price}.00&cu=INR&tn=${encodeURIComponent('Pro '+SUB.days+' days '+(U.phone||U.email||''))}`;
+/* one button per UPI app: on iPhone a plain upi:// link opens WhatsApp only, so each app gets its own link
+   (iPhone: the app's own scheme; Android: an intent for that app). Android also gets "Other UPI app" (system chooser). */
+const UPIAPPS=[['Google Pay','tez://upi/pay','com.google.android.apps.nbu.paisa.user','#1a73e8'],['PhonePe','phonepe://pay','com.phonepe.app','#5f259f'],['Paytm','paytmmp://pay','net.one97.paytm','#00b9f1'],['BHIM','bhim://upi/pay','in.org.npci.upiapp','#f37021'],['CRED','credpay://upi/pay','com.dreamplug.androidapp','#111827'],['Amazon Pay','amazonpay://upi/pay','in.amazon.mShop.android.shopping','#ff9900']];
+const upiQ=()=>upiLink().split('?')[1];
+const upiAppHref=a=>isIOS()?`${a[1]}?${upiQ()}`:`intent://pay?${upiQ()}#Intent;scheme=upi;package=${a[2]};end`;
+function upiButtons(){if(!SUB.upi||!isMobile())return '';
+ return `<div class="upi-apps"><div class="mut" style="font-size:13px;margin-bottom:6px">Tap your UPI app to pay ₹${SUB.price}:</div><div class="upi-grid">${UPIAPPS.map(a=>`<a class="upi-app" style="--c:${a[3]}" href="${esc(upiAppHref(a))}">${a[0]}</a>`).join('')}${isIOS()?'':`<a class="upi-app other" href="${esc(upiLink())}">Other UPI app</a>`}</div>
+ <div class="mut" style="font-size:12px;margin-top:6px">If the app is not installed or shows a warning, scan the QR code or pay to the UPI ID manually.</div></div>`}
 async function subPays(){if(!sb||!U||SUB.legacy)return;
  try{const{data,error}=await sb.from('subscription_payments').select('id,upi_ref_id,provider,amount,days,status,submitted_at,reviewed_at,review_note,period_end').eq('user_id',U.id).order('submitted_at',{ascending:false}).limit(10);if(!error)SUB.pays=data||[]}catch(e){}
  if(SUB.hasQr&&!SUB.qr){try{const{data}=await sb.from('app_settings').select('upi_qr').eq('id',1).maybeSingle();SUB.qr=(data&&data.upi_qr)||''}catch(e){}}}
@@ -1348,7 +1359,7 @@ function subView(){const e=subEff(),P=SUB.price,pend=SUB.req==='pending';
  const pay=SUB.legacy||SUB.admin?'':`<h4 style="margin:14px 0 6px">${e==='active'?'Renew / extend':e==='expired'?'Renew':'Upgrade'} — ₹${P} for ${SUB.days} days by UPI</h4>
  <div class="pay-box"><div class="qr">${SUB.qr?`<img src="${esc(SUB.qr)}" alt="UPI QR code for payment">`:`<div class="qr-ph">UPI QR<small>${SUB.hasQr?'loading…':'QR not added yet — pay to the UPI ID'}</small></div>`}</div>
   <div class="pay-info"><div class="mut">UPI ID</div><div class="upi">${SUB.upi?esc(SUB.upi):'<span class="mut">Not set yet by the app owner</span>'}</div>${SUB.upi?'<button class="btn sm" data-a="subCopy">📋 Copy UPI ID</button>':''}
-  ${SUB.payee?`<div class="mut" style="margin-top:6px">Payee: <b>${esc(SUB.payee)}</b></div>`:''}<div class="amt">₹${P}</div>${SUB.upi&&isMobile()?`<a class="btn pri sm" href="${upiLink()}">Pay ₹${P} in a UPI app</a>`:''}</div></div>
+  ${SUB.payee?`<div class="mut" style="margin-top:6px">Payee: <b>${esc(SUB.payee)}</b></div>`:''}<div class="amt">₹${P}</div></div></div>${upiButtons()}
  <ol class="steps"><li>Pay <b>₹${P}</b> to the UPI ID / QR above from any UPI app (GPay, PhonePe, Paytm, BHIM…).</li><li>Open the payment receipt and copy the <b>UPI transaction / reference ID</b> (12-digit UTR).</li><li>Paste it below and submit. Your request is marked <b>Pending Verification</b>; Pro starts as soon as the payment is verified.</li></ol>
  ${subPendingNote()}
  <label>UPI Transaction / Reference ID *<input id="subRef" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="e.g. 412345678901" value="${pend?esc(SUB.ref):''}"></label><p class="err" id="subErr"></p>
