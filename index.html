@@ -256,6 +256,11 @@ body.auth .inst{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 .shr{display:inline-block;vertical-align:-3px;width:16px;height:16px}
 @keyframes instUp{from{transform:translateY(24px);opacity:0}}
 @media (display-mode:standalone){.inst{display:none!important}}
+/* bottom space: leave exactly the height of the bottom menu (measured, includes the iPhone home-bar area) — no double safe-area gap */
+:root{padding-bottom:0}
+body{box-sizing:border-box;padding-bottom:calc(var(--navh,calc(68px + env(safe-area-inset-bottom,0px))) + 10px)}
+body.auth{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+main{padding-bottom:0}
 </style>
 </head>
 <body>
@@ -1398,6 +1403,9 @@ async function admSettings(){let cur={upi_id:SUB.upi,payee_name:SUB.payee,upi_qr
    if(f.qrdel&&f.qrdel.checked)qr='';el.textContent='Saving…';const{error}=await sb.from('app_settings').update({upi_id:upi,payee_name:f.payee.value.trim(),upi_qr:qr}).eq('id',1);
    if(error)return el.textContent=String(error.message||error);SUB.upi=upi;SUB.payee=f.payee.value.trim();SUB.hasQr=!!qr;SUB.qr=qr;closeM();toast('Payment settings saved');loadSub(true);render()}})}
 
+/* keep the page's bottom padding equal to the bottom menu's real height */
+function setNavH(){const n=document.getElementById('nav');if(n&&n.offsetHeight)document.documentElement.style.setProperty('--navh',n.offsetHeight+'px')}
+try{new ResizeObserver(setNavH).observe(document.getElementById('nav'))}catch(e){}addEventListener('resize',setNavH);addEventListener('orientationchange',()=>setTimeout(setNavH,300));
 /* ---------- installable mobile app (PWA) ---------- */
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
