@@ -20,12 +20,12 @@ your-repo/
     └── apple-touch-icon.png
 ```
 
-`supabase-setup.sql`, `supabase-circles.sql`, `supabase-messages.sql`, `supabase-abortion.sql`, `supabase-subscriptions.sql` and `supabase-security-hardening.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
+`supabase-setup.sql`, `supabase-circles.sql`, `supabase-messages.sql`, `supabase-abortion.sql`, `supabase-subscriptions.sql`, `supabase-security-hardening.sql` and `supabase-support.sql` are **not** part of the website. Run them in Supabase (below); you do not need to upload them.
 
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging), `supabase-abortion.sql` (abortion columns) `supabase-subscriptions.sql` (₹99/month plans; admin = id.arunraj@gmail.com) and finally `supabase-security-hardening.sql` (closes the loopholes found in the security audit). All are safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging), `supabase-abortion.sql` (abortion columns) `supabase-subscriptions.sql` (₹99/month plans; admin = id.arunraj@gmail.com) `supabase-security-hardening.sql` (closes the loopholes found in the security audit) and finally `supabase-support.sql` (Help & Support chat + admin User Directory). All are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -113,6 +113,11 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 **Security:** the rules are enforced by Supabase itself, not only by the app — inspectors can read only their own subscription, cannot change it, cannot reuse a UPI reference, and the database refuses circle / chat use without Pro, more than 5 farmers or animals on trial, and any record change when expired. Only accounts listed in `app_admins` can approve. The admin screen shows only names, contact details and plan status — never anyone's clinical or payment records.
 
 **Automatic payments later (Razorpay):** a Supabase Edge Function that verifies the Razorpay webhook signature can call `select public.apply_provider_payment('<user id>', 'razorpay', '<payment id>', '<order id>', 99, 30);` with the service-role key. It extends `subscription_end` by 30 days and ignores a payment id it has already applied.
+
+## Help & Support + User Directory
+* **Inspectors:** 🛟 *Help & Support* (Home card, Profile, Subscription screen) shows your support email and phone (tap to call / email / copy) and a private chat with you. Replies arrive live; a red badge shows unread replies. Works on every plan, including expired.
+* **Admin (you):** *Admin → 👥 Users* lists everyone who registered — name, office, designation, area, age, email, phone, plan, registration date, last login, last seen / 🟢 online now — with 📞 one-tap call, WhatsApp, email and copy. *Admin → 🛟 Support* is the inbox (All / Unread, search); open a thread to read and reply. Set the support email and phone under *⚙ Support email & phone*.
+* Passwords are never stored or shown — they stay inside Supabase Auth. Each inspector can read only their own profile and support thread; only `app_admins` see the directory and all threads.
 
 ## Security
 * Every table has row-level security: inspectors see only their own records (`auth.uid() = user_id`); circle members see only the tasks sent between them and the messages meant for them.

@@ -204,6 +204,16 @@ body.nopro .allot-btn::after{content:' 🔒'}
 .upi-apps{margin-top:10px}.upi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .upi-app{display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 8px;border-radius:12px;border:1.5px solid var(--c,#0f766e);color:var(--c,#0f766e);background:#fff;font-weight:700;font-size:14px;text-decoration:none;text-align:center}
 .upi-app:active{background:#f1f5f9}.upi-app.other{--c:#0f766e;border-style:dashed}
+/* support chat + admin user directory */
+.chat-head.sup{background:#ecfeff;border:1px solid #a5f3fc}.mode-note.sup{background:#cffafe;color:#155e75}
+.composer.sup{border:2px solid #67e8f9}.msg.me.sup{align-self:flex-end;background:linear-gradient(135deg,#06b6d4,#0e7490);color:#fff;border-bottom-right-radius:5px}.msg.them.sup .who{color:#0e7490}
+.sup-contacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.sup-contacts .btn{margin:0;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+a.btn.call{background:#dcfce7;border-color:#86efac;color:#166534;font-weight:700}a.btn.wa{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}a.btn.mail{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;word-break:break-all}
+.cnt{display:inline-block;min-width:19px;padding:0 6px;border-radius:99px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;line-height:19px;text-align:center;font-style:normal;vertical-align:1px}
+.sup-card{display:flex;align-items:center;gap:12px;margin-top:16px;cursor:pointer;background:linear-gradient(135deg,#ecfeff,#f0fdfa);border-color:#a5f3fc}.sup-card .si{font-size:28px}
+.adm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bd)}.adm-tabs .chip{font-weight:700}
+.usr .online{font-size:12px;color:#15803d;font-weight:700}.usr-meta{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
+.thr{cursor:pointer;position:relative}.thr.unread{border-color:#67e8f9;box-shadow:0 0 0 2px #cffafe}.thr .prev{font-size:14px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:28px}.thr .cnt{position:absolute;right:12px;bottom:12px}
 /* inspector circle */
 nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px}
 .allot-tag{margin-top:6px;font-size:13px;color:#1e40af;background:#eef4ff;border:1px solid #c7d7fe;border-radius:10px;padding:5px 8px}
@@ -348,8 +358,8 @@ async function startSession(user){if(U&&U.id===user.id&&S)return;U={id:user.id,e
  FLDS.forEach(f=>S[f]=S[f]||[]);
  await loadSub(true);if(!U||U.id!==user.id||!S)return;   /* plan: trial / active / expired (also expires an ended Pro period) */
  purgeOldSamples();
- ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();if(SUB.admin)loadAdmin();loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
-function endSession(){stopRealtime();Object.assign(SUB,SUB0());Object.assign(ADM,{rows:[],loaded:false,busy:false,err:'',f:'pending',q:''});popSeen.clear();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
+ ui.tab='dash';ui.d=null;ui.hist=[];ui.q='';ui.auth='login';closeM();scrollTo(0,0);render();save();pruneRem();ucPrompt();runShortcut();if(SUB.admin)loadAdmin();markSeen();supCfg().then(()=>{supStart();supUnread();if(!ui.d&&ui.tab==='dash')softRender()});loadCircle(true).then(()=>{loadMsgs(true);startRealtime();setTimeout(checkPopup,600)})}
+function endSession(){stopRealtime();Object.assign(SUB,SUB0());Object.assign(ADM,{rows:[],loaded:false,busy:false,err:'',f:'pending',q:'',view:'subs'});supStop();Object.assign(SUP,SUP0());Object.assign(ADU,{rows:[],loaded:false,busy:false,err:'',q:'',f:'all'});Object.assign(ADT,{rows:[],loaded:false,busy:false,err:'',q:'',f:'all',seen:0});popSeen.clear();CI.circles=[];CI.members=[];CI.tasks=[];CI.loaded=false;CI.err='';clearTimeout(syncT);clearTimeout(rT);if(U){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(!(c0&&c0.dirty))try{localStorage.removeItem(ck())}catch(e){}}
  U=null;S=null;snap=null;known=null;net='ok';ui.auth=ui.auth==='newpw'?'newpw':'login';closeM();render()}
 async function logout(force){let c0=null;try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){}if(c0&&c0.dirty){await sync();try{c0=JSON.parse(localStorage.getItem(ck()))}catch(e){c0=null}}
  if(c0&&c0.dirty&&!force)return ask('⚠️ Some changes are not saved to the cloud yet (no internet). If you log out now they stay on this device until you log in here again, and are uploaded then.<br><br>On a shared phone, connect to the internet first and wait for “☁️ Saved”, then log out.<br><br>Log out anyway?',()=>logout(true));
@@ -425,7 +435,7 @@ document.addEventListener('submit',async e=>{const f=e.target,m=f.dataset.auth;i
 function profile(){const u=U,row=(k,v)=>`<dt>${k}</dt><dd>${esc(v||'—')}</dd>`;
  sheet('👤 My profile',`<dl class="kv">${row('Name',u.name)}${row('Hospital / centre',u.hosp)}${row('Qualification',u.qual)}${row('Age',u.age)}${row('Gender',u.gender)}${row('Phone',u.phone)}${row('Email',u.email)}${row('Area / Panchayat',u.area)}${row('Registered on',fmt(u.created))}<dt>Plan</dt><dd>${SUB.legacy?'—':SUB.admin?'🛡 Admin (all features)':subEff()==='active'?`⭐ Pro · ${subDays()} days left (until ${fmtD(SUB.end)})`:subEff()==='expired'?'⛔ Expired — renew to continue':'🧪 Free trial'}</dd></dl>
  <p class="mut" style="font-size:13px">☁️ Records are stored in your secure cloud account. Status: ${syncLbl[net]}</p>
- <div class="btns">${SUB.legacy?'':`<button class="btn pri" data-a="sub">⭐ Subscription</button>`}${SUB.admin?'<button class="btn" data-a="admin">🛡 Subscription Manager</button>':''}<button class="btn" data-a="profE">Edit profile</button><button class="btn" data-a="logOpen">📜 Activity log</button><button class="btn" data-a="profP">Change password</button><button class="btn" data-a="tools">Data ⚙</button>${isStandalone()?'':'<button class="btn" data-a="instGo">📲 Install app</button>'}<button class="btn dng" data-a="logout">Logout</button></div>`)}
+ <div class="btns">${SUB.legacy?'':`<button class="btn pri" data-a="sub">⭐ Subscription</button>`}${SUB.admin?'<button class="btn" data-a="admin">🛡 Subscription Manager</button>':''}<button class="btn" data-a="supOpen">🛟 Help &amp; Support ${cntB(SUB.admin?0:SUP.unread)}</button><button class="btn" data-a="profE">Edit profile</button><button class="btn" data-a="logOpen">📜 Activity log</button><button class="btn" data-a="profP">Change password</button><button class="btn" data-a="tools">Data ⚙</button>${isStandalone()?'':'<button class="btn" data-a="instGo">📲 Install app</button>'}<button class="btn dng" data-a="logout">Logout</button></div>`)}
 function profEdit(){modal('Edit profile',profFields(U,1)+'<p class="err"></p>',()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),el=f.querySelector('.err'),P=profObj(d);
  if(P.phone.length!==10)return el.textContent='Enter a valid 10-digit phone number.';el.textContent='Saving…';
  const{error}=await sb.from('profiles').update({full_name:P.name,hospital:P.hosp,qualification:P.qual,age:+P.age||null,gender:P.gender,phone:P.phone,area:P.area}).eq('id',U.id);
@@ -554,7 +564,7 @@ function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F
  const muN=msgUnreadTotal();
  return `${muN?`<div class="card circle-cta msg" data-a="tab" data-id="circle"><b>💬 ${muN} new message${muN>1?'s':''} in your circle</b><div class="mut">Private chats and circle announcements · open the Circle tab</div></div>`:''}${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${canWrite()?aiBanner():''}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
  ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log treatments, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Treatment</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button><button class="btn log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>
- ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}`}
+ ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}${supCard()}`}
 function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,c.village,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
  return L.map(c=>`<div class="card item" data-a="open" data-k="c" data-id="${c.id}"><div><b>${esc(c.name)}</b><div class="mut">📞 ${esc(c.phone)} · 📍 ${esc(c.village)}</div></div><div class="end">${b(own(c.id).length+' animals')}${(()=>{const p=sum(pendC(c.id));return p?'<div style="margin-top:4px">'+b(rs(p)+' due','bad')+'</div>':''})()}</div></div>`).join('')||(S.cs.length?'<div class="empty">No farmers match your search.</div>':emptyBox('👤','No farmers added yet.','Click “+ Add Farmer” to get started.','addC','+ Add Farmer'))}
 const emptyBox=(ic,t,sub,act,lbl,id)=>`<div class="empty empty-box"><div style="font-size:34px">${ic}</div><b>${t}</b><div>${sub}</div>${act?`<div class="btns" style="justify-content:center"><button class="btn pri" data-a="${act}"${id?` data-id="${id}"`:''}>${lbl}</button></div>`:''}</div>`;
@@ -634,7 +644,7 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
  const se=subEff();document.body.classList.toggle('nopro',!isPro());document.body.classList.toggle('expired',se==='expired');
  $('#hb').innerHTML=`${syncBadge()}${subChip()}<button class="btn bell" data-a="bell" aria-label="Reminders">🔔<span class="bdg" id="bellN" hidden>0</span></button><button class="btn" data-a="prof">👤 <span class="pn">${esc((U.name||'Me').split(' ')[0])}</span></button>`;updBell();
- const d=ui.d;if(ui.tab==='admin'&&!SUB.admin)ui.tab='dash';$('#app').innerHTML=subBanner()+(d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):d.k==='chat'?chatView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle,log:logView,admin:adminView})[ui.tab]());
+ const d=ui.d;if(ui.tab==='admin'&&!SUB.admin)ui.tab='dash';$('#app').innerHTML=subBanner()+(d?(d.k==='c'?custView(d.id):d.k==='p'?pregView(d.id):d.k==='chat'?chatView(d.id):d.k==='sup'?supView(d.id):anView(d.id)):({dash,cust,ani,trk,pay,circle,log:logView,admin:adminView})[ui.tab]());
  $('#nav').innerHTML=[['dash','🏠','Home'],['cust','👤','Farmers'],['ani','🐄','Animals'],['trk','📅','Tracker'],['pay','💰','Payments'],['circle','👥','Circle']].map(([k,i,l])=>`<button class="${!d&&ui.tab===k?'on':''}" data-a="tab" data-id="${k}"><span>${i}</span>${l}${k==='circle'?(isPro()?'<i class="nb" id="circleN" hidden>0</i>':'<i class="lkn">🔒</i>'):''}</button>`).join('');if(d&&d.k==='p')pgUpd();updNav()}
 
 /* ---------- modal + forms ---------- */
@@ -826,6 +836,13 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'subCopy':{try{navigator.clipboard.writeText(SUB.upi);toast('📋 UPI ID copied')}catch(e){toast('UPI ID: '+SUB.upi)}return}
  case'admin':if(!SUB.admin)return;closeM();ui.tab='admin';ui.d=null;ui.hist=[];scrollTo(0,0);render();return loadAdmin();
  case'admRef':return loadAdmin();
+ case'admV':ADM.view=id;render();return id==='users'?loadDir():id==='support'?loadThreads():loadAdmin();
+ case'admSup':if(!SUB.admin)return;closeM();ui.tab='admin';ui.d=null;ui.hist=[];ADM.view='support';scrollTo(0,0);render();return loadThreads();
+ case'supOpen':popOpen=false;return supOpen(id||U.id);
+ case'supSend':return supSend(id);
+ case'aduF':ADU.f=id;return render();
+ case'adtF':ADT.f=id;return render();
+ case'cpy':{const v=id||'';try{navigator.clipboard.writeText(v).then(()=>toast('📋 Copied '+v),()=>toast(v))}catch(e){toast(v)}return}
  case'admF':ADM.f=id;return render();
  case'admAct':{const[u2,p2]=id.split('|');return admRpc('admin_activate',{p_user:u2,p_days:SUB.days,p_payment_id:p2},`⭐ Pro activated for ${SUB.days} days — ${admName(u2)}`)}
  case'admExt':return admRpc('admin_activate',{p_user:id,p_days:SUB.days,p_payment_id:null},`⭐ +${SUB.days} days — ${admName(id)}`);
@@ -845,7 +862,7 @@ function cascade(id){S.an=S.an.filter(x=>x.id!==id);S.tr=S.tr.filter(x=>x.aid!==
 
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatTx'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();const b=document.querySelector('[data-a="chatSend"]');if(b)chatSend(b.dataset.id)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;e.preventDefault();act(t.dataset.a,t.dataset.id,t.dataset.k)});
-document.addEventListener('input',e=>{if(e.target.id==='admq'){ADM.q=e.target.value;$('#admList').innerHTML=adminList();return}if(e.target.id==='lq'){ui.lq=e.target.value;ui.lmax=200;$('#loglist').innerHTML=logList();return}if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
+document.addEventListener('input',e=>{if(e.target.id==='aduq'){ADU.q=e.target.value;$('#aduList').innerHTML=userList();return}if(e.target.id==='adtq'){ADT.q=e.target.value;$('#adtList').innerHTML=threadList();return}if(e.target.id==='admq'){ADM.q=e.target.value;$('#admList').innerHTML=adminList();return}if(e.target.id==='lq'){ui.lq=e.target.value;ui.lmax=200;$('#loglist').innerHTML=logList();return}if(e.target.id==='flq'){$('#fll').innerHTML=flowFarmers(e.target.value);return}if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=ui.tab==='cust'?custList():ui.tab==='pay'?payList():aniList()}});
 /* ---------- Inspector Circle: task allotment / handover (privacy-first) ----------
    Each inspector keeps a private database. A circle only shares members' name cards.
    When a task is allotted, ONLY that task (farmer contact, animal summary, task details, note) is sent.
@@ -1374,7 +1391,7 @@ function subView(){const e=subEff(),P=SUB.price,pend=SUB.req==='pending';
  <div class="btns" style="margin-top:0"><button class="btn pri" data-a="subReq">${pend?'Update reference ID':'Submit for verification'}</button></div>`;
  const hist=SUB.pays.length?`<details style="margin-top:12px"><summary class="mut" style="cursor:pointer">Payment history (${SUB.pays.length})</summary>${SUB.pays.map(p=>`<div class="pay-row"><div><b>₹${p.amount}</b> · ${p.provider==='upi_manual'?'UPI ref '+esc(p.upi_ref_id||''):esc(p.provider)} <div class="mut">${fmtDT(p.submitted_at)}${p.period_end?' · Pro until '+fmtD(p.period_end):''}${p.review_note?' · '+esc(p.review_note):''}</div></div>${b(p.status==='approved'?'Verified':p.status==='rejected'?'Not verified':'Pending',p.status==='approved'?'ok':p.status==='rejected'?'bad':'wn')}</div>`).join('')}</details>`:'';
  sheet('⭐ Subscription',`<div id="subv">${st}${SUB.err==='offline'?'<p class="mut" style="font-size:13px">⚠️ Offline — showing the last known plan.</p>':''}${cmp}${pay}${hist}
- ${SUB.admin?'<div class="btns"><button class="btn pri" data-a="admin">🛡 Open Subscription Manager</button></div>':''}</div>`)}
+ ${SUB.admin?'<div class="btns"><button class="btn pri" data-a="admin">🛡 Open Subscription Manager</button></div>':'<p class="mut" style="font-size:13px;margin-top:12px">Problem with payment or activation? <a href="#" data-a="supOpen" style="color:var(--pri);font-weight:700">🛟 Chat with Support</a></p>'}</div>`)}
 async function subReq(){const i=$('#subRef'),el=$('#subErr');if(!i||!el)return;const v=i.value.replace(/[\s-]/g,'').toUpperCase();
  if(!/^[A-Z0-9]{6,35}$/.test(v)){el.textContent='Enter the UPI transaction / reference ID (UTR) from your payment receipt — 6 to 35 letters or digits.';return}
  el.textContent='Submitting…';const{data,error}=await sb.rpc('request_subscription',{p_upi_ref:v});
@@ -1382,13 +1399,16 @@ async function subReq(){const i=$('#subRef'),el=$('#subErr');if(!i||!el)return;c
  subApply(data);try{localStorage.setItem(subKey(),JSON.stringify(data))}catch(e){}toast('⏳ Submitted — Pending Verification');await subPays();subView();softRender()}
 
 /* ---------- Admin: Subscription Manager (only for accounts in app_admins; checked again by the database) ---------- */
-const ADM={rows:[],loaded:false,busy:false,err:'',f:'pending',q:''};
+const ADM={rows:[],loaded:false,busy:false,err:'',f:'pending',q:'',view:'subs'};
 async function loadAdmin(){if(!sb||!SUB.admin||ADM.busy)return;ADM.busy=true;
  try{const{data,error}=await sb.rpc('admin_overview');if(error)throw error;ADM.rows=data||[];ADM.loaded=true;ADM.err=''}
  catch(e){ADM.err=String(e&&e.message||e)}finally{ADM.busy=false}
  if(!U)return;if(ui.tab==='admin'&&!ui.d){const l=$('#admList');if(l&&!$('#m').hidden)l.innerHTML=adminList();else softRender()}else if(ui.tab==='dash'&&!ui.d)softRender()}
 const admCount=k=>ADM.rows.filter(r=>k==='pending'?r.pending_payment_id:k==='all'?1:r.subscription_status===k).length;
 function adminView(){if(!SUB.admin)return `<div class="card note">This page is only for the app owner.</div>`;
+ const tabs=`<div class="adm-tabs">${[['subs','⭐ Subscriptions'],['users','👥 Users'+(ADU.loaded?' ('+ADU.rows.length+')':'')],['support','🛟 Support']].map(([k,l])=>`<button class="chip ${ADM.view===k?'on':''}" data-a="admV" data-id="${k}">${l}${k==='support'?' '+cntB(supCount()):''}</button>`).join('')}</div>`;
+ return tabs+(ADM.view==='users'?usersView():ADM.view==='support'?supInboxView():subsView())}
+function subsView(){
  const ch=(k,l)=>`<button class="chip ${ADM.f===k?'on':''}" data-a="admF" data-id="${k}">${l} (${admCount(k)})</button>`;
  return `<div class="between"><h2 style="margin:0">🛡 Subscription Manager</h2><button class="btn sm" data-a="tab" data-id="dash" style="margin:0">← Home</button></div>
  <p class="mut" style="margin:6px 0 10px;font-size:13px">Verify ₹${SUB.price} UPI payments and switch inspectors to Pro. You see only contact and plan details — never an inspector's farmers, animals, clinical or payment records.</p>
@@ -1407,20 +1427,145 @@ function adminList(){if(ADM.err)return `<div class="card note">⚠️ ${esc(ADM.
   ${r.request_status==='rejected'&&!r.pending_payment_id?`<div class="mut" style="font-size:13px">Last request not verified${r.review_note?': '+esc(r.review_note):''}</div>`:''}
   <div class="btns"><button class="btn sm" data-a="admExt" data-id="${r.user_id}">+${SUB.days} days</button><button class="btn sm" data-a="admCus" data-id="${r.user_id}">Extend…</button>${s==='active'&&!r.is_admin?`<button class="btn sm dng" data-a="admRev" data-id="${r.user_id}">Revoke</button>`:''}</div></div>`}).join('')}
 const admName=id=>{const r=ADM.rows.find(x=>x.user_id===id);return r?(r.full_name||r.email||'this inspector'):'this inspector'};
-async function admRpc(fn,args,ok){const{error}=await sb.rpc(fn,args);if(error){toast('⚠️ '+String(error.message||error).replace(/^ERROR:\s*/,''));return false}toast(ok);await loadAdmin();if(args.p_user===U.id)loadSub(true);return true}
+async function admRpc(fn,args,ok){const{error}=await sb.rpc(fn,args);if(error){toast('⚠️ '+String(error.message||error).replace(/^ERROR:\s*/,''));return false}toast(ok);await loadAdmin();if(ADM.view==='users')loadDir();if(args.p_user===U.id)loadSub(true);return true}
 function admDays(uid){modal(`Extend Pro · ${esc(admName(uid))}`,`${fl('Days to add *','days','30','number','required min="1" max="366" inputmode="numeric"')}<p class="mut" style="font-size:13px">Added after the current end date if Pro is still running, otherwise counted from today.</p><p class="err"></p>`,()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();const n=+f.days.value;if(!(n>=1&&n<=366))return f.querySelector('.err').textContent='Enter 1 to 366 days.';f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_activate',{p_user:uid,p_days:n,p_payment_id:null},`⭐ Pro extended by ${n} days`))closeM()}})}
 function admReject(pid){const r=ADM.rows.find(x=>x.pending_payment_id===pid);modal('Reject payment request',`<p style="margin-top:0">${esc(r?r.full_name||r.email:'')} · UPI ref <b>${esc(r?r.pending_ref:'')}</b></p>${ta('Reason shown to the inspector (optional)','note','')}<div class="chips">${['UPI reference ID not found','Amount does not match','Duplicate request'].map(x=>`<button type="button" class="chip" data-rr="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="err"></p>`,()=>{},f=>{f.querySelectorAll('[data-rr]').forEach(x=>x.onclick=()=>{f.note.value=x.dataset.rr});f.onsubmit=async e=>{e.preventDefault();f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_reject_payment',{p_payment_id:pid,p_note:f.note.value.trim()},'Request marked not verified'))closeM()}})}
 function admRevoke(uid){modal(`Revoke Pro · ${esc(admName(uid))}`,`<p style="margin-top:0">Pro ends now and the account becomes <b>Expired</b>. <b>No records are deleted</b> — the inspector keeps seeing everything and continues after renewal.</p>${ta('Note (optional)','note','')}<p class="err"></p>`,()=>{},f=>{f.onsubmit=async e=>{e.preventDefault();f.querySelector('.err').textContent='Saving…';if(await admRpc('admin_revoke',{p_user:uid,p_note:f.note.value.trim()},'Pro revoked'))closeM()}})}
 /* owner's UPI details + QR image (stored in app_settings; the image is resized on the device before upload) */
-async function admSettings(){let cur={upi_id:SUB.upi,payee_name:SUB.payee,upi_qr:''};try{const{data}=await sb.from('app_settings').select('upi_id,payee_name,upi_qr').eq('id',1).maybeSingle();if(data)cur=data}catch(e){}
+async function admSettings(){let cur={upi_id:SUB.upi,payee_name:SUB.payee,upi_qr:''},supOk=false;try{const r1=await sb.from('app_settings').select('upi_id,payee_name,upi_qr,support_email,support_phone').eq('id',1).maybeSingle();if(!r1.error&&r1.data){cur=r1.data;supOk=true}else{const{data}=await sb.from('app_settings').select('upi_id,payee_name,upi_qr').eq('id',1).maybeSingle();if(data)cur=data}}catch(e){}
  let qr=cur.upi_qr||'';
- modal('⚙ Payment settings',`${fl('Your UPI ID *','upi',cur.upi_id,'text','required placeholder="yourname@okaxis" autocomplete="off"')}${fl('Payee name (shown to inspectors)','payee',cur.payee_name,'text')}
+ modal('⚙ Payment &amp; support settings',`${fl('Your UPI ID *','upi',cur.upi_id,'text','required placeholder="yourname@okaxis" autocomplete="off"')}${fl('Payee name (shown to inspectors)','payee',cur.payee_name,'text')}
  <label>UPI QR code image<input type="file" name="qrf" accept="image/*"></label><div class="qr-prev" id="qrp">${qr?`<img src="${esc(qr)}" alt="QR preview">`:'<span class="mut">No QR added</span>'}</div>${qr?'<label class="ck"><input type="checkbox" name="qrdel"> Remove QR image</label>':''}
- <p class="mut" style="font-size:13px">Inspectors see these on the Upgrade screen. Price: ₹${SUB.price} for ${SUB.days} days.</p><p class="err"></p>`,()=>{},f=>{
+ <p class="mut" style="font-size:13px">Inspectors see these on the Upgrade screen. Price: ₹${SUB.price} for ${SUB.days} days.</p>
+ ${supOk?`<h4 style="margin:12px 0 4px">🛟 Support contact (shown on Help &amp; Support)</h4>${fl('Support email','semail',cur.support_email||'','email','placeholder="support@example.com" autocomplete="off"')}${fl('Support phone','sphone',cur.support_phone||'','tel','placeholder="10-digit mobile number" inputmode="tel"')}`:'<p class="mut" style="font-size:13px">Run supabase-support.sql to add a support email and phone here.</p>'}<p class="err"></p>`,()=>{},f=>{
   f.qrf.onchange=()=>{const file=f.qrf.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const m=Math.min(1,600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);qr=c.toDataURL('image/png');if(qr.length>380000)qr=c.toDataURL('image/jpeg',.85);$('#qrp').innerHTML=`<img src="${qr}" alt="QR preview">`};im.onerror=()=>{f.querySelector('.err').textContent='That file is not an image.'};im.src=rd.result};rd.readAsDataURL(file)};
   f.onsubmit=async e=>{e.preventDefault();const el=f.querySelector('.err'),upi=f.upi.value.trim();if(!/^[\w.\-]{2,}@[a-zA-Z][\w.\-]{1,}$/.test(upi))return el.textContent='Enter a valid UPI ID, e.g. name@okaxis';
-   if(f.qrdel&&f.qrdel.checked)qr='';el.textContent='Saving…';const{error}=await sb.from('app_settings').update({upi_id:upi,payee_name:f.payee.value.trim(),upi_qr:qr}).eq('id',1);
-   if(error)return el.textContent=String(error.message||error);SUB.upi=upi;SUB.payee=f.payee.value.trim();SUB.hasQr=!!qr;SUB.qr=qr;closeM();toast('Payment settings saved');loadSub(true);render()}})}
+   if(f.qrdel&&f.qrdel.checked)qr='';const row={upi_id:upi,payee_name:f.payee.value.trim(),upi_qr:qr};
+   if(supOk){const se=f.semail.value.trim(),sp=digits(f.sphone.value);if(se&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(se))return el.textContent='Enter a valid support email';if(sp&&(sp.length<10||sp.length>13))return el.textContent='Enter a valid support phone number';row.support_email=se;row.support_phone=sp}
+   el.textContent='Saving…';const{error}=await sb.from('app_settings').update(row).eq('id',1);
+   if(error)return el.textContent=String(error.message||error);SUB.upi=upi;SUB.payee=row.payee_name;SUB.hasQr=!!qr;SUB.qr=qr;if(supOk){SUP.email=row.support_email;SUP.phone=row.support_phone;SUP.cfg=true}closeM();toast('Settings saved');loadSub(true);render()}})}
+
+/* ---------- Help & Support (one private thread per inspector with the admin) + Admin user directory ----------
+   Tables: support_messages (inspector ↔ admin), view user_profiles, functions admin_user_directory / admin_support_threads.
+   Row security in Supabase: an inspector reads and writes only their own thread; only app_admins see every thread
+   and the user directory. Passwords are never read or shown (they stay inside Supabase Auth). */
+const SUP0=()=>({thread:'',msgs:[],loaded:false,busy:false,err:'',unread:0,live:false,email:'',phone:'',cfg:false,seen:0});
+const SUP=SUP0();let supCh=null,supPoll=null;
+const ADU={rows:[],loaded:false,busy:false,err:'',q:'',f:'all'};
+const ADT={rows:[],loaded:false,busy:false,err:'',q:'',f:'all',seen:0};
+const supErr=e=>/support_messages|user_profiles|admin_user_directory|admin_support_threads|support_mark_read|support_email|support_phone|mark_seen|42P01|42703|42883|PGRST20[025]|schema cache|does not exist/i.test(String(e&&(e.message||e.code)||e))?'setup':'';
+const digits=x=>String(x||'').replace(/\D/g,'');
+const telHref=p=>{const d=digits(p);return d?'tel:'+(d.length===10?'+91'+d:'+'+d):''};
+const waHref=p=>{const d=digits(p);return d?'https://wa.me/'+(d.length===10?'91'+d:d):''};
+const fmtPhone=p=>{const d=digits(p);return d.length===10?d.slice(0,5)+' '+d.slice(5):String(p||'')};
+const ago=x=>{if(!x)return 'never';const m=Math.round((Date.now()-Date.parse(x))/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' day'+(Math.round(m/1440)===1?'':'s')+' ago'};
+const isOnline=x=>!!x&&Date.now()-Date.parse(x)<6*60000;
+const supCount=()=>SUB.admin?ADT.rows.reduce((a,r)=>a+(+r.unread||0),0):SUP.unread;
+const cntB=(n,extra='')=>`<i class="cnt supN ${extra}"${n?'':' hidden'}>${n||0}</i>`;
+function supBadges(){const n=supCount();document.querySelectorAll('.supN').forEach(e=>{e.textContent=n;e.hidden=!n})}
+/* one-tap contact buttons: call (tel:), WhatsApp, email (mailto:) and copy */
+const contactBtns=(ph,em)=>`${digits(ph)?`<a class="btn sm call" href="${telHref(ph)}">📞 Call ${esc(fmtPhone(ph))}</a><button class="btn sm" data-a="cpy" data-id="${esc(digits(ph))}" title="Copy number">📋 Copy</button><a class="btn sm wa" href="${waHref(ph)}" target="_blank" rel="noopener">WhatsApp</a>`:''}${em?`<a class="btn sm mail" href="mailto:${esc(em)}">✉️ ${esc(em)}</a><button class="btn sm" data-a="cpy" data-id="${esc(em)}" title="Copy email">📋 Copy</button>`:''}`;
+const markSeen=()=>{if(sb&&U)sb.rpc('mark_seen').then(()=>{},()=>{})};
+setInterval(()=>{if(U&&S&&!document.hidden&&navigator.onLine!==false)markSeen()},4*60000);
+
+async function supCfg(){if(!sb||!U)return;try{const{data,error}=await sb.from('app_settings').select('support_email,support_phone').eq('id',1).maybeSingle();if(error)throw error;SUP.email=(data&&data.support_email)||'';SUP.phone=(data&&data.support_phone)||'';SUP.cfg=true}catch(e){if(supErr(e))SUP.err='setup'}}
+async function supLoad(uid,quiet){if(!sb||!U||SUP.busy)return;uid=uid||U.id;SUP.busy=true;
+ try{const{data,error}=await sb.from('support_messages').select('*').eq('user_id',uid).order('created_at',{ascending:true}).limit(500);if(error)throw error;
+  if(SUP.thread===uid||!SUP.thread){SUP.thread=uid;SUP.msgs=data||[];SUP.loaded=true;SUP.err=''}}
+ catch(e){SUP.err=supErr(e)||String(e&&e.message||e);if(!quiet)toast('⚠️ '+(SUP.err==='setup'?'Support chat is not set up yet':'Could not load messages'))}finally{SUP.busy=false}
+ if(ui.d&&ui.d.k==='sup'&&SUP.err==='setup')softRender();else supPaint()}
+async function supUnread(){if(!sb||!U||SUP.err==='setup')return;
+ if(SUB.admin)return loadThreads(true);
+ try{const{data,error}=await sb.from('support_messages').select('id,sender_role,read_by_user_at').eq('user_id',U.id).eq('sender_role','admin');if(error)throw error;
+  const n=(data||[]).filter(m=>!m.read_by_user_at).length;if(SUP.seen&&n>SUP.unread&&!(ui.d&&ui.d.k==='sup'))toast('🛟 Support replied — open Help & Support');SUP.unread=n;SUP.seen=1}
+ catch(e){if(supErr(e))SUP.err='setup'}supBadges()}
+async function supRead(uid){const mine=uid===U.id;const L=SUP.msgs.filter(m=>mine?(m.sender_role==='admin'&&!m.read_by_user_at):(m.sender_role==='user'&&!m.read_by_admin_at));if(!L.length)return;
+ const now=new Date().toISOString();L.forEach(m=>{if(mine)m.read_by_user_at=now;else m.read_by_admin_at=now});
+ if(mine)SUP.unread=0;else{const r=ADT.rows.find(x=>x.user_id===uid);if(r)r.unread=0;const d=ADU.rows.find(x=>x.user_id===uid);if(d)d.support_unread=0}
+ supBadges();try{await sb.rpc('support_mark_read',{p_user:mine?null:uid})}catch(e){}}
+function supPaint(){const open=ui.d&&ui.d.k==='sup'?ui.d.id:'';
+ if(open&&open===SUP.thread){const L=$('#supList');if(L){const atEnd=scrollY+innerHeight>=document.documentElement.scrollHeight-160;L.innerHTML=supBubbles();if(atEnd)scrollTo(0,document.documentElement.scrollHeight)}const dt=$('#supLive');if(dt)dt.className='live '+(SUP.live?'on':'off');if(!document.hidden)supRead(open)}
+ supBadges()}
+/* live updates (Realtime respects the row security) + a 30-second check as backup */
+function supStart(){if(!sb||!U||SUP.err==='setup')return;
+ if(!supCh&&sb.channel)try{const f={event:'*',schema:'public',table:'support_messages'};if(!SUB.admin)f.filter='user_id=eq.'+U.id;
+  supCh=sb.channel('support-'+U.id).on('postgres_changes',f,p=>onSupEvent(p)).subscribe(st=>{SUP.live=st==='SUBSCRIBED';const dt=$('#supLive');if(dt)dt.className='live '+(SUP.live?'on':'off')})}catch(e){supCh=null}
+ clearInterval(supPoll);supPoll=setInterval(()=>{if(!U||!S||document.hidden||navigator.onLine===false)return;if(ui.d&&ui.d.k==='sup')supLoad(ui.d.id,true);else if(!SUP.live||Date.now()%120000<30000)supUnread()},30000)}
+function supStop(){clearInterval(supPoll);supPoll=null;if(supCh){try{sb.removeChannel(supCh)}catch(e){}supCh=null}}
+function onSupEvent(p){const m=p&&p.new;if(!m||!m.id||!U)return;const ins=(p.eventType||'INSERT')==='INSERT';
+ if(m.user_id===SUP.thread){const i=SUP.msgs.findIndex(x=>x.id===m.id);if(i>=0)SUP.msgs[i]={...SUP.msgs[i],...m};else if(ins){SUP.msgs.push(m);SUP.msgs.sort((a,b)=>a.created_at.localeCompare(b.created_at))}}
+ const open=ui.d&&ui.d.k==='sup'&&ui.d.id===m.user_id;
+ if(ins&&m.sender_id!==U.id&&!open){if(SUB.admin&&m.sender_role==='user'){toast('🛟 New support message');loadThreads()}else if(!SUB.admin&&m.sender_role==='admin'){SUP.unread++;toast('🛟 Support replied — open Help & Support')}}
+ supPaint()}
+
+/* Support page: inspector → own thread with the admin; admin → any inspector's thread */
+function supOpen(uid){uid=uid||U.id;if(uid!==U.id&&!SUB.admin)return;closeM();if(SUP.thread!==uid){SUP.msgs=[];SUP.loaded=false}SUP.thread=uid;open('sup',uid);render();setTimeout(()=>scrollTo(0,document.documentElement.scrollHeight),60);
+ supLoad(uid,true);if(!SUP.cfg)supCfg().then(()=>{if(ui.d&&ui.d.k==='sup'&&!$('#supTx:focus'))softRender()});if(uid!==U.id&&!ADU.loaded)loadDir()}
+function supContacts(){if(!SUP.email&&!SUP.phone)return SUP.cfg?'<div class="mut" style="font-size:13px;margin-top:6px">Support email / phone not added yet — use the chat below.</div>':'';
+ return `<div class="sup-contacts">${contactBtns(SUP.phone,SUP.email)}</div>`}
+function supView(uid){const me=uid===U.id,live=`<span id="supLive" class="live ${SUP.live?'on':'off'}" title="Live updates"></span>`;
+ if(SUP.err==='setup')return `${back}<div class="card note" style="margin-top:12px">⚙️ Support chat is not switched on yet. ${SUB.admin?'Run <b>supabase-support.sql</b> in Supabase → SQL Editor.':'Please try again later.'}</div>`;
+ const r=me?{}:(ADU.rows.find(x=>x.user_id===uid)||ADT.rows.find(x=>x.user_id===uid)||{});const nm=r.full_name||r.email||'Inspector';
+ const head=me?`<div class="chat-head sup"><div class="between"><div><b>🛟 Help &amp; Support</b><div class="mut">Questions, payment or login problems — the admin replies here</div></div>${live}</div>${supContacts()}<div class="mode-note sup">🔒 Only you and the app admin can see this conversation.</div></div>`
+  :`<div class="chat-head sup"><div class="between"><div><b>🛟 Support · ${esc(nm)}</b><div class="mut">${esc([r.hospital,r.district_or_area].filter(Boolean).join(' · '))}</div></div>${live}</div><div class="sup-contacts">${contactBtns(r.phone_number,r.email)}</div><div class="mode-note sup">🔒 Only this inspector and admins can see this thread.</div></div>`;
+ return `${back}${head}<div id="supList" class="chat-list">${supBubbles()}</div>
+ <div class="composer sup"><textarea id="supTx" rows="2" maxlength="2000" placeholder="${me?'Type your question or problem…':'Reply to '+esc(nm)+'…'}"></textarea><button class="btn pri" data-a="supSend" data-id="${esc(uid)}">Send</button></div>`}
+function supBubbles(){const uid=SUP.thread,me=uid===U.id,myRole=me?'user':'admin';
+ if(!SUP.loaded&&!SUP.msgs.length)return '<div class="empty" style="padding:18px">Loading…</div>';
+ if(!SUP.msgs.length)return `<div class="empty" style="padding:18px">${me?'No messages yet. Type your question below — the reply will appear here.':'No messages in this thread yet.'}</div>`;
+ const r=me?{}:(ADU.rows.find(x=>x.user_id===uid)||ADT.rows.find(x=>x.user_id===uid)||{});let day='';
+ return SUP.msgs.map(m=>{const mine=m.sender_role===myRole,d=ld(new Date(m.created_at));const sep=d!==day?(day=d,`<div class="day-sep">${fmt(d)}</div>`):'';
+  const seen=mine?(myRole==='user'?m.read_by_admin_at:m.read_by_user_at):null;
+  return `${sep}<div class="msg ${mine?'me':'them'} sup">${mine?'':`<div class="who">${m.sender_role==='admin'?'🛟 Support':'👤 '+esc(r.full_name||'Inspector')}</div>`}<div class="txt">${msgHtml(m.body)}</div><div class="meta">${ftime(m.created_at)}${mine?(seen?' · ✓✓ Seen':' · ✓ Sent'):''}</div></div>`}).join('')}
+async function supSend(uid){const tx=$('#supTx'),text=(tx&&tx.value||'').trim();if(!text)return toast('Type a message first');if(text.length>2000)return toast('Message is too long (2000 characters max)');
+ const me=uid===U.id;if(!me&&!SUB.admin)return;const btn=document.querySelector('[data-a="supSend"]');if(btn)btn.disabled=true;
+ const{data,error}=await sb.from('support_messages').insert({user_id:uid,sender_id:U.id,sender_role:me?'user':'admin',body:text}).select().maybeSingle();if(btn)btn.disabled=false;
+ if(error)return toast('⚠️ '+(supErr(error)==='setup'?'Support chat is not set up yet':/too many/i.test(error.message||'')?'Too many messages — please wait a few minutes':errMsg(error)));
+ if(data&&SUP.thread===uid&&!SUP.msgs.some(m=>m.id===data.id))SUP.msgs.push(data);SUP.loaded=true;if(tx){tx.value='';tx.focus()}
+ const L=$('#supList');if(L)L.innerHTML=supBubbles();scrollTo(0,document.documentElement.scrollHeight);if(!me){const t=ADT.rows.find(x=>x.user_id===uid);if(t){t.last_body=text;t.last_role='admin';t.last_at=new Date().toISOString()}}}
+const supCard=()=>`<div class="card sup-card" data-a="${SUB.admin?'admSup':'supOpen'}"><div class="si">🛟</div><div style="flex:1;min-width:0"><b>${SUB.admin?'Support inbox':'Help &amp; Support'}</b><div class="mut">${SUB.admin?'Messages from inspectors — reply from here':'Questions, payment or login problems? Chat with support'+(SUP.email?' · '+esc(SUP.email):'')}</div></div>${cntB(supCount())}</div>`;
+
+/* ---------- Admin: User Directory + Support Inbox ---------- */
+async function loadDir(){if(!sb||!SUB.admin||ADU.busy)return;ADU.busy=true;
+ try{const{data,error}=await sb.rpc('admin_user_directory');if(error)throw error;ADU.rows=data||[];ADU.loaded=true;ADU.err=''}catch(e){ADU.err=supErr(e)||String(e&&e.message||e)}finally{ADU.busy=false}
+ if(ui.tab==='admin'&&!ui.d&&ADM.view==='users'){const l=$('#aduList');if(l&&!$('#m').hidden)l.innerHTML=userList();else softRender()}else if(ui.d&&ui.d.k==='sup'&&!$('#supTx:focus'))softRender()}
+async function loadThreads(quiet){if(!sb||!SUB.admin||ADT.busy)return;ADT.busy=true;const before=supCount();
+ try{const{data,error}=await sb.rpc('admin_support_threads');if(error)throw error;ADT.rows=data||[];ADT.loaded=true;ADT.err=''}catch(e){ADT.err=supErr(e)||String(e&&e.message||e);if(ADT.err==='setup')SUP.err='setup'}finally{ADT.busy=false}
+ if(quiet&&ADT.seen&&supCount()>before&&!(ui.d&&ui.d.k==='sup'))toast('🛟 New support message');ADT.seen=1;
+ if(ui.tab==='admin'&&!ui.d&&ADM.view==='support'){const l=$('#adtList');if(l)l.innerHTML=threadList()}supBadges()}
+const setupNote=w=>`<div class="card note">⚙️ ${w} needs <b>supabase-support.sql</b> — run it once in Supabase → SQL Editor, then tap Refresh.</div>`;
+function usersView(){const R=ADU.rows,c=k=>R.filter(r=>k==='all'||(k==='online'?isOnline(r.last_seen_at):r.subscription_status===k)).length;
+ const ch=(k,l)=>`<button class="chip ${ADU.f===k?'on':''}" data-a="aduF" data-id="${k}">${l} (${c(k)})</button>`;
+ return `<div class="between"><h2 style="margin:0">👥 User Directory</h2><button class="btn sm" data-a="tab" data-id="dash" style="margin:0">← Home</button></div>
+ <p class="mut" style="margin:6px 0 10px;font-size:13px">Everyone who has registered, with the details they entered. Tap 📞 to call. Passwords are never stored or shown — they stay inside Supabase Auth.</p>
+ <div class="chips">${ch('all','All')}${ch('online','🟢 Online now')}${ch('active','⭐ Pro')}${ch('trial','🧪 Trial')}${ch('expired','⛔ Expired')}</div>
+ <div class="chips"><input id="aduq" placeholder="Search name, phone, email, area, office…" value="${esc(ADU.q)}"></div>
+ <div class="btns" style="margin-top:0"><button class="btn sm" data-a="admV" data-id="users">↻ Refresh</button></div>
+ <div id="aduList">${userList()}</div>`}
+function userList(){if(ADU.err)return ADU.err==='setup'?setupNote('The User Directory'):`<div class="card note">⚠️ ${esc(ADU.err)}</div>`;if(!ADU.loaded)return '<div class="empty">Loading…</div>';
+ const q=ADU.q.toLowerCase(),L=ADU.rows.filter(r=>(ADU.f==='all'||(ADU.f==='online'?isOnline(r.last_seen_at):r.subscription_status===ADU.f))&&(!q||[r.full_name,r.email,r.phone_number,r.district_or_area,r.hospital,r.qualification].join(' ').toLowerCase().includes(q)));
+ if(!L.length)return emptyBox('👥','Nobody here.','Try another filter or search.');
+ return L.map(r=>{const s=r.subscription_status,stB=r.is_admin?b('🛡 All features','ok'):s==='active'?b('⭐ Pro','ok'):s==='expired'?b('⛔ Expired','bad'):b('🧪 Trial','wn');
+  return `<div class="card usr"><div class="between" style="align-items:flex-start"><div style="min-width:0"><b>${esc(r.full_name||'(no name)')}</b>${r.is_admin?' '+b('Admin'):''} ${isOnline(r.last_seen_at)?'<span class="online">🟢 Online now</span>':''}
+   <div class="mut">${esc([r.hospital,r.qualification].filter(Boolean).join(' · ')||'—')}</div><div class="mut">📍 ${esc(r.district_or_area||'—')}${r.age?' · '+esc(r.age)+' yrs':''}${r.gender?' · '+esc(r.gender):''}</div></div>
+   <div class="end">${stB}${s==='active'?`<div class="mut" style="font-size:12px">until ${fmtD(r.subscription_end)}<br>${r.days_left} day${r.days_left===1?'':'s'} left</div>`:''}</div></div>
+  <div class="sup-contacts">${contactBtns(r.phone_number,r.email)||'<span class="mut">No contact details</span>'}</div>
+  <div class="usr-meta">Registered ${fmtD(r.registered_at)} · Last login ${r.last_sign_in_at?fmtDT(r.last_sign_in_at):'—'} · Last seen ${ago(r.last_seen_at)} · Email ${r.email_confirmed_at?'confirmed ✓':'not confirmed'}</div>
+  <div class="btns">${r.is_admin?'':`<button class="btn sm" data-a="supOpen" data-id="${r.user_id}">🛟 Support chat${r.support_total?' ('+r.support_total+')':''}${r.support_unread?` <i class="cnt">${r.support_unread}</i>`:''}</button>`}<button class="btn sm" data-a="admExt" data-id="${r.user_id}">+${SUB.days} days</button>${s==='active'&&!r.is_admin?`<button class="btn sm dng" data-a="admRev" data-id="${r.user_id}">Revoke</button>`:''}</div></div>`}).join('')}
+function supInboxView(){const R=ADT.rows,un=R.filter(r=>r.unread>0).length;
+ const ch=(k,l,n)=>`<button class="chip ${ADT.f===k?'on':''}" data-a="adtF" data-id="${k}">${l} (${n})</button>`;
+ return `<div class="between"><h2 style="margin:0">🛟 Support Inbox</h2><button class="btn sm" data-a="tab" data-id="dash" style="margin:0">← Home</button></div>
+ <p class="mut" style="margin:6px 0 10px;font-size:13px">One private thread per inspector. Open a thread to read and reply. To start a new conversation, use 🛟 Support chat in the User Directory.</p>
+ <div class="chips">${ch('all','All',R.length)}${ch('unread','🔴 Unread',un)}</div>
+ <div class="chips"><input id="adtq" placeholder="Search name, phone, email, message…" value="${esc(ADT.q)}"></div>
+ <div class="btns" style="margin-top:0"><button class="btn sm" data-a="admV" data-id="support">↻ Refresh</button><button class="btn sm" data-a="admSet">⚙ Support email &amp; phone</button></div>
+ <div id="adtList">${threadList()}</div>`}
+function threadList(){if(ADT.err)return ADT.err==='setup'?setupNote('The Support Inbox'):`<div class="card note">⚠️ ${esc(ADT.err)}</div>`;if(!ADT.loaded)return '<div class="empty">Loading…</div>';
+ const q=ADT.q.toLowerCase(),L=ADT.rows.filter(r=>(ADT.f==='all'||r.unread>0)&&(!q||[r.full_name,r.email,r.phone_number,r.district_or_area,r.last_body].join(' ').toLowerCase().includes(q)));
+ if(!L.length)return emptyBox('🛟',ADT.f==='unread'?'No unread messages.':'No support messages yet.','Messages from inspectors appear here.');
+ return L.map(r=>`<div class="card thr${r.unread?' unread':''}" data-a="supOpen" data-id="${r.user_id}"><div class="between"><b>${esc(r.full_name||r.email||'Inspector')}</b><small class="mut">${ago(r.last_at)}</small></div>
+  <div class="mut" style="font-size:12.5px">${esc([r.district_or_area,fmtPhone(r.phone_number),r.email].filter(Boolean).join(' · '))}</div>
+  <div class="prev">${r.last_role==='admin'?'<b>You:</b> ':''}${esc(r.last_body||'')}</div>${r.unread?`<i class="cnt">${r.unread}</i>`:''}</div>`).join('')}
 
 /* keep the page's bottom padding equal to the bottom menu's real height */
 function setNavH(){const n=document.getElementById('nav');if(n&&n.offsetHeight)document.documentElement.style.setProperty('--navh',n.offsetHeight+'px')}
