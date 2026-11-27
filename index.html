@@ -297,6 +297,8 @@ main{padding-bottom:0}
 .tagph .phst{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:3px 8px;font-size:12px}
 .phbig{width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000;display:block}
 .phmark{font-size:13px;margin-left:4px}
+.cardbox{min-height:120px;display:grid;place-items:center;color:var(--mut);background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:8px}
+.cardbox img{width:100%;max-height:62vh;object-fit:contain;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 </style>
 </head>
 <body>
@@ -465,7 +467,8 @@ function pwForm(){modal('Change password / PIN',fl('Current password / PIN','old
 const C=id=>S.cs.find(x=>x.id===id),A=id=>S.an.find(x=>x.id===id),live=a=>!a.status||a.status==='active',own=id=>S.an.filter(a=>a.cid===id&&live(a)),ownAll=id=>S.an.filter(a=>a.cid===id);
 const ag=(y,m)=>[y?y+'y':'',m?m+'m':''].filter(Boolean).join(' ')||'—';
 function age(a){if(a.dob){const d=P(a.dob),n=new Date();let m=(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth();if(n.getDate()<d.getDate())m--;m=Math.max(m,0);return '~'+ag(Math.floor(m/12),m%12)}return ag(+a.ay||0,+a.am||0)}
-const aname=a=>a.tag||a.breed||a.species;
+const petTag=a=>{const p=String(a&&a.pet||'').trim(),t=String(a&&a.tag||'').trim();return p&&t?p+' / '+t:p||t};
+const aname=a=>petTag(a)||a.breed||a.species;
 
 /* ---------- pregnancy / repeat AI helpers ---------- */
 const GEST={Cow:283,Buffalo:310,Goat:150,Sheep:147,Pig:114,Horse:340,Dog:63,Cat:65};
@@ -550,7 +553,7 @@ FU.hc='Post-abortion follow-up / heat check';
 FU.wt='3-month weight check (free feed supply scheme)';
 const DL={tr:'Next vaccination / follow-up date',rai:'Approx. repeat AI date',due:'Expected due (calving) date',wt:'Weight check date'},CL={tr:'Please keep the animal at home and tied on that day for the next vaccine dose / check-up.',wt:'Please keep the animal at home on that day so we can weigh it. This visit is free of cost.',rai:'Please call me as soon as the animal shows heat signs so the repeat AI can be done on time.',due:'Please keep the animal comfortable, give extra feed as advised, and call me at the first signs of calving.'};
 function fuTxt(k,aid,date,extra){const a=A(aid),c=C(a.cid);
- return `Namaste ${c.name},\nReminder from your Livestock Inspector.\n\nAnimal: ${a.species}${a.breed?' ('+a.breed+')':''}${a.tag?' – '+a.tag:''}\nService: ${FU[k]}${extra?'\nDetails: '+extra:''}\n${DL[k]||'Next follow-up date'}: ${fmt(date)}\n\n${CL[k]||'Please keep the animal ready on that day. Call me if you have any questions.'}\n– ${sig()}`}
+ return `Namaste ${c.name},\nReminder from your Livestock Inspector.\n\nAnimal: ${a.species}${a.breed?' ('+a.breed+')':''}${petTag(a)?' – '+petTag(a):''}\nService: ${FU[k]}${extra?'\nDetails: '+extra:''}\n${DL[k]||'Next follow-up date'}: ${fmt(date)}\n\n${CL[k]||'Please keep the animal ready on that day. Call me if you have any questions.'}\n– ${sig()}`}
 const fuBtns=(k,aid,date,extra)=>{const a=A(aid),c=a&&C(a.cid);return c&&date?msgLinks(c.phone,fuTxt(k,aid,date,extra)):''};
 /* the follow-up a record is waiting on: [kind,date,extra] */
 const hcEx=r=>`Pregnancy was lost on ${fmt(r.abDate)}. Post-abortion check-up / watch for heat signs${r.hcNote?' ('+r.hcNote+')':''}.`;
@@ -586,13 +589,13 @@ function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,
  return L.map(c=>`<div class="card item" data-a="open" data-k="c" data-id="${c.id}"><div><b>${esc(c.name)}</b><div class="mut">📞 ${esc(c.phone)} · 📍 ${esc(c.village)}</div></div><div class="end">${b(own(c.id).length+' animals')}${(()=>{const p=sum(pendC(c.id));return p?'<div style="margin-top:4px">'+b(rs(p)+' due','bad')+'</div>':''})()}</div></div>`).join('')||(S.cs.length?'<div class="empty">No farmers match your search.</div>':emptyBox('👤','No farmers added yet.','Click “+ Add Farmer” to get started.','addC','+ Add Farmer'))}
 const emptyBox=(ic,t,sub,act,lbl,id)=>`<div class="empty empty-box"><div style="font-size:34px">${ic}</div><b>${t}</b><div>${sub}</div>${act?`<div class="btns" style="justify-content:center"><button class="btn pri" data-a="${act}"${id?` data-id="${id}"`:''}>${lbl}</button></div>`:''}</div>`;
 function cust(){return `<div class="between"><h2 style="margin:0">Farmers</h2><button class="btn pri" data-a="addC">+ Add</button></div><div class="chips"><input id="q" placeholder="Search name, phone or village" value="${esc(ui.q)}"></div><div id="list">${custList()}</div>`}
-function aniList(){const q=ui.q.toLowerCase(),L=S.an.filter(a=>(!ui.sp||a.species===ui.sp)&&(ui.st==='all'||(ui.st==='active'?live(a):a.status===ui.st))&&[a.species,a.breed,a.tag,C(a.cid)?.name].join(' ').toLowerCase().includes(q));
+function aniList(){const q=ui.q.toLowerCase(),L=S.an.filter(a=>(!ui.sp||a.species===ui.sp)&&(ui.st==='all'||(ui.st==='active'?live(a):a.status===ui.st))&&[a.species,a.breed,a.tag,a.pet,C(a.cid)?.name].join(' ').toLowerCase().includes(q));
  return L.map(a=>`<div class="card item" data-a="open" data-k="a" data-id="${a.id}"><div><b>${emo(a.species)} ${esc(aname(a))}</b>${phOf(a)||PH.up.get(a.id)?'<span class="phmark" title="Tag photo">📷</span>':''}<div class="mut">${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · ${age(a)}</div><div class="mut">Owner: ${esc(C(a.cid)?.name)}</div></div>${stBadge(a)}</div>`).join('')||(S.an.length?'<div class="empty">No animals match this search or filter.</div>':S.cs.length?emptyBox('🐄','No animals registered yet.','Click “+ Add Animal” to register a farmer’s cow, buffalo, goat and more.','addA','+ Add Animal'):emptyBox('🐄','No animals registered yet.','Add a farmer first, then register their animals.','addC','+ Add Farmer'))}
 const statusBlock=a=>{const h=(a.hist||[]).slice().reverse().map(x=>`<div class="mut">${fmt(x.date)} · ${esc(x.text)}</div>`).join('');return(live(a)?'':`<p>${stBadge(a)} ${fmt(a.sdate)}${a.snote?' · '+esc(a.snote):''}</p>`)+(h?`<div style="margin-top:8px"><b>History</b>${h}</div>`:'')};
 const lastAI=a=>S.ai.filter(r=>r.aid===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
 const stBadge=a=>{const la=(S.ai||[]).filter(r=>r.aid===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];if(live(a)&&la&&la.status==='aborted')return b('Aborted','bad');if(!live(a))return b(a.status==='dead'?'Deceased':'Sold','bad');const r=lastAI(a);if(r&&r.status==='negative'&&r.rDate&&!r.rDone)return b('Repeat AI due','wn');return r?(r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):b('Not confirmed','bad')):''};
 function ani(){const sps=[...new Set(S.an.map(a=>a.species))];
- return `<div class="between"><h2 style="margin:0">Livestock</h2><button class="btn pri" data-a="addA">+ Add</button></div><div class="chips"><input id="q" placeholder="Search tag, breed or owner" value="${esc(ui.q)}"></div><div class="chips">${['',...sps].map(s=>`<button class="chip ${ui.sp===s?'on':''}" data-a="sp" data-id="${esc(s)}">${s||'All'}</button>`).join('')}</div><div class="chips">${[['active','Active'],['dead','Deceased'],['sold','Sold'],['all','All']].map(([v,l])=>`<button class="chip ${ui.st===v?'on':''}" data-a="ast" data-id="${v}">${l}</button>`).join('')}</div><div id="list">${aniList()}</div>`}
+ return `<div class="between"><h2 style="margin:0">Livestock</h2><button class="btn pri" data-a="addA">+ Add</button></div><div class="chips"><input id="q" placeholder="Search tag, pet name, breed or owner" value="${esc(ui.q)}"></div><div class="chips">${['',...sps].map(s=>`<button class="chip ${ui.sp===s?'on':''}" data-a="sp" data-id="${esc(s)}">${s||'All'}</button>`).join('')}</div><div class="chips">${[['active','Active'],['dead','Deceased'],['sold','Sold'],['all','All']].map(([v,l])=>`<button class="chip ${ui.st===v?'on':''}" data-a="ast" data-id="${v}">${l}</button>`).join('')}</div><div id="list">${aniList()}</div>`}
 function trkList(){const F=fups().filter(f=>{let n=dd(f.date);if(f.k==='due'&&n>0)n=0;const rr=f.k==='wt'?null:recOf(f);return(ui.t==='all'||ui.t===f.type||(ui.t==='handover'&&rr&&(rr.fuFrom||(rr.allot&&rr.allot.status==='declined'&&(rr.allot.k===f.k||(rr.allot.k==='visit'&&f.k==='tr'))))))&&(ui.r==='all'||(ui.r==='over'&&n<0)||(ui.r==='today'&&n===0)||(ui.r==='week'&&n<=7)||(ui.r==='month'&&n<=30))});return F.map(fRow).join('')||(S.cs.length?'<div class="empty">Nothing in this view.</div>':emptyBox('📅','No reminders yet.','Follow-ups, PD checks, repeat AI, pregnancy and weight-check reminders appear here once you add records.','addC','+ Add Farmer'))}
 function trk(){const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data-a="flt" data-k="${k}" data-id="${v}">${l}</button>`;
  return `<h2 style="margin-top:0">Reminders and tracker</h2><div class="btns" style="margin:-4px 0 8px"><button class="btn sm log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>${canWrite()?aiBanner():''}<div class="chips">${ch('r','over','Overdue')}${ch('r','today','Today')}${ch('r','week','Next 7 days + overdue')}${ch('r','month','30 days')}${ch('r','all','All')}</div><div class="chips">${ch('t','all','All types')}${ch('t','PD','PD checks')}${ch('t','Follow-up','Follow-ups')}${ch('t','Repeat AI','Repeat AI')}${ch('t','Pregnancy','Pregnancy')}${ch('t','Weight check','Weight checks')}${ch('t','handover','↩ Returned / declined')}</div>${(()=>{const L=returnedToMe();return L.length?`<div class="card ret-wait"><b>↩ Waiting for your next follow-up date (${L.length})</b><div class="mut" style="font-size:13px">Closed by a colleague. Once you set the date, the follow-up is tracked here with its reminders.</div>${L.map(t=>`<div class="ret-row"><div><b>${esc(t.title)}</b><div class="mut">Closed by ${esc(t.to_name||'colleague')} on ${fmt(t.closed_date||String(t.closed_at||'').slice(0,10))} · 📝 ${esc(t.closure_note||'')}</div></div><div class="btns"><button class="btn sm pri" data-a="retSet" data-id="${t.id}">📅 Set next follow-up</button><button class="btn sm" data-a="retNone" data-id="${t.id}">No further follow-up</button></div></div>`).join('')}</div>`:''})()}<div id="list">${trkList()}</div>`}
@@ -648,8 +651,8 @@ function custView(id){const c=C(id);return `${back}<div class="card" style="marg
  <div class="between"><h2>Animals (${own(id).length})</h2><button class="btn pri" data-a="addA" data-id="${id}">+ Animal</button></div>${ownAll(id).map(a=>`<div class="card item" data-a="open" data-k="a" data-id="${a.id}"><div><b>${emo(a.species)} ${esc(aname(a))}</b><div class="mut">${esc(a.breed||a.species)} · ${a.gender} · ${age(a)}</div></div>${stBadge(a)}</div>`).join('')||emptyBox('🐄','No animals registered for this farmer yet.','Register their first animal to start logging services.','addA','+ Add Animal',id)}
  ${timelineBox(ownAll(id).map(a=>a.id),'Clinical history · all animals of this farmer')}`}
 function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.date),rs=S.ai.filter(r=>r.aid===id).sort(by),ts=S.tr.filter(r=>r.aid===id).sort(by),fem=a.gender==='Female';
- return `${back}<div class="card" style="margin-top:12px"><h3>${emo(a.species)} ${esc(aname(a))} ${stBadge(a)}</h3>${photoBlock(a)}<div>${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · Age ${age(a)}${a.dob?' (DOB '+fmt(a.dob)+')':''}</div><div class="mut">ID / marks: ${esc(a.tag||'—')}</div><div>Owner: <a href="#" data-a="open" data-k="c" data-id="${c.id}" style="color:var(--pri)">${esc(c.name)}</a> · ${esc(c.village)}</div>${a.notes?`<p>${esc(a.notes)}</p>`:''}
- ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)||(x.status==='closed'&&x.ret&&!x.fs)).map(x=>x.status==='closed'?retTag(x):`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">💉 + Vaccination</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
+ return `${back}<div class="card" style="margin-top:12px"><h3>${emo(a.species)} ${esc(aname(a))} ${stBadge(a)}</h3>${photoBlock(a)}<div>${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · Age ${age(a)}${a.dob?' (DOB '+fmt(a.dob)+')':''}</div>${a.pet?`<div>🏷 Pet name: <b>${esc(a.pet)}</b></div>`:''}<div class="mut">ID / marks: ${esc(a.tag||'—')}${a.reg?' · Registered '+fmt(a.reg):''}</div><div>Owner: <a href="#" data-a="open" data-k="c" data-id="${c.id}" style="color:var(--pri)">${esc(c.name)}</a> · ${esc(c.village)}</div>${a.notes?`<p>${esc(a.notes)}</p>`:''}
+ ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)||(x.status==='closed'&&x.ret&&!x.fs)).map(x=>x.status==='closed'?retTag(x):`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">💉 + Vaccination</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="card" data-id="${id}">🪪 Registration card</button><button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
  ${timelineBox([id],'History timeline')}
  ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):r.status==='aborted'?b('Aborted','bad'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}${(r.fuLog||[]).map(closedNote).join('')}${closedNote(r.fuClosure)}${closedNote(r.rClosure)}${allotTag(r)}${r.byOther?`<div class="mut">👥 AI done by ${esc(r.byOther)} (circle) · not counted in your monthly target</div>`:''}<div class="btns">${live(a)?(r.status==='pending'&&r.next&&!r.nextDone?fuActs('ai',r.id):r.status==='pending'&&r.pd&&!r.pdClosed?fuActs('pd',r.id):r.status==='negative'&&r.rDate&&!r.rDone?fuActs('rai',r.id):''):''}${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
  ${(()=>{const L=S.fd.filter(r=>r.aid===id).sort((x,y)=>y.date.localeCompare(x.date));if(!L.length)return '';
@@ -760,12 +763,67 @@ function phInit(f,a,st){const T=f.querySelector('#phT'),I=f.querySelector('#phI'
  D.onclick=()=>{if(st.url)try{URL.revokeObjectURL(st.url)}catch(e){}Object.assign(st,{mode:(phOf(a)||PH.up.get(a.id))?'remove':'keep',blob:null,url:''});T.removeAttribute('data-ph');T.removeAttribute('data-phd');show('');I.className='phinfo';I.textContent=st.mode==='remove'?'Photo will be removed when you tap Save.':'Optional: photo of the ear tag, microchip card or identification marks.'}}
 function phApply(a,st){if(st.mode==='new'){phQueue(a.id,{blob:st.blob,w:st.w,h:st.h,url:st.url});st.url=''}
  else if(st.mode==='remove'){phCancel(a.id);const old=a.photo&&a.photo.p;if(old){delete a.photo;logH(a,'📷 Tag / ID photo removed',today());setTimeout(()=>rmPhotos([old]),0)}}}
+/* ---------- Animal Registration Card: PNG drawn on <canvas> (no libraries). Built on the phone only;
+   nothing is uploaded or stored — the inspector decides where to download / share it. ---------- */
+const CARD={url:''},CF='system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Malayalam","Manjari",sans-serif';
+function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+function fitTxt(x,t,maxW){t=String(t??'');if(x.measureText(t).width<=maxW)return t;while(t.length>1&&x.measureText(t+'…').width>maxW)t=t.slice(0,-1);return t+'…'}
+function wrapTxt(x,t,maxW,maxL){const L=[];let cur='';
+ for(let w of String(t).split(/\s+/).filter(Boolean)){while(x.measureText(w).width>maxW&&w.length>1){let k=w.length;while(k>1&&x.measureText(w.slice(0,k)).width>maxW)k--;if(cur){L.push(cur);cur=''}L.push(w.slice(0,k));w=w.slice(k)}
+  const n=cur?cur+' '+w:w;if(x.measureText(n).width<=maxW)cur=n;else{L.push(cur);cur=w}}
+ if(cur)L.push(cur);if(L.length>maxL){const rest=L.slice(maxL-1).join(' ');L.length=maxL-1;L.push(fitTxt(x,rest,maxW))}return L.length?L:['']}
+async function cardPhoto(a){const j=PH.up.get(a.id);let u=j?j.url:null;if(!u&&phOf(a))u=await photoUrl(a.photo.p);if(!u)return null;
+ return new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=u})}
+async function drawCard(a){const c0=C(a.cid)||{},im=await cardPhoto(a),W=1080,P=60,IW=W-2*P;
+ const title=petTag(a)||a.breed||a.species||'Animal',sub=[emo(a.species)+' '+(a.species||''),a.breed].filter(Boolean).join(' · ');
+ const rows=[['Identification Tag ID',a.tag||'—'],['Pet name',a.pet||'—'],['Species',a.species||'—'],['Breed',a.breed||'—'],['Sex',a.gender||'—'],['Age',age(a)+(a.dob?' (DOB '+fmt(a.dob)+')':'')],
+  ['Farmer',c0.name||'—'],['Village / ward',c0.village||'—'],['Farmer contact',c0.phone||'—'],[a.reg?'Registration date':'Card issued',fmt(a.reg||today())]];
+ if(!live(a))rows.push(['Status',(a.status==='dead'?'Deceased':'Sold')+(a.sdate?' · '+fmt(a.sdate):'')]);
+ const m=document.createElement('canvas').getContext('2d');m.font=`800 64px ${CF}`;const tl=wrapTxt(m,title,IW,2);
+ const PH_=im?660:0,H=220+40+tl.length*78+60+(im?PH_+40:0)+Math.ceil(rows.length/2)*124+150;
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.textBaseline='top';
+ x.fillStyle='#f2fbf7';x.fillRect(0,0,W,H);
+ const g=x.createLinearGradient(0,0,W,220);g.addColorStop(0,'#0e9f6e');g.addColorStop(1,'#0d9488');x.fillStyle=g;x.fillRect(0,0,W,220);
+ x.fillStyle='#fff';x.font=`800 50px ${CF}`;x.fillText(fitTxt(x,'🐄  ANIMAL REGISTRATION CARD',IW),P,56);
+ x.font=`500 32px ${CF}`;x.fillStyle='rgba(255,255,255,.9)';x.fillText(fitTxt(x,['Livestock Inspector',U&&U.name,U&&U.hosp].filter(Boolean).join(' · '),IW),P,132);
+ let y=260;x.fillStyle='#122019';x.font=`800 64px ${CF}`;tl.forEach(l=>{x.fillText(l,P,y);y+=78});
+ x.font=`500 36px ${CF}`;x.fillStyle='#56685f';x.fillText(fitTxt(x,sub,IW),P,y+4);y+=60;
+ if(im){y+=10;x.save();rrect(x,P,y,IW,PH_,32);x.fillStyle='#e3efe9';x.fill();x.clip();
+  const s=Math.min(IW/im.naturalWidth,PH_/im.naturalHeight),dw=im.naturalWidth*s,dh=im.naturalHeight*s;
+  if(dw<IW-4||dh<PH_-4){const s2=Math.max(IW/im.naturalWidth,PH_/im.naturalHeight);x.globalAlpha=.25;x.drawImage(im,P+(IW-im.naturalWidth*s2)/2,y+(PH_-im.naturalHeight*s2)/2,im.naturalWidth*s2,im.naturalHeight*s2);x.globalAlpha=1}
+  x.drawImage(im,P+(IW-dw)/2,y+(PH_-dh)/2,dw,dh);x.restore();x.strokeStyle='#d6e9e0';x.lineWidth=3;rrect(x,P,y,IW,PH_,32);x.stroke();y+=PH_+40}
+ const cw=(IW-30)/2;rows.forEach((r,i)=>{const cx=P+(i%2)*(cw+30),cy=y+Math.floor(i/2)*124;
+  x.fillStyle='#fff';rrect(x,cx,cy,cw,104,20);x.fill();x.strokeStyle='#d6e9e0';x.lineWidth=2;x.stroke();
+  x.fillStyle='#56685f';x.font=`600 24px ${CF}`;x.fillText(fitTxt(x,r[0].toUpperCase(),cw-40),cx+20,cy+14);
+  x.fillStyle='#122019';x.font=`700 36px ${CF}`;x.fillText(fitTxt(x,r[1],cw-40),cx+20,cy+50)});
+ y+=Math.ceil(rows.length/2)*124+20;x.strokeStyle='#d6e9e0';x.lineWidth=2;x.beginPath();x.moveTo(P,y);x.lineTo(W-P,y);x.stroke();
+ x.fillStyle='#56685f';x.font=`500 26px ${CF}`;x.fillText(fitTxt(x,`Ref ${String(a.id).slice(-6).toUpperCase()} · Generated ${fmt(today())} · Field Officer app`,IW),P,y+30);
+ return cv}
+const cardName=a=>('Registration-'+(petTag(a)||a.species||'animal')).replace(/[^\wഀ-ൿ-]+/g,'_').replace(/_+/g,'_').slice(0,60)+'.png';
+async function cardOpen(aid,fresh){const a=A(aid);if(!a)return;
+ sheet('🪪 Animal registration card',`${fresh?`<div class="note" style="margin-bottom:10px">✅ ${esc(petTag(a)||a.species)} saved. Download or share the registration card now, or later from the animal's page.</div>`:''}<div id="cardBox" class="cardbox">⏳ Preparing card…</div>
+ <div class="btns"><button class="btn pri" id="cardDl" disabled>⬇ Download image</button><button class="btn" id="cardSh" disabled>📤 Share card</button></div><p class="mut" id="cardNote" style="font-size:12.5px;margin:6px 0 0"></p>`);
+ const box=$('#cardBox');let blob=null,note='';
+ try{const had=!!(PH.up.get(aid)||phOf(a));const cv=await drawCard(a);blob=await new Promise(r=>cv.toBlob(r,'image/png'));cv.width=cv.height=0;
+  if(had&&!(PH.up.get(aid)||(phOf(a)&&PH.url.has(a.photo.p))))note='📷 The photo could not be loaded (offline?) — the card was made without it. Open it again when online to include the photo.'}
+ catch(e){console.warn(e)}
+ if(!box||!box.isConnected)return;if(!blob){box.textContent='⚠️ Could not create the card on this phone.';return}
+ if(CARD.url)try{URL.revokeObjectURL(CARD.url)}catch(e){}CARD.url=URL.createObjectURL(blob);
+ const fname=cardName(a),file=(()=>{try{return new File([blob],fname,{type:'image/png'})}catch(e){return null}})();
+ box.textContent='';const im=new Image();im.alt='Animal registration card';im.src=CARD.url;box.appendChild(im);
+ const dl=$('#cardDl'),sh=$('#cardSh'),nt=$('#cardNote');dl.disabled=sh.disabled=false;nt.textContent=note||`PNG image · ${kbTxt(blob.size)} · made on this phone, not stored online.`;
+ const save=()=>{const l=document.createElement('a');l.href=CARD.url;l.download=fname;l.rel='noopener';document.body.appendChild(l);l.click();l.remove()};
+ dl.onclick=()=>{save();toast('⬇ Card image downloaded')};
+ sh.onclick=async()=>{const d={files:file?[file]:[],title:'Animal registration card',text:'Animal registration card – '+(petTag(a)||a.species)};
+  let can=false;try{can=!!(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
+  if(can){try{await navigator.share(d);return}catch(e){if(e&&e.name==='AbortError')return}}
+  save();nt.textContent='This browser cannot share images directly, so the card was downloaded. Send it from your Gallery / Files with WhatsApp, Telegram or email.'}}
 /* storage awareness */
 async function phUsage(el){if(!el||!sb)return;try{const{data,error}=await sb.rpc('tag_photo_usage');if(error)throw error;const d=data||{};el.textContent=`📷 Tag photos: ${d.files||0} · ${kbTxt(+d.bytes||0)} in your private photo storage`}catch(e){el.textContent=''}}
 async function phSweep(){if(PH.swept||!U||!sb||!S||net!=='ok')return;PH.swept=true;const me=U.id;
  try{const{data,error}=await sb.rpc('tag_photo_orphans');if(error||!U||U.id!==me)return;const used=new Set(S.an.map(a=>a.photo&&a.photo.p).filter(Boolean));
   const L=(data||[]).map(r=>typeof r==='string'?r:r.name||r.tag_photo_orphans).filter(p=>myPath(p)&&!used.has(p)&&![...PH.up.keys()].some(aid=>p.startsWith(me+'/'+aid+'/')));if(L.length)rmPhotos(L)}catch(e){}}
-async function phEnd(){PH.up.forEach(j=>{try{URL.revokeObjectURL(j.url)}catch(e){}});PH.up.clear();PH.url.forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});PH.url.clear();PH.busy.clear();PH.swept=false;
+async function phEnd(){if(CARD.url){try{URL.revokeObjectURL(CARD.url)}catch(e){}CARD.url=''}PH.up.forEach(j=>{try{URL.revokeObjectURL(j.url)}catch(e){}});PH.up.clear();PH.url.forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});PH.url.clear();PH.busy.clear();PH.swept=false;
  try{'caches' in window&&await caches.delete(PCACHE)}catch(e){}}   /* shared phones: no photos left behind after logout */
 function aniForm(a={},cid){if(!canWrite())return subLock('exp');if(!a.id&&trialFull('an'))return subLock('pro',`Adding more than ${SUB.lim} animals`);if(!S.cs.length)return ask('Please add a farmer first.',()=>{});
  const isOther=a.species&&!SP.includes(a.species),st={mode:'keep',blob:null,url:''},aid=a.id||uid();
@@ -774,8 +832,9 @@ function aniForm(a={},cid){if(!canWrite())return subLock('exp');if(!a.id&&trialF
  <div id="os">${fl('Custom species','osp',isOther?a.species:'')}</div>
  <div class="two"><label>Gender<select name="gender"><option ${a.gender==='Female'||!a.gender?'selected':''}>Female</option><option ${a.gender==='Male'?'selected':''}>Male</option></select></label>${fl('Date of birth','dob',a.dob,'date','max="'+today()+'"')}</div>
  <div class="two">${fl('Or age: years','ay',a.ay,'number','min="0"')}${fl('months','am',a.am,'number','min="0" max="11"')}</div><div class="mut" id="ap" style="margin:-4px 0 10px"></div>
+ <div class="two">${fl('Pet name (optional)','pet',a.pet,'text','maxlength="40" autocomplete="off" placeholder="e.g. Lakshmi"')}${fl('Registration date','reg',a.reg||(a.id?'':today()),'date','max="'+today()+'"')}</div>
  ${phField({...a,id:aid})}${ta('Notes (health history, remarks)','notes',a.notes)}`,
- d=>{const o={cid:d.cid,species:d.sp==='Other'?(d.osp||'Other'):d.sp,breed:d.breed,gender:d.gender,dob:d.dob,ay:d.dob?'':d.ay,am:d.dob?'':d.am,tag:d.tag,notes:d.notes};let r=a;if(a.id)Object.assign(a,o);else{r={id:aid,...o};S.an.push(r)}phApply(r,st)},
+ d=>{const o={cid:d.cid,species:d.sp==='Other'?(d.osp||'Other'):d.sp,breed:d.breed,gender:d.gender,dob:d.dob,ay:d.dob?'':d.ay,am:d.dob?'':d.am,tag:(d.tag||'').trim(),pet:(d.pet||'').trim().slice(0,40),reg:d.reg||'',notes:d.notes};let r=a;if(a.id)Object.assign(a,o);else{r={id:aid,...o};S.an.push(r);setTimeout(()=>{if(!A(aid))return;open('a',aid);render();cardOpen(aid,true)},80)}phApply(r,st)},
  f=>{phInit(f,a.id?a:{id:aid},st);const u=()=>{f.querySelector('#os').hidden=f.sp.value!=='Other';f.querySelector('#ap').textContent=f.dob.value?'Approx. age: '+age({dob:f.dob.value}):'Leave DOB blank to use the age fields.'};f.addEventListener('input',u);u()})}
 /* ---------- Vaccination (stored in the same private `treatments` table, so sync, security, follow-ups,
    circle allotment and history all keep working; old treatment records stay readable) ---------- */
@@ -919,7 +978,7 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'flt':ui[k]=id;return render();
  case'addC':return custForm();case'editC':return custForm(C(id));
  case'delC':return del('Delete this farmer and all their animals and records?',()=>{ownAll(id).forEach(x=>cascade(x.id));S.cs=S.cs.filter(x=>x.id!==id)});
- case'phView':return phView(id);case'phRetry':{const j=PH.up.get(id);if(j){j.busy=false;upPhoto(id)}return}
+ case'phView':return phView(id);case'card':return cardOpen(id);case'phRetry':{const j=PH.up.get(id);if(j){j.busy=false;upPhoto(id)}return}
  case'addA':return aniForm({},id);case'editA':return aniForm(A(id));
  case'delA':return del('Delete this animal and all its records?',()=>cascade(id));
  case'addT':return trForm({},id);case'editT':return trForm(rec(S.tr));
