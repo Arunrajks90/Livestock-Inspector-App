@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Field Officer · Livestock Inspector",
   "short_name": "Field Officer",
-  "description": "Livestock Inspector records: farmers, animals, treatment, AI, PD checks, feed supply, reminders and payments.",
+  "description": "Livestock Inspector records: farmers, animals, vaccination, AI, PD checks, feed supply, reminders and payments.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -21,7 +21,7 @@
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    { "name": "Log treatment", "short_name": "Treatment", "url": "./?go=qT", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Log vaccination", "short_name": "Vaccination", "url": "./?go=qT", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Log AI", "short_name": "AI", "url": "./?go=qAI", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Record PD result", "short_name": "PD result", "url": "./?go=qPD", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]

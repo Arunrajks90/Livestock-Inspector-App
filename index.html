@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://dmshweetbwaqcqyzvypf.supabase.co wss://dmshweetbwaqcqyzvypf.supabase.co https://cdn.jsdelivr.net; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="description" content="Livestock Inspector records: farmers, animals, treatment, AI, PD checks, feed supply, reminders and payments.">
+<meta name="description" content="Livestock Inspector records: farmers, animals, vaccination, AI, PD checks, feed supply, reminders and payments.">
 <meta name="theme-color" content="#0d9488">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
@@ -106,7 +106,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
 .sheet{border-top:5px solid var(--teal)}
 .sheet h3{color:#0f3d2a}
 fieldset.pay{border-color:#fcd34d;background:#fffbeb}
-/* module colours: Treatment coral, AI blue, PD teal, Feed amber */
+/* module colours: Vaccination coral, AI blue, PD teal, Feed amber */
 .btn[data-a=qT],.btn[data-a=addT]{background:linear-gradient(135deg,#fb7185,#f43f5e);color:#fff;border-color:transparent;box-shadow:0 3px 10px #f43f5e40}
 .btn[data-a=qAI],.btn[data-a=addAI]{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:transparent;box-shadow:0 3px 10px #2563eb40}
 .btn[data-a=qPD],.btn[data-a=pdr].pri{background:linear-gradient(135deg,#2dd4bf,#0d9488);color:#fff;border-color:transparent;box-shadow:0 3px 10px #0d948840}
@@ -214,6 +214,9 @@ a.btn.call{background:#dcfce7;border-color:#86efac;color:#166534;font-weight:700
 .adm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bd)}.adm-tabs .chip{font-weight:700}
 .usr .online{font-size:12px;color:#15803d;font-weight:700}.usr-meta{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
 .thr{cursor:pointer;position:relative}.thr.unread{border-color:#67e8f9;box-shadow:0 0 0 2px #cffafe}.thr .prev{font-size:14px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:28px}.thr .cnt{position:absolute;right:12px;bottom:12px}
+/* vaccination */
+.vexp{margin:-4px 0 10px;border-radius:10px;padding:7px 10px;font-size:13.5px;line-height:1.45}.vexp.bad{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;font-weight:600}.vexp.wn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}.vexp.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.vac-card .vmeta{font-size:13.5px;margin-top:3px}.vac-card .vexp{margin:6px 0 0}.vac-card.old{opacity:.92;border-style:dashed}
 /* inspector circle */
 nav button{position:relative;min-width:0}nav .nb{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#f43f5e;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px}
 .allot-tag{margin-top:6px;font-size:13px;color:#1e40af;background:#eef4ff;border:1px solid #c7d7fe;border-radius:10px;padding:5px 8px}
@@ -375,7 +378,7 @@ function unclaimed(){if(!U||!S)return null;const have=new Set(FLDS.flatMap(f=>S[
   const keep=(f,r)=>!r.demo&&!have.has(r.id)&&!no.has(r.id)&&!(f==='an'&&dc.has(r.cid))&&!(['tr','ai','fd'].includes(f)&&da.has(r.aid));
   FLDS.forEach(f=>(x[f]||[]).forEach(r=>{if(keep(f,r)&&!o[f].some(y=>y.id===r.id))o[f].push(r)}));if(x.aiTarget)o.aiTarget=x.aiTarget;if(x.sig)o.sig=x.sig});
  return FLDS.some(f=>o[f].length)?o:null}
-const ucText=o=>`${o.cs.length} farmer${o.cs.length===1?'':'s'}, ${o.an.length} animal${o.an.length===1?'':'s'}, ${o.tr.length} treatment${o.tr.length===1?'':'s'}, ${o.ai.length} AI/PD record${o.ai.length===1?'':'s'}, ${o.fd.length} feed suppl${o.fd.length===1?'y':'ies'}`;
+const ucText=o=>`${o.cs.length} farmer${o.cs.length===1?'':'s'}, ${o.an.length} animal${o.an.length===1?'':'s'}, ${o.tr.length} vaccination${o.tr.length===1?'':'s'}, ${o.ai.length} AI/PD record${o.ai.length===1?'':'s'}, ${o.fd.length} feed suppl${o.fd.length===1?'y':'ies'}`;
 function claim(){const o=unclaimed();if(!o)return 0;FLDS.forEach(f=>{const have=new Set(S[f].map(x=>x.id));o[f].forEach(x=>{if(!have.has(x.id)){S[f].push(x);have.add(x.id)}})});
  if(o.aiTarget&&!S.aiTarget)S.aiTarget=o.aiTarget;if(o.sig&&!S.sig)S.sig=o.sig;save();return 1}
 function ucPrompt(){const o=unclaimed();if(!o)return;sheet('Records found on this device',`<p>These records were saved on this phone before cloud login:</p><p><b>${ucText(o)}</b></p><p class="mut">Upload them to your cloud account? The copy on this device is kept as a backup.</p><div class="btns"><button class="btn pri" data-a="ucY">Upload to my account</button><button class="btn" data-a="ucN">Not now</button></div>`)}
@@ -402,7 +405,7 @@ function errMsg(e){const m=String(e&&(e.message||e.error_description||e)||'');
 function authView(){const v=ui.auth,tp=(()=>{try{const t=JSON.parse(localStorage.getItem(TK));if(t&&t.id==='test'){const{id,created,...r}=t;return r}}catch(e){}return{}})();
  const pw=(n,l,ac)=>fl(l,n,'','password',`required minlength="6" autocomplete="${ac}"`);
  const note=ui.note?`<div class="card note">${esc(ui.note)}</div>`:'';
- const hero=`<div class="card auth-hero" style="text-align:center;padding:20px"><div style="font-size:44px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers · Animals · Treatment · AI · PD · Feed · Payments</div></div>`;
+ const hero=`<div class="card auth-hero" style="text-align:center;padding:20px"><div style="font-size:44px">🐄</div><h2 style="margin:4px 0">Livestock Inspector</h2><div class="mut">Farmers · Animals · Vaccination · AI · PD · Feed · Payments</div></div>`;
  if(v==='loading')return `<div class="auth-box">${hero}<div class="card" style="text-align:center;padding:26px"><div style="font-size:30px">⏳</div><b>Loading your records…</b><div class="mut">Connecting to the cloud</div></div></div>`;
  if(!sb)return `<div class="auth-box">${hero}<div class="card note">⚠️ Could not load the Supabase library. Check your internet connection and reload the page.</div></div>`;
  const form=v==='signup'?`<form data-auth="signup">${profFields(tp)}<div class="two">${pw('pw','Password / PIN * (min 6)','new-password')}${pw('pw2','Confirm *','new-password')}</div><p class="err" role="alert"></p><button class="btn pri" style="width:100%">Create account</button><p class="mut" style="text-align:center;margin:12px 0 0">Already registered? <a href="#" data-a="auth" data-id="login">Login</a></p></form>`
@@ -487,7 +490,7 @@ function tgtForm(){modal('Monthly AI target',fl('AIs to complete each month','t'
 function purgeOldSamples(){if(!S)return;const dc=new Set(S.cs.filter(x=>x.demo).map(x=>x.id)),da=new Set(S.an.filter(x=>x.demo||dc.has(x.cid)).map(x=>x.id));
  S.cs=S.cs.filter(x=>!x.demo);S.an=S.an.filter(x=>!x.demo&&!dc.has(x.cid));['tr','ai','fd'].forEach(k=>S[k]=S[k].filter(x=>!x.demo&&!da.has(x.aid)))}
 function fups(){const L=[],p=(k,r,date,type,label)=>A(r.aid)&&live(A(r.aid))&&L.push({k,id:r.id,aid:r.aid,date,type,label});
- S.tr.forEach(t=>t.next&&!t.done&&p('tr',t,t.next,'Follow-up',t.visit?'📌 '+t.dx:'Treatment follow-up'+(t.dx?': '+t.dx:'')));
+ S.tr.forEach(t=>t.next&&!t.done&&p('tr',t,t.next,'Follow-up',t.visit?'📌 '+t.dx:(isVac(t)?'💉 Vaccination follow-up':'Treatment follow-up')+(vacName(t)?': '+vacName(t):'')));
  S.ai.forEach(a=>{if(a.status==='pending'){a.pd&&!a.pdClosed&&p('pd',a,a.pd,'PD','Pregnancy detection due');a.next&&!a.nextDone&&p('ai',a,a.next,'Follow-up','AI follow-up')}
   if(a.status==='aborted'&&a.hcDate&&!a.hcDone)p('hc',a,a.hcDate,'Follow-up','Post-abortion follow-up / heat check');
   if(a.status==='confirmed'){a.fnext&&!a.fDone&&p('cf',a,a.fnext,'Pregnancy','Pregnancy follow-up');
@@ -500,10 +503,10 @@ function fups(){const L=[],p=(k,r,date,type,label)=>A(r.aid)&&live(A(r.aid))&&L.
 const PM=['Cash','UPI','Bank Transfer','None'];
 const kf=(p,n)=>p?p+n[0].toUpperCase()+n.slice(1):n;
 const rs=n=>'₹'+(+n||0).toLocaleString('en-IN');
-const SVC={tr:'Treatment',ai:'AI',pd:'PD Check'};
+const SVC={tr:'Vaccination',ai:'AI',pd:'PD Check'};
 function pays(){const L=[];const push=(r,p,src,svc,date)=>{const amt=+r[kf(p,'amt')]||0,a=A(r.aid);if(!amt||!a)return;const cid=r[kf(p,'cid')]||a.cid;if(!C(cid))return;
   L.push({src,id:r.id,aid:r.aid,cid,svc,date:date||'',amt,mode:r[kf(p,'mode')]||'',st:r[kf(p,'pst')]==='Pending'?'Pending':'Paid',paidOn:r[kf(p,'paidOn')]||''})};
- S.tr.forEach(t=>push(t,'','tr','Treatment'+(t.dx?': '+t.dx:''),t.date));
+ S.tr.forEach(t=>push(t,'','tr',(isVac(t)?'Vaccination':'Treatment')+(vacName(t)?': '+vacName(t):''),t.date));
  S.ai.forEach(r=>{push(r,'','ai','Artificial Insemination',r.date);push(r,'pd','pd','PD Check',r.pdOn||r.pd)});
  return L.sort((x,y)=>y.date.localeCompare(x.date))}
 const pendC=cid=>pays().filter(x=>x.cid===cid&&x.st==='Pending');
@@ -528,10 +531,10 @@ function paidForm(src,id,after){const r=(src==='tr'?S.tr:S.ai).find(x=>x.id===id
 const ph=p=>{let d=String(p||'').replace(/\D/g,'');if(d.length===11&&d[0]==='0')d=d.slice(1);if(d.length===10)d='91'+d;return d};
 const sig=()=>S.sig||(U?U.name+(U.hosp?', '+U.hosp:''):'Livestock Inspector');
 const msgLinks=(phone,text)=>{const n=ph(phone);if(!n)return '';const t=encodeURIComponent(text);return `<a class="btn sm wa" href="https://wa.me/${n}?text=${t}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="btn sm" href="sms:+${n}?body=${t}" target="_blank" rel="noopener">✉️ SMS</a>`};
-const FU={tr:'Treatment follow-up',ai:'Artificial Insemination (AI) follow-up',pd:'PD Check (pregnancy diagnosis)',cf:'Pregnancy follow-up (after PD Check)',rai:'Repeat Artificial Insemination (AI)',due:'Pre-calving / expected due date reminder'};
+const FU={tr:'Vaccination follow-up (booster / next dose)',ai:'Artificial Insemination (AI) follow-up',pd:'PD Check (pregnancy diagnosis)',cf:'Pregnancy follow-up (after PD Check)',rai:'Repeat Artificial Insemination (AI)',due:'Pre-calving / expected due date reminder'};
 FU.hc='Post-abortion follow-up / heat check';
 FU.wt='3-month weight check (free feed supply scheme)';
-const DL={rai:'Approx. repeat AI date',due:'Expected due (calving) date',wt:'Weight check date'},CL={wt:'Please keep the animal at home on that day so we can weigh it. This visit is free of cost.',rai:'Please call me as soon as the animal shows heat signs so the repeat AI can be done on time.',due:'Please keep the animal comfortable, give extra feed as advised, and call me at the first signs of calving.'};
+const DL={tr:'Next vaccination / follow-up date',rai:'Approx. repeat AI date',due:'Expected due (calving) date',wt:'Weight check date'},CL={tr:'Please keep the animal at home and tied on that day for the next vaccine dose / check-up.',wt:'Please keep the animal at home on that day so we can weigh it. This visit is free of cost.',rai:'Please call me as soon as the animal shows heat signs so the repeat AI can be done on time.',due:'Please keep the animal comfortable, give extra feed as advised, and call me at the first signs of calving.'};
 function fuTxt(k,aid,date,extra){const a=A(aid),c=C(a.cid);
  return `Namaste ${c.name},\nReminder from your Livestock Inspector.\n\nAnimal: ${a.species}${a.breed?' ('+a.breed+')':''}${a.tag?' – '+a.tag:''}\nService: ${FU[k]}${extra?'\nDetails: '+extra:''}\n${DL[k]||'Next follow-up date'}: ${fmt(date)}\n\n${CL[k]||'Please keep the animal ready on that day. Call me if you have any questions.'}\n– ${sig()}`}
 const fuBtns=(k,aid,date,extra)=>{const a=A(aid),c=a&&C(a.cid);return c&&date?msgLinks(c.phone,fuTxt(k,aid,date,extra)):''};
@@ -563,7 +566,7 @@ function dash(){const F=fups(),up=F.filter(f=>dd(f.date)>=0&&dd(f.date)<=7),od=F
  const inN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='pending_acceptance').length,fdN=CI.tasks.filter(t=>t.to_user===U.id&&t.status==='accepted').length,rtN=returnedToMe().length;
  const muN=msgUnreadTotal();
  return `${muN?`<div class="card circle-cta msg" data-a="tab" data-id="circle"><b>💬 ${muN} new message${muN>1?'s':''} in your circle</b><div class="mut">Private chats and circle announcements · open the Circle tab</div></div>`:''}${rtN?`<div class="card circle-cta ret" data-a="tab" data-id="circle"><b>↩ ${rtN} allotted task${rtN>1?'s':''} closed by your colleague — set the next follow-up</b><div class="mut">Open the Circle tab</div></div>`:''}${inN||fdN?`<div class="card circle-cta" data-a="tab" data-id="circle"><b>👥 ${inN?inN+' task'+(inN>1?'s':'')+' allotted to you — tap to accept':fdN+' accepted task'+(fdN>1?'s':'')+' in your feed'}</b><div class="mut">Open the Circle tab</div></div>`:''}${canWrite()?aiBanner():''}<div class="grid">${st(S.cs.length,'Customers','farmers registered','cust')}${st(S.an.filter(live).length,'Livestock','active animals','ani')}${st(pp,'Pending PD checks','awaiting result','trk')}${st(up.length,'Upcoming (7 days)',td+' today · '+od+' overdue','trk')}${(()=>{const P=pays().filter(x=>x.st==='Pending');return st(rs(sum(P)),'Pending payments',P.length+' records · '+new Set(P.map(x=>x.cid)).size+' farmers','pay')})()}</div>
- ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log treatments, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Treatment</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button><button class="btn log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>
+ ${S.cs.length?'':`<div class="card empty-start"><b>👋 Welcome, ${esc(U.name)}!</b><div class="mut">Your workspace is empty. Add your first farmer, then register their animals. After that, log vaccinations, AI, PD checks and feed supply from the quick actions below.</div><div class="btns"><button class="btn pri" data-a="addC">+ Add Farmer</button></div></div>`}<h2>AI target</h2>${aiCard()}<h2>Quick actions</h2><div class="btns"><button class="btn pri" data-a="qT">💉 + Vaccination</button><button class="btn pri" data-a="qAI">🧬 + AI</button><button class="btn pri" data-a="qPD">🩺 PD result</button><button class="btn pri" data-a="qFD">🌾 + Feed supply</button><button class="btn" data-a="addC">+ Farmer</button><button class="btn" data-a="addA">+ Animal</button><button class="btn log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>
  ${sec('Due now and this week',G,'all','Nothing due. All caught up.')}${sec('🔁 Repeat AI reminders',RA,'Repeat AI','No repeat AI due in the next 7 days.')}${sec('🤰 Pregnancy and pre-due reminders',PG,'Pregnancy','No pregnancy follow-ups or pre-due alerts right now.')}${sec('⚖️ 3-month weight checks',WT,'Weight check','No weight checks due in the next 7 days.')}${supCard()}`}
 function custList(){const q=ui.q.toLowerCase(),L=S.cs.filter(c=>[c.name,c.phone,c.village,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
  return L.map(c=>`<div class="card item" data-a="open" data-k="c" data-id="${c.id}"><div><b>${esc(c.name)}</b><div class="mut">📞 ${esc(c.phone)} · 📍 ${esc(c.village)}</div></div><div class="end">${b(own(c.id).length+' animals')}${(()=>{const p=sum(pendC(c.id));return p?'<div style="margin-top:4px">'+b(rs(p)+' due','bad')+'</div>':''})()}</div></div>`).join('')||(S.cs.length?'<div class="empty">No farmers match your search.</div>':emptyBox('👤','No farmers added yet.','Click “+ Add Farmer” to get started.','addC','+ Add Farmer'))}
@@ -581,14 +584,14 @@ function trk(){const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data
  return `<h2 style="margin-top:0">Reminders and tracker</h2><div class="btns" style="margin:-4px 0 8px"><button class="btn sm log-btn" data-a="tab" data-id="log">📜 Activity log</button></div>${canWrite()?aiBanner():''}<div class="chips">${ch('r','over','Overdue')}${ch('r','today','Today')}${ch('r','week','Next 7 days + overdue')}${ch('r','month','30 days')}${ch('r','all','All')}</div><div class="chips">${ch('t','all','All types')}${ch('t','PD','PD checks')}${ch('t','Follow-up','Follow-ups')}${ch('t','Repeat AI','Repeat AI')}${ch('t','Pregnancy','Pregnancy')}${ch('t','Weight check','Weight checks')}${ch('t','handover','↩ Returned / declined')}</div>${(()=>{const L=returnedToMe();return L.length?`<div class="card ret-wait"><b>↩ Waiting for your next follow-up date (${L.length})</b><div class="mut" style="font-size:13px">Closed by a colleague. Once you set the date, the follow-up is tracked here with its reminders.</div>${L.map(t=>`<div class="ret-row"><div><b>${esc(t.title)}</b><div class="mut">Closed by ${esc(t.to_name||'colleague')} on ${fmt(t.closed_date||String(t.closed_at||'').slice(0,10))} · 📝 ${esc(t.closure_note||'')}</div></div><div class="btns"><button class="btn sm pri" data-a="retSet" data-id="${t.id}">📅 Set next follow-up</button><button class="btn sm" data-a="retNone" data-id="${t.id}">No further follow-up</button></div></div>`).join('')}</div>`:''})()}<div id="list">${trkList()}</div>`}
 const payRow=(x,showC)=>{const a=A(x.aid),c=C(x.cid);return `<div class="card"><div class="between"><div><b>${esc(x.svc)}</b><div class="mut">${emo(a.species)} ${esc(aname(a))} · ${fmt(x.date)}${showC?' · '+esc(c.name):''}</div>${x.st==='Paid'?`<div class="mut">Paid ${fmt(x.paidOn)}${x.mode&&x.mode!=='None'?' · '+esc(x.mode):''}</div>`:''}</div><div class="end"><b>${rs(x.amt)}</b><div>${x.st==='Pending'?b('Pending','bad'):b('Paid','ok')}</div></div></div>${x.st==='Pending'?`<div class="btns"><button class="btn sm pri" data-a="paid" data-k="${x.src}" data-id="${x.id}">Mark paid</button></div>`:''}</div>`};
 function payList(){const q=ui.q.toLowerCase(),L=pays().filter(x=>(ui.ps==='all'||x.st===ui.ps)&&(ui.pt==='all'||x.src===ui.pt)&&(()=>{const c=C(x.cid);return [c.name,c.phone,c.village].join(' ').toLowerCase().includes(q)})());
- if(!L.length)return pays().length?'<div class="empty">No payments in this view.</div>':emptyBox('💰','No payments recorded yet.','Amounts you enter in Treatment, AI and PD Check forms appear here. Only you can see them.');
+ if(!L.length)return pays().length?'<div class="empty">No payments in this view.</div>':emptyBox('💰','No payments recorded yet.','Amounts you enter in Vaccination, AI and PD Check forms appear here. Only you can see them.');
  const G={};L.forEach(x=>(G[x.cid]=G[x.cid]||[]).push(x));
  return Object.keys(G).sort((x,y)=>sum(pendC(y))-sum(pendC(x))||C(x).name.localeCompare(C(y).name)).map(cid=>{const c=C(cid),p=sum(pendC(cid));
   return `<div class="grp between"><div><a href="#" data-a="open" data-k="c" data-id="${cid}" style="color:var(--tx)"><b>${esc(c.name)}</b></a><div class="mut">📍 ${esc(c.village)} · ${G[cid].length} record${G[cid].length>1?'s':''}: ${rs(sum(G[cid]))}</div></div><div class="end">${p?b(rs(p)+' pending','bad'):b('No dues','ok')}</div></div>${G[cid].map(x=>payRow(x)).join('')}`}).join('')}
 function pay(){const A_=pays(),P=A_.filter(x=>x.st==='Pending'),m=today().slice(0,7),M=A_.filter(x=>x.st==='Paid'&&(x.paidOn||x.date).slice(0,7)===m);
  const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data-a="flt" data-k="${k}" data-id="${v}">${l}</button>`;
  return `<h2 style="margin-top:0">Payments</h2><p class="mut" style="margin:-6px 0 10px;font-size:13px">🔒 For your records only. Payment details are never sent to farmers.</p><div class="sum"><div class="card"><small class="mut">Total pending</small><b style="color:var(--bad)">${rs(sum(P))}</b><small class="mut">${P.length} records · ${new Set(P.map(x=>x.cid)).size} farmers</small></div><div class="card"><small class="mut">Collected this month</small><b style="color:var(--pri)">${rs(sum(M))}</b><small class="mut">${M.length} payments</small></div></div>
- <div class="chips" style="margin-top:12px"><input id="q" placeholder="Search farmer, phone or village" value="${esc(ui.q)}"></div><div class="chips">${ch('ps','Pending','Pending')}${ch('ps','Paid','Paid')}${ch('ps','all','All')}</div><div class="chips">${ch('pt','all','All services')}${ch('pt','tr','Treatment')}${ch('pt','ai','AI')}${ch('pt','pd','PD Check')}</div><div id="list">${payList()}</div>`}
+ <div class="chips" style="margin-top:12px"><input id="q" placeholder="Search farmer, phone or village" value="${esc(ui.q)}"></div><div class="chips">${ch('ps','Pending','Pending')}${ch('ps','Paid','Paid')}${ch('ps','all','All')}</div><div class="chips">${ch('pt','all','All services')}${ch('pt','tr','Vaccination')}${ch('pt','ai','AI')}${ch('pt','pd','PD Check')}</div><div id="list">${payList()}</div>`}
 const abBox=r=>`<div class="ab-box"><b>⚠️ Pregnancy aborted</b> · ${fmt(r.abDate)}${r.abNotes?`<div>📝 ${esc(r.abNotes)}</div>`:''}<div class="mut" style="font-size:12.5px">PD had confirmed the pregnancy${r.due?' (due '+fmt(r.due)+')':''}. All calving reminders were stopped.</div>${r.hcDate?`<div>🩺 Post-abortion follow-up / heat check: ${fmt(r.hcDate)} ${r.hcDone?b('Done','ok'):due(r.hcDate)}${r.hcNote?' · '+esc(r.hcNote):''}</div>`:''}${closedNote(r.hcClosure)}</div>`;
 const aiExtra=(r,a)=>r.status==='aborted'?`${abBox(r)}<div class="btns">${live(a)&&r.hcDate&&!r.hcDone?`<button class="btn sm" data-a="done" data-k="hc" data-id="${r.id}">✔ Heat check done</button>`:''}${live(a)&&!r.hcDate?`<button class="btn sm" data-a="abort" data-id="${r.id}">🩺 Add heat-check date</button>`:''}<button class="btn sm" data-a="abUndo" data-id="${r.id}">↩ Undo “Aborted”</button></div>`:r.status==='confirmed'?`${r.due?`<div>Expected due: ${fmt(r.due)} ${r.dueDone?b('Done','ok'):due(r.due)}</div>`:''}<div class="btns"><button class="btn sm pri" data-a="open" data-k="p" data-id="${r.id}">🤰 Pregnancy page</button>${live(a)?`<button class="btn sm ab-btn" data-a="abort" data-id="${r.id}">⚠️ Mark as Aborted</button>`:''}</div>`
  :r.status==='negative'&&live(a)?(r.rDone?`<div class="mut">Repeat AI: ${r.rAi?'recorded':'not planned'}</div>`:`<div>${r.rDate?`Approx. repeat AI: ${fmt(r.rDate)} ${due(r.rDate)}`:'<span class="mut">No repeat AI scheduled yet</span>'}</div>${r.rDate&&r.rNote?`<div class="mut">📝 ${esc(r.rNote)}</div>`:''}<div class="btns"><button class="btn sm pri" data-a="reAI" data-id="${r.id}">Record Repeat AI</button><button class="btn sm" data-a="raiS" data-id="${r.id}">${r.rDate?'Change date':'Schedule repeat AI'}</button></div>`):'';
@@ -632,14 +635,15 @@ function custView(id){const c=C(id);return `${back}<div class="card" style="marg
  ${timelineBox(ownAll(id).map(a=>a.id),'Clinical history · all animals of this farmer')}`}
 function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.date),rs=S.ai.filter(r=>r.aid===id).sort(by),ts=S.tr.filter(r=>r.aid===id).sort(by),fem=a.gender==='Female';
  return `${back}<div class="card" style="margin-top:12px"><h3>${emo(a.species)} ${esc(aname(a))} ${stBadge(a)}</h3><div>${esc(a.species)} · ${esc(a.breed||'—')} · ${a.gender} · Age ${age(a)}${a.dob?' (DOB '+fmt(a.dob)+')':''}</div><div class="mut">ID / marks: ${esc(a.tag||'—')}</div><div>Owner: <a href="#" data-a="open" data-k="c" data-id="${c.id}" style="color:var(--pri)">${esc(c.name)}</a> · ${esc(c.village)}</div>${a.notes?`<p>${esc(a.notes)}</p>`:''}
- ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)||(x.status==='closed'&&x.ret&&!x.fs)).map(x=>x.status==='closed'?retTag(x):`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">+ Treatment</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
- ${timelineBox([id],'Clinical history timeline')}
+ ${(a.allots||[]).filter(x=>['pending_acceptance','accepted'].includes(x.status)||(x.status==='closed'&&x.ret&&!x.fs)).map(x=>x.status==='closed'?retTag(x):`<div class="allot-tag">👥 ${AK[x.k][1]} allotted to ${esc(x.to)} · ${tb(x.status)}</div>`).join('')}${statusBlock(a)}<div class="btns">${live(a)?`<button class="btn pri" data-a="addT" data-id="${id}">💉 + Vaccination</button>`:''}${fem&&live(a)?`<button class="btn pri" data-a="addAI" data-id="${id}">+ AI</button>`:''}${live(a)?`<button class="btn pri" data-a="addF" data-id="${id}">🌾 + Feed</button>`:''}${live(a)?`<button class="btn allot-btn" data-a="allot" data-id="req|${id}">👥 Allot visit</button><button class="btn" data-a="xfer" data-id="${id}">Transfer</button><button class="btn" data-a="sell" data-id="${id}">Sell</button><button class="btn" data-a="dead" data-id="${id}">Death</button>`:`<button class="btn" data-a="reinst" data-id="${id}">Reinstate</button>`}<button class="btn" data-a="editA" data-id="${id}">Edit</button><button class="btn dng" data-a="delA" data-id="${id}">Delete</button></div></div>
+ ${timelineBox([id],'History timeline')}
  ${fem?`<h2>Insemination and pregnancy</h2>${rs.map(r=>`<div class="card"><div class="between"><b>AI ${fmt(r.date)}${r.prev?' (repeat)':''}</b>${r.status==='pending'?b('PD pending','wn'):r.status==='confirmed'?b('Pregnant','ok'):r.status==='aborted'?b('Aborted','bad'):b('Not confirmed','bad')}</div><div class="mut">Semen / bull: ${esc(r.semen||'—')}</div><div>PD date: ${fmt(r.pd)} ${r.status==='pending'&&r.pd?due(r.pd):''}</div>${r.next?`<div>Next follow-up: ${fmt(r.next)}</div>`:''}${r.fnext&&r.status==='confirmed'?`<div>Pregnancy follow-up: ${fmt(r.fnext)}${r.fDone?' '+b('Done','ok'):''}</div>`:''}${aiExtra(r,a)}${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${payTag(r,'','ai','AI fee')}${payTag(r,'pd','pd','PD Check fee')}${(r.fuLog||[]).map(closedNote).join('')}${closedNote(r.fuClosure)}${closedNote(r.rClosure)}${allotTag(r)}${r.byOther?`<div class="mut">👥 AI done by ${esc(r.byOther)} (circle) · not counted in your monthly target</div>`:''}<div class="btns">${live(a)?(r.status==='pending'&&r.next&&!r.nextDone?fuActs('ai',r.id):r.status==='pending'&&r.pd&&!r.pdClosed?fuActs('pd',r.id):r.status==='negative'&&r.rDate&&!r.rDone?fuActs('rai',r.id):''):''}${(()=>{const u=aiFu(r);return u&&live(a)?fuBtns(u[0],a.id,u[1],u[2]):''})()}<button class="btn sm pri" data-a="pdr" data-id="${r.id}">${r.status==='pending'?'Record PD result':'Change result'}</button><button class="btn sm" data-a="editAI" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delAI" data-id="${r.id}">Delete</button></div></div>`).join('')||'<div class="empty">No AI records.</div>'}`:''}
  ${(()=>{const L=S.fd.filter(r=>r.aid===id).sort((x,y)=>y.date.localeCompare(x.date));if(!L.length)return '';
   return `<h2>Feed supply and weight checks</h2>${L.map(r=>`<div class="card"><div class="between"><b>🌾 ${fmt(r.date)}</b>${FREE}</div><div>${esc(r.feed)}${r.qty?' · '+esc(r.qty):''}</div>${r.notes?`<div class="mut">${esc(r.notes)}</div>`:''}${r.bw?`<div class="mut">Weight at supply: ${kg(r.bw)}</div>`:''}${wHist(r)}
   <div>${r.wDone?b('Weight verification completed','ok'):r.wDate?`3-month weight check: ${fmt(r.wDate)} ${due(r.wDate)}`:''}</div>
   <div class="btns">${!r.wDone&&r.wDate&&live(a)?`<button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button>${fuBtns('wt',a.id,r.wDate,fdEx(r))}`:''}${r.wDone&&live(a)?`<button class="btn sm" data-a="wtN" data-id="${r.id}">Schedule another check</button>`:''}<button class="btn sm" data-a="editF" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delF" data-id="${r.id}">Delete</button></div></div>`).join('')}`})()}
- <h2>Treatment and clinical log</h2>${ts.map(t=>`<div class="card"><div class="between"><b>${t.visit?'📌 Planned visit · ':''}${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div><div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>Next follow-up: ${fmt(t.next)}</div>`:''}${(t.fuLog||[]).map(closedNote).join('')}${closedNote(t.closure)}${allotTag(t)}${t.byOther?`<div class="mut">👥 Done by ${esc(t.byOther)} (circle)</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`).join('')||'<div class="empty">No treatments logged.</div>'}`}
+ <h2>💉 Vaccination history</h2>${ts.map(t=>{const vc=isVac(t),v=vc&&vexp(t.exp,t.date);return `<div class="card vac-card${vc?'':' old'}"><div class="between"><b>${t.visit?'📌 Planned visit · ':vc?'💉 '+esc(vacName(t))+' · ':'Treatment (earlier record) · '}${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div>
+ ${vc?`${t.visit?`<div>${esc(t.dx)}</div>`:''}${t.batch||t.exp?`<div class="vmeta">${t.batch?`Batch / code: <b>${esc(t.batch)}</b>`:''}${t.batch&&t.exp?' · ':''}${t.exp?`Expiry: <b>${fmt(t.exp)}</b>`:''} ${vexpBadge(t)}</div>`:''}${v&&v.st==='bad'?`<div class="vexp bad">${esc(v.txt)}</div>`:''}`:`<div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>`}${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>${vc?'Next dose / follow-up':'Next follow-up'}: ${fmt(t.next)}</div>`:''}${(t.fuLog||[]).map(closedNote).join('')}${closedNote(t.closure)}${allotTag(t)}${t.byOther?`<div class="mut">👥 Done by ${esc(t.byOther)} (circle)</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`}).join('')||'<div class="empty">No vaccinations recorded yet.</div>'}`}
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
  const se=subEff();document.body.classList.toggle('nopro',!isPro());document.body.classList.toggle('expired',se==='expired');
@@ -665,7 +669,35 @@ function aniForm(a={},cid){if(!canWrite())return subLock('exp');if(!a.id&&trialF
  ${fl('Tag ID / microchip / identification marks','tag',a.tag)}${ta('Notes (health history, remarks)','notes',a.notes)}`,
  d=>{const o={cid:d.cid,species:d.sp==='Other'?(d.osp||'Other'):d.sp,breed:d.breed,gender:d.gender,dob:d.dob,ay:d.dob?'':d.ay,am:d.dob?'':d.am,tag:d.tag,notes:d.notes};a.id?Object.assign(a,o):S.an.push({id:uid(),...o})},
  f=>{const u=()=>{f.querySelector('#os').hidden=f.sp.value!=='Other';f.querySelector('#ap').textContent=f.dob.value?'Approx. age: '+age({dob:f.dob.value}):'Leave DOB blank to use the age fields.'};f.addEventListener('input',u);u()})}
-function trForm(t={},aid){modal(t.id?'Edit treatment':'Log treatment'+who(aid),fl('Date','date',t.date||today(),'date','required')+fl('Symptoms / diagnosis','dx',t.dx,'text','required')+fl('Medicines, vaccines, deworming','meds',t.meds)+ta('Inspector notes','notes',t.notes)+fl('Next follow-up date','next',t.next,'date')+payF(t,'','Treatment payment',t.id?null:aid),d=>{const r=t.id?t:{id:uid(),aid};if(t.id&&d.next!==t.next)r.done=false;['date','dx','meds','notes','next'].forEach(k=>r[k]=d[k]);payApply(r,d,'','',r.aid);if(!t.id)S.tr.push(r)},payInit)}
+/* ---------- Vaccination (stored in the same private `treatments` table, so sync, security, follow-ups,
+   circle allotment and history all keep working; old treatment records stay readable) ---------- */
+const VACS=['FMD (Foot & Mouth Disease)','HS (Haemorrhagic Septicaemia)','BQ (Black Quarter)','HS + BQ (combined)','Brucella (S19)','LSD (Lumpy Skin Disease)','Theileriosis','Anthrax','Rabies (anti-rabies)','PPR (goats / sheep)','Goat Pox','Enterotoxaemia (ET)'];
+const isVac=t=>!!(t&&(t.vac||t.visit||t.byOther||t.vx));          /* false only for treatment records made before the switch */
+const vacName=t=>t.vac||t.dx||'';
+const dBetween=(a,b)=>Math.round((Date.parse(b+'T00:00:00')-Date.parse(a+'T00:00:00'))/864e5);
+/* expiry state of a vaccine batch on the day it is (or was) given: expired / soon (≤30 days) / ok */
+function vexp(exp,on){if(!exp)return null;const n=dBetween(on||today(),exp);return n<0?{st:'bad',n,txt:`⚠️ Batch expired on ${fmt(exp)} — ${-n} day${n===-1?'':'s'} before the vaccination date. Do not use an expired vaccine.`}
+ :n<=30?{st:'wn',n,txt:`⏳ Batch expires ${n===0?'on the vaccination day':'in '+n+' day'+(n===1?'':'s')} (${fmt(exp)}). Use it soon and check the cold chain.`}:{st:'ok',n,txt:`✓ Batch valid until ${fmt(exp)}`}}
+const vexpBadge=t=>{const v=vexp(t.exp,t.date);return !v?'':v.st==='bad'?b('Expired batch used','bad'):v.st==='wn'?b('Batch near expiry','wn'):''};
+const vacFields=(t,dateLabel)=>`${fl(dateLabel||'Vaccination date *','date',t.date||today(),'date','required')}
+ <label>Vaccine name / type *<input name="vac" list="vacList" value="${esc(t.vac||'')}" required autocomplete="off" placeholder="e.g. FMD, HS, BQ, Brucella"></label><datalist id="vacList">${VACS.map(v=>`<option value="${esc(v)}">`).join('')}</datalist>
+ <div class="chips" style="margin-top:-4px">${['FMD','HS','BQ','HS + BQ','Brucella','LSD','Rabies'].map(v=>`<button type="button" class="chip" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>
+ ${fl('Vaccine code / batch number','batch',t.batch||'','text','autocomplete="off" autocapitalize="characters" placeholder="e.g. FMD-2611-B07"')}
+ ${fl('Vaccine expiry date','exp',t.exp||'','date')}<div class="vexp" hidden></div>`;
+function vacInit(f){const full=n=>VACS.find(x=>x.startsWith(n+' ('))||n;
+ f.querySelectorAll('[data-v]').forEach(x=>x.onclick=()=>{f.vac.value=full(x.dataset.v);f.vac.dispatchEvent(new Event('input'))});
+ const w=f.querySelector('.vexp'),u=()=>{const v=vexp(f.exp.value,f.date.value);w.hidden=!v;if(v){w.className='vexp '+v.st;w.textContent=v.txt}};
+ f.exp.addEventListener('input',u);f.exp.addEventListener('change',u);f.date.addEventListener('change',u);u();
+ f.querySelectorAll('[data-nd]').forEach(x=>x.onclick=()=>{f.next.value=add(f.date.value||today(),+x.dataset.nd)})}
+const nextChips=`<div class="chips" style="margin-top:-4px">${[[21,'+21 days'],[28,'+28 days (booster)'],[182,'+6 months'],[365,'+1 year']].map(([n,l])=>`<button type="button" class="chip" data-nd="${n}">${l}</button>`).join('')}</div>`;
+function trForm(t={},aid){if(t.id&&!isVac(t))return trOldForm(t);
+ modal(t.id?'Edit vaccination':'💉 Log vaccination'+who(aid),vacFields(t)+ta('Dose / route / site / notes','notes',t.notes)
+  +fl('Follow-up date (booster / next dose / check)','next',t.next,'date')+nextChips+payF(t,'','Vaccination fee',t.id?null:aid),
+  d=>{const r=t.id?t:{id:uid(),aid};if(t.id&&d.next!==t.next)r.done=false;r.date=d.date;r.vac=String(d.vac||'').trim();r.dx=r.vac;r.batch=String(d.batch||'').trim().toUpperCase();r.exp=d.exp||'';r.notes=d.notes;r.next=d.next;
+   payApply(r,d,'','',r.aid);if(!t.id){S.tr.push(r);const v=vexp(r.exp,r.date);if(v&&v.st==='bad')setTimeout(()=>toast('⚠️ Saved — note: the vaccine batch was already expired'),300)}},
+  f=>{payInit(f);vacInit(f)})}
+/* records made before the switch to Vaccination keep their original editor */
+function trOldForm(t={},aid){modal('Edit earlier treatment record',fl('Date','date',t.date||today(),'date','required')+fl('Symptoms / diagnosis','dx',t.dx,'text','required')+fl('Medicines','meds',t.meds)+ta('Inspector notes','notes',t.notes)+fl('Next follow-up date','next',t.next,'date')+payF(t,'','Payment',t.id?null:aid),d=>{const r=t.id?t:{id:uid(),aid};if(t.id&&d.next!==t.next)r.done=false;['date','dx','meds','notes','next'].forEach(k=>r[k]=d[k]);payApply(r,d,'','',r.aid);if(!t.id)S.tr.push(r)},payInit)}
 function aiForm(a={},aid,from){const src=from&&S.ai.find(x=>x.id===from);modal(a.id?'Edit AI record':(src?'Record repeat AI':'Log artificial insemination')+who(aid)+(src?`<div class="mut" style="font-weight:400;font-size:13px">Previous AI ${fmt(src.date)} · PD not confirmed ${fmt(pdOnOf(src))}</div>`:''),fl('AI date','date',a.date||today(),'date','required')+fl('Semen breed / Bull ID','semen',a.semen)+`${fl('Approx. PD date (60–90 days after AI)','pd',a.pd||add(today(),60),'date')}<div class="chips" style="margin-top:-4px">${[60,75,90].map(n=>`<button type="button" class="chip" data-d="${n}">+${n} days</button>`).join('')}</div>`+fl('Next follow-up date','next',a.next,'date')+ta('Notes','notes',a.notes)+payF(a,'','AI payment',a.id?null:aid),d=>{const r=a.id?a:{id:uid(),aid,status:'pending'};if(a.id&&d.next!==a.next)r.nextDone=false;['date','semen','pd','next','notes'].forEach(k=>r[k]=d[k]);payApply(r,d,'','',r.aid);
   if(!a.id){const op=S.ai.filter(x=>x.aid===aid&&x.status==='negative'&&!x.rDone).sort((x,y)=>y.date.localeCompare(x.date)),pv=src||op[0];if(pv)r.prev=pv.id;op.concat(pv?[pv]:[]).forEach(x=>{x.rDone=true;x.rAi=r.id});S.ai.push(r)}},
  f=>{payInit(f);const p=f.pd;if(a.id)p.dataset.t=1;f.date.onchange=()=>{if(!p.dataset.t&&f.date.value)p.value=add(f.date.value,60)};p.oninput=()=>p.dataset.t=1;f.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{p.value=add(f.date.value||today(),+x.dataset.d);p.dataset.t=1})})}
@@ -692,8 +724,8 @@ const pendOf=a=>S.ai.filter(r=>r.aid===a.id&&r.status==='pending').sort((x,y)=>y
 const fem=a=>a.gender==='Female';
 const lastT=a=>S.tr.filter(r=>r.aid===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];
 const FLOW={
- T:{title:'Log treatment',hint:'Tap the animal to log a treatment.',none:'This farmer has no active animals.',f:()=>true,go:id=>trForm({},id),
-  line:a=>{const t=lastT(a);return t?'Last treatment '+fmt(t.date)+' · '+esc(t.dx):'No treatments yet'},tag:a=>b(a.gender,a.gender==='Female'?'':'ok')},
+ T:{title:'Log vaccination',hint:'Tap the animal to log a vaccination.',none:'This farmer has no active animals.',f:()=>true,go:id=>trForm({},id),
+  line:a=>{const t=lastT(a);return t?(isVac(t)?'Last vaccination ':'Last treatment ')+fmt(t.date)+' · '+esc(vacName(t)):'No vaccinations yet'},tag:a=>b(a.gender,a.gender==='Female'?'':'ok')},
  AI:{title:'Log AI',hint:'Tap the animal to log the insemination.',none:'This farmer has no active female animals.',f:fem,go:id=>aiForm({},id),
   line:a=>{const r=lastAI(a);return r?'Last AI '+fmt(r.date):'No AI on record'},tag:a=>stBadge(a)},
  PD:{title:'Record PD',hint:'Tap the animal to enter its PD result.',none:'This farmer has no active female animals.',f:fem,go:id=>pdAnimal(id),
@@ -754,7 +786,7 @@ function sellForm(id){const a=A(id),others=S.cs.filter(c=>c.id!==a.cid);
  f=>{const u=()=>f.querySelector('#bn').hidden=!!f.buyer.value;f.addEventListener('change',u);u()})}
 function xferForm(id){const a=A(id),others=S.cs.filter(c=>c.id!==a.cid);
  if(!others.length)return ask('Transfer needs another registered farmer. Add the receiving farmer first.',()=>{});
- modal('Transfer to another farmer',`<p class="mut">Current owner: ${esc(C(a.cid).name)}. Treatment records and follow-ups move with the animal.</p><label>New owner *<select name="to">${others.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.village)}</option>`).join('')}</select></label>`+fl('Transfer date','date',today(),'date','required')+ta('Reason / notes','notes'),
+ modal('Transfer to another farmer',`<p class="mut">Current owner: ${esc(C(a.cid).name)}. Vaccination records and follow-ups move with the animal.</p><label>New owner *<select name="to">${others.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.village)}</option>`).join('')}</select></label>`+fl('Transfer date','date',today(),'date','required')+ta('Reason / notes','notes'),
  d=>{const to=C(d.to),from=C(a.cid);logH(a,`Transferred from ${from.name} to ${to.name}`+(d.notes?' — '+d.notes:''),d.date);a.cid=to.id})}
 function tools(){modal('Data tools',`${fl('Sign-off for WhatsApp / SMS messages','sig',S.sig||'','text','placeholder="'+esc(U.name+(U.hosp?', '+U.hosp:''))+'"')}<p class="mut">Your records are saved in your cloud account (with an offline copy on this device). Copy the JSON below for an extra backup, or paste a backup and press Import to replace your records.</p><textarea class="big" id="j" name="j"></textarea><div class="btns"><button type="button" class="btn" data-a="exp">Show export</button><button type="button" class="btn" data-a="imp">Import pasted</button><button type="button" class="btn dng" data-a="clr">Delete all my records</button></div>`,d=>{S.sig=(d.sig||'').trim()})}
 
@@ -782,7 +814,7 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'addA':return aniForm({},id);case'editA':return aniForm(A(id));
  case'delA':return del('Delete this animal and all its records?',()=>cascade(id));
  case'addT':return trForm({},id);case'editT':return trForm(rec(S.tr));
- case'delT':return del('Delete this treatment record?',()=>S.tr=S.tr.filter(x=>x.id!==id));
+ case'delT':return del('Delete this vaccination record?',()=>S.tr=S.tr.filter(x=>x.id!==id));
  case'addAI':return aiForm({},id);case'editAI':return aiForm(rec(S.ai));
  case'delAI':return del('Delete this AI record?',()=>S.ai=S.ai.filter(x=>x.id!==id));
  case'pdr':return pdForm(id);
@@ -868,7 +900,7 @@ document.addEventListener('input',e=>{if(e.target.id==='aduq'){ADU.q=e.target.va
    When a task is allotted, ONLY that task (farmer contact, animal summary, task details, note) is sent.
    Payment details are never included. Data lives in Supabase tables inspector_circles, circle_members, task_allotments. */
 const CI={circles:[],members:[],tasks:[],loaded:false,err:'',busy:false};
-const AK={hc:['ai_followup','Post-abortion follow-up / heat check'],visit:['treatment','Planned visit'],tr:['treatment_followup','Treatment follow-up'],ai:['ai_followup','AI follow-up'],pd:['ai_followup','PD check after AI'],rai:['ai','Repeat AI (pending AI)'],req_tr:['treatment','Treatment visit'],req_ai:['ai','AI (insemination)']};
+const AK={hc:['ai_followup','Post-abortion follow-up / heat check'],visit:['vaccination','Planned visit'],tr:['vaccination_followup','Vaccination follow-up'],ai:['ai_followup','AI follow-up'],pd:['ai_followup','PD check after AI'],rai:['ai','Repeat AI (pending AI)'],req_tr:['vaccination','Vaccination visit'],req_ai:['ai','AI (insemination)']};
 const TSTAT={pending_acceptance:['Pending acceptance','wn'],accepted:['Accepted','ok'],declined:['Declined','bad'],closed:['Closed','ok'],cancelled:['Cancelled','']};
 const tb=st=>{const[l,c]=TSTAT[st]||[st,''];return b(l,c)};
 const tbT=t=>t.status==='closed'&&t.returned_to_sender?b(t.from_user===U.id?'Closed by Assignee':'Closed by you','ok'):tb(t.status);
@@ -911,7 +943,7 @@ function applyOutcomes(){if(!S)return;let ch=false;const newDecl=[];
   if(k.startsWith('req')){r.allots=r.allots||[];let a=r.allots.find(x=>x.id===t.id);if(!a){a={id:t.id,k,to:t.to_name};r.allots.push(a);ch=true}
    if(a.ret!==ret||a.cd!==cd||(fs&&a.fs!==fs)){a.ret=ret;a.cd=cd;if(fs)a.fs=fs;ch=true}
    if(t.status==='declined'&&!a.visitId){/* visit request declined → open planned visit in MY Follow-Up Tracker on the requested date */
-    const v={id:uid(),aid:r.id,date:String(t.created_at||new Date().toISOString()).slice(0,10),dx:k==='req_ai'?'Planned visit: AI (insemination)':'Planned visit: Treatment',meds:'',notes:t.description||'',next:t.due_date||today(),visit:k==='req_ai'?'ai':'tr',
+    const v={id:uid(),aid:r.id,date:String(t.created_at||new Date().toISOString()).slice(0,10),dx:k==='req_ai'?'Planned visit: AI (insemination)':'Planned visit: Vaccination',meds:'',notes:t.description||'',next:t.due_date||today(),visit:k==='req_ai'?'ai':'tr',
      allot:{id:t.id,k:'visit',to:t.to_name,status:'declined',note,dd:dd0,at:t.created_at}};S.tr.push(v);a.visitId=v.id;ch=true;newDecl.push(t)}
    if(a.status!==t.status||a.note!==note){a.status=t.status;a.note=note;ch=true;if(['closed','declined','cancelled'].includes(t.status)&&!a.logged){a.logged=1;logH(r,`${AK[k][1]} allotted to ${t.to_name}: ${TSTAT[t.status][0].toLowerCase()}${note?' — '+note:''}`,String(t.closed_at||t.updated_at||new Date().toISOString()).slice(0,10))}}
    return}
@@ -949,7 +981,7 @@ function closeForm(k,id,taskId){const t=taskId&&CI.tasks.find(x=>x.id===taskId);
 function taskPayload(k,r,an,extra){const c=C(an.cid)||{};const p={k,farmer:{name:c.name||'',phone:c.phone||'',village:c.village||'',address:c.address||''},
  animal:{species:an.species,breed:an.breed||'',gender:an.gender,tag:an.tag||'',age:age(an)},from:{name:U.name,hospital:U.hosp,phone:U.phone},task:{}};
  if(k==='visit')p.task={visit:r.dx,plannedFor:r.next,notes:r.notes||''};
- else if(k==='tr')p.task={treated:r.date,diagnosis:r.dx||'',medicines:r.meds||'',notes:r.notes||'',followUp:r.next};
+ else if(k==='tr')p.task=isVac(r)?{vaccinatedOn:r.date,vaccine:vacName(r),batchNo:r.batch||'',vaccineExpiry:r.exp||'',notes:r.notes||'',followUp:r.next}:{treated:r.date,diagnosis:r.dx||'',medicines:r.meds||'',notes:r.notes||'',followUp:r.next};
  else if(k==='ai')p.task={aiDate:r.date,semen:r.semen||'',followUp:r.next,pdDue:r.pd||''};
  else if(k==='pd')p.task={aiDate:r.date,semen:r.semen||'',pdDue:r.pd};
  else if(k==='hc')p.task={aiDate:r.date,aborted:r.abDate,heatCheck:r.hcDate,note:r.hcNote||''};
@@ -962,22 +994,24 @@ function allotForm(k,id){const r=srcRec(k,id);if(!r)return;if(!CI.loaded&&!CI.er
  const an=k.startsWith('req')?r:A(r.aid);const fem=an.gender==='Female';
  const opts=CI.circles.map(c=>{const ms=CI.members.filter(m=>m.circle_id===c.id&&m.user_id!==U.id);return ms.length?`<optgroup label="${esc(c.name)}">${ms.map(m=>`<option value="${c.id}|${m.user_id}">${esc(m.display_name||'Inspector')}${m.hospital?' · '+esc(m.hospital):''}${m.area?' · '+esc(m.area):''}</option>`).join('')}</optgroup>`:''}).join('');
  const due0=k==='tr'||k==='ai'||k==='visit'?r.next:k==='hc'?r.hcDate:k==='pd'?r.pd:k==='rai'?r.rDate:today();
- modal('👥 Allot to inspector'+who(an.id),`${k.startsWith('req')?`<label>Task<select name="what">${['Treatment visit',...(fem?['AI (insemination)']:[])].map(x=>`<option>${x}</option>`).join('')}</select></label>`:`<p style="margin-top:0"><b>${AK[k][1]}</b> · due ${fmt(due0)}</p>`}
+ modal('👥 Allot to inspector'+who(an.id),`${k.startsWith('req')?`<label>Task<select name="what">${['Vaccination visit',...(fem?['AI (insemination)']:[])].map(x=>`<option>${x}</option>`).join('')}</select></label>`:`<p style="margin-top:0"><b>${AK[k][1]}</b> · due ${fmt(due0)}</p>`}
  <label>Allot to *<select name="to" required>${opts}</select></label>${fl('Due / visit date','due',due0||today(),'date','required')}
- ${ta('Description / note for your colleague * (clinical context, urgency, directions)','desc','')}
- <p class="share-note">🔒 Only this task is shared: farmer name, phone and village; the animal's species, breed, tag and age; this task's clinical details and your note. Your other farmers, animals and all payment details stay private.</p><p class="err"></p>`,()=>{},
+ ${ta('Description / note for your colleague * (vaccine, urgency, directions)','desc','')}
+ <p class="share-note">🔒 Only this task is shared: farmer name, phone and village; the animal's species, breed, tag and age; this task's details (vaccine, batch, dates) and your note. Your other farmers, animals and all payment details stay private.</p><p class="err"></p>`,()=>{},
  f=>{f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),err=f.querySelector('.err');if(!d.desc.trim())return err.textContent='Please add a short description for your colleague.';
-  const kk=k.startsWith('req')?(d.what==='Treatment visit'?'req_tr':'req_ai'):k;const[cid,to]=d.to.split('|');const m=CI.members.find(x=>x.circle_id===cid&&x.user_id===to);
+  const kk=k.startsWith('req')?(d.what==='Vaccination visit'?'req_tr':'req_ai'):k;const[cid,to]=d.to.split('|');const m=CI.members.find(x=>x.circle_id===cid&&x.user_id===to);
   const title=kk==='visit'?`${r.dx}: ${an.species} ${aname(an)}`:kk.startsWith('req')?`${AK[kk][1]}: ${an.species} ${aname(an)}`:`${AK[kk][1]}: ${kk==='tr'?(r.dx||''):an.species+' '+aname(an)}`;
-  err.textContent='Sending…';const row={circle_id:cid,from_user:U.id,to_user:to,from_name:U.name,to_name:m?m.display_name:'',task_type:kk==='visit'?(r.visit==='ai'?'ai':'treatment'):AK[kk][0],source_record_id:k.startsWith('req')?an.id:r.id,title,due_date:d.due,description:d.desc.trim(),payload:taskPayload(kk,r,an,{when:d.due,what:d.what}),status:'pending_acceptance'};
-  const{data,error}=await sb.from('task_allotments').insert(row).select().maybeSingle();if(error)return err.textContent=errMsg(error);
+  err.textContent='Sending…';const row={circle_id:cid,from_user:U.id,to_user:to,from_name:U.name,to_name:m?m.display_name:'',task_type:kk==='visit'?(r.visit==='ai'?'ai':'vaccination'):AK[kk][0],source_record_id:k.startsWith('req')?an.id:r.id,title,due_date:d.due,description:d.desc.trim(),payload:taskPayload(kk,r,an,{when:d.due,what:d.what}),status:'pending_acceptance'};
+  let{data,error}=await sb.from('task_allotments').insert(row).select().maybeSingle();
+  if(error&&/task_type/i.test(error.message||'')&&/^vaccination/.test(row.task_type)){row.task_type=row.task_type.replace('vaccination','treatment');({data,error}=await sb.from('task_allotments').insert(row).select().maybeSingle())}
+  if(error)return err.textContent=errMsg(error);
   const t=data||row;if(kk.startsWith('req')){an.allots=an.allots||[];an.allots.push({id:t.id,k:kk,to:row.to_name,status:'pending_acceptance'})}else r.allot={id:t.id,k:kk,to:row.to_name,status:'pending_acceptance',at:t.created_at||new Date().toISOString()};
   save();closeM();render();toast('👥 Sent to '+(row.to_name||'inspector')+' · waiting for acceptance');loadCircle(true)}})}
 /* sender: set the next follow-up for a returned task. The DATE is saved only in my own private record. */
 function nextFuForm(tid){const t=CI.tasks.find(x=>x.id===tid);if(!t||t.from_user!==U.id)return;const k=t.payload&&t.payload.k,r=srcRec(k,t.source_record_id);
  const an=r?(String(k).startsWith('req')?r:A(r.aid)):null,cd=t.closed_date||String(t.closed_at||'').slice(0,10);
  if(!r||!an)return ask('The original record for this task is no longer in your records. Mark it as "No further follow-up"?',()=>retNone(tid));
- const lbl={tr:'Next treatment follow-up date',ai:'Next AI follow-up date',pd:'Next PD check date',rai:'PD check date for the AI done by your colleague',req_ai:'PD check date for the AI done by your colleague',req_tr:'Next treatment follow-up date'}[k]||'Next follow-up date';
+ const lbl={tr:'Next vaccination follow-up date',ai:'Next AI follow-up date',pd:'Next PD check date',rai:'PD check date for the AI done by your colleague',req_ai:'PD check date for the AI done by your colleague',req_tr:'Next vaccination follow-up date'}[k]||'Next follow-up date';
  const def=k==='rai'||k==='req_ai'?add(cd||today(),60):add(today(),7);
  modal('📅 Set next follow-up'+who(an.id),`<div class="ret-tag" style="margin-top:0">↩ <b>Closed by Assignee</b> (${esc(t.to_name)}) on ${fmt(cd)}<div>📝 ${esc(t.closure_note||'')}</div></div>
  ${fl(lbl+' *','nd',def,'date','required min="'+today()+'"')}${k==='rai'||k==='req_ai'?`<div class="chips" style="margin-top:-4px">${[60,75,90].map(n=>`<button type="button" class="chip" data-d="${n}">AI + ${n} days</button>`).join('')}</div>`:''}
@@ -991,7 +1025,7 @@ function nextFuForm(tid){const t=CI.tasks.find(x=>x.id===tid);if(!t||t.from_user
    else if(k==='hc'){if(r.hcClosure)r.fuLog=(r.fuLog||[]).concat([r.hcClosure]);delete r.hcClosure;r.hcDate=nd;r.hcDone=false;r.fuFrom=from;if(nn)r.hcNote=[r.hcNote,nn].filter(Boolean).join(' · ')}
    else if(k==='pd'){if(r.fuClosure)r.fuLog=(r.fuLog||[]).concat([r.fuClosure]);delete r.fuClosure;r.pd=nd;r.pdClosed=false;r.fuFrom=from;if(nn)r.notes=[r.notes,nn].filter(Boolean).join(' · ')}
    else if(k==='rai'||k==='req_ai')S.ai.push({id:tid2=uid(),fuFrom:from,aid:an.id,date:cd||today(),semen:'',pd:nd,next:'',status:'pending',prev:k==='rai'?r.id:undefined,byOther:by,notes:`AI done by ${by} (circle): ${cn}${nn?' · '+nn:''}`});
-   else if(k==='req_tr')S.tr.push({id:tid2=uid(),fuFrom:from,aid:an.id,date:cd||today(),dx:`Treatment visit by ${by} (circle)`,meds:'',notes:cn+(nn?' · '+nn:''),next:nd,byOther:by});
+   else if(k==='req_tr')S.tr.push({id:tid2=uid(),fuFrom:from,aid:an.id,date:cd||today(),dx:`Vaccination visit by ${by} (circle)`,vac:'',meds:'',notes:cn+(nn?' · '+nn:''),next:nd,byOther:by});
    const a=String(k).startsWith('req')?(r.allots||[]).find(x=>x.id===t.id):r.allot;if(a)a.fs='scheduled';
    logH(an,`Next follow-up set for ${fmt(nd)} after ${by} closed the allotted task`,today());
    t.follow_up_status='scheduled';save();closeM();
@@ -1149,20 +1183,19 @@ function doForm(k,id){let r=srcRec(k,id);if(!r)return;if(k==='tr'&&r.visit)k='vi
    logH(an,`AI done by me (${k==='rai'?'repeat AI':'planned AI visit'})${d.semen?' · '+d.semen:''}`,d.date);toast('✅ AI recorded · PD check added to your Follow-Up Tracker')},
   f=>{payInit(f);f.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>f.pd.value=add(f.date.value||today(),+x.dataset.d))});return}
  const trk=k==='tr'||k==='visit';
- modal('✅ Do / Complete'+who(an.id),`<p class="mut" style="margin-top:0">${trk?'Record the treatment / visit you did yourself.':'Record the AI follow-up visit you did yourself.'} Set a next follow-up date to keep following up, or leave it blank to finish.</p>
- ${fl('Done on *','date',today(),'date','required max="'+today()+'"')}${fl(trk?'Findings / treatment given *':'Findings / advice *','dx','','text','required')}
- ${trk?fl('Medicines, vaccines, deworming','meds',''):''}
- ${fl('Next follow-up date (leave blank to close)','next','','date','min="'+today()+'"')}<div class="chips" style="margin-top:-4px">${[3,7,15,30].map(n=>`<button type="button" class="chip" data-n="${n}">+${n} days</button>`).join('')}</div>
- ${ta('Notes','notes','')}${trk?payF({},'','Treatment payment',an.id):''}`,
+ modal('✅ Do / Complete'+who(an.id),`<p class="mut" style="margin-top:0">${trk?'Record the vaccination / visit you did yourself.':'Record the AI follow-up visit you did yourself.'} Set a next follow-up date to keep following up, or leave it blank to finish.</p>
+ ${trk?vacFields({vac:k==='tr'&&isVac(r)?r.vac||'':''},'Done on *'):fl('Done on *','date',today(),'date','required max="'+today()+'"')+fl('Findings / advice *','dx','','text','required')}
+ ${fl('Next follow-up date (leave blank to close)','next','','date','min="'+today()+'"')}<div class="chips" style="margin-top:-4px">${(trk?[3,7]:[3,7,15,30]).map(n=>`<button type="button" class="chip" data-n="${n}">+${n} days</button>`).join('')}${trk?[[21,'+21 days'],[28,'+28 days (booster)'],[182,'+6 months'],[365,'+1 year']].map(([n,l])=>`<button type="button" class="chip" data-nd="${n}">${l}</button>`).join(''):''}</div>
+ ${ta(trk?'Dose / route / site / notes':'Notes','notes','')}${trk?payF({},'','Vaccination fee',an.id):''}`,
  d=>{const at=d.date===today()?nowIso():d.date+'T12:00:00.000Z';
-  if(trk){const n={id:uid(),aid:an.id,date:d.date,dx:d.dx,meds:d.meds,notes:d.notes,next:d.next,cycle:true,prevTr:r.id};payApply(n,d,'','',an.id);S.tr.push(n);
-   r.done=true;r.closure={at,note:`Completed by me — ${d.dx}`,by:'me'};
-   logH(an,`${k==='visit'?'Planned visit':'Treatment follow-up'} completed by me — ${d.dx}${d.next?' · next follow-up '+fmt(d.next):''}`,d.date)}
+  if(trk){const vac=String(d.vac||'').trim();d.dx=vac;const n={id:uid(),aid:an.id,date:d.date,vac,dx:vac,batch:String(d.batch||'').trim().toUpperCase(),exp:d.exp||'',meds:'',notes:d.notes,next:d.next,cycle:true,prevTr:r.id};payApply(n,d,'','',an.id);S.tr.push(n);
+   r.done=true;r.closure={at,note:`Vaccinated by me — ${vac}${n.batch?' (batch '+n.batch+')':''}`,by:'me'};
+   logH(an,`${k==='visit'?'Planned visit':'Vaccination follow-up'} completed by me — ${vac}${n.batch?' · batch '+n.batch:''}${d.next?' · next follow-up '+fmt(d.next):''}`,d.date)}
   else{r.fuLog=(r.fuLog||[]).concat([{at,note:`Follow-up done by me — ${d.dx}`,by:'me'}]);
    if(d.next){r.next=d.next;r.nextDone=false;r.cycle=true;delete r.fuClosure}else{r.nextDone=true;r.fuClosure={at,note:`Follow-up done by me — ${d.dx}`,by:'me'}}
    if(d.notes)r.notes=[r.notes,d.notes].filter(Boolean).join(' · ');logH(an,`AI follow-up done by me — ${d.dx}${d.next?' · next follow-up '+fmt(d.next):''}`,d.date)}
   toast(d.next?'✅ Done · next follow-up '+fmt(d.next)+' is in your Follow-Up Tracker':'✅ Done · follow-up closed')},
- f=>{if(trk)payInit(f);f.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>f.next.value=add(f.date.value||today(),+x.dataset.n))})}
+ f=>{if(trk){payInit(f);vacInit(f);f.date.max=today()}f.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>f.next.value=add(f.date.value||today(),+x.dataset.n))})}
 
 /* ---------- ⚠️ Mark as Aborted (confirmed pregnancy) ---------- */
 function abortForm(id){const r=S.ai.find(x=>x.id===id);if(!r)return;const an=A(r.aid);const add2=r.status==='aborted';
@@ -1188,16 +1221,17 @@ function abortUndo(id){const r=S.ai.find(x=>x.id===id);if(!r||r.status!=='aborte
  const an=A(r.aid);r.status='confirmed';['abDate','abNotes','abortedAt','hcDate','hcNote','hcDone','hcClosure'].forEach(k=>delete r[k]);logH(an,'Abortion record undone — pregnancy confirmed again',today());save();render();toast('↩ Pregnancy restored')})}
 /* ---------- 📜 History: clinical timeline (animal / farmer) and the inspector's Activity Log ----------
    Built from the inspector's own records (private) plus their own circle tasks. Nothing new is stored. */
-const LCAT={tr:['💉','Treatments'],ai:['🧬','AI & PD'],fu:['📅','Follow-ups'],circle:['👥','Circle'],feed:['🌾','Feed & weight'],pay:['💰','Payments'],animal:['🐄','Animals']};
+const LCAT={tr:['💉','Vaccinations'],ai:['🧬','AI & PD'],fu:['📅','Follow-ups'],circle:['👥','Circle'],feed:['🌾','Feed & weight'],pay:['💰','Payments'],animal:['🐄','Animals']};
 const isoOf=v=>{const s=String(v||'');return s.length===10?s+'T12:00:00.000Z':s};
 function histEvents(opt={}){const E=[],ev=(ts,cat,title,sub,aid,extra)=>{if(ts)E.push({ts:isoOf(ts),cat,title,sub:sub||'',aid,...extra})};
  const anm=aid=>{const a=A(aid),c=a&&C(a.cid);return a?`${emo(a.species)} ${aname(a)}${c?' · '+c.name:''}`:''};
  const cl=(c,what,aid)=>c&&ev(c.at,'fu',`${what} closed${c.by&&c.by!=='me'?' by '+c.by:''}`,c.note,aid);
  S.tr.forEach(t=>{const w=anm(t.aid);
-  ev(t.date,'tr',t.visit?'📌 Planned visit':t.byOther?`Treatment by ${t.byOther} (circle)`:'Treatment recorded',[t.dx,t.meds&&'Medicines: '+t.meds,t.notes].filter(Boolean).join(' · '),t.aid,{who:w});
-  if(t.next&&!t.fuFrom&&!t.visit)ev(t.date,'fu',`Follow-up scheduled for ${fmt(t.next)}`,t.dx,t.aid,{who:w});
-  (t.fuLog||[]).forEach(c=>cl(c,'Treatment follow-up',t.aid));cl(t.closure,t.visit?'Planned visit':'Treatment follow-up',t.aid);
-  if(!opt.clinical&&+t.amt&&t.pst==='Paid')ev(t.paidOn||t.date,'pay',`Payment received ${rs(t.amt)}${t.mode&&t.mode!=='None'?' · '+t.mode:''}`,'Treatment'+(t.dx?': '+t.dx:''),t.aid,{who:w})});
+  {const v=vexp(t.exp,t.date);ev(t.date,'tr',t.visit?'📌 Planned visit':t.byOther?`💉 Vaccination by ${t.byOther} (circle)`:isVac(t)?'💉 Vaccination given':'Treatment recorded (earlier record)',
+   [isVac(t)&&t.vac?'Vaccine: '+t.vac:t.dx,t.batch&&'Batch: '+t.batch,t.exp&&'Expiry: '+fmt(t.exp)+(v&&v.st==='bad'?' ⚠️ expired when used':''),t.meds&&'Medicines: '+t.meds,t.notes].filter(Boolean).join(' · '),t.aid,{who:w})}
+  if(t.next&&!t.fuFrom&&!t.visit)ev(t.date,'fu',`${isVac(t)?'Vaccination follow-up (booster / next dose)':'Follow-up'} scheduled for ${fmt(t.next)}`,vacName(t),t.aid,{who:w});
+  {const fl2=isVac(t)?'Vaccination follow-up':'Treatment follow-up';(t.fuLog||[]).forEach(c=>cl(c,fl2,t.aid));cl(t.closure,t.visit?'Planned visit':fl2,t.aid)}
+  if(!opt.clinical&&+t.amt&&t.pst==='Paid')ev(t.paidOn||t.date,'pay',`Payment received ${rs(t.amt)}${t.mode&&t.mode!=='None'?' · '+t.mode:''}`,(isVac(t)?'Vaccination':'Treatment')+(vacName(t)?': '+vacName(t):''),t.aid,{who:w})});
  S.ai.forEach(r=>{const w=anm(r.aid);
   ev(r.date,'ai',r.byOther?`AI by ${r.byOther} (circle)`:'AI recorded',[r.semen&&'Semen / bull: '+r.semen,r.notes].filter(Boolean).join(' · '),r.aid,{who:w});
   if(r.status==='aborted'){ev(r.abDate,'ai','⚠️ Pregnancy aborted',[r.abNotes,r.due&&'was due '+fmt(r.due)].filter(Boolean).join(' · '),r.aid,{who:w});if(r.hcDate)ev(r.abDate,'fu',`Post-abortion follow-up / heat check scheduled for ${fmt(r.hcDate)}`,r.hcNote,r.aid,{who:w});cl(r.hcClosure,'Post-abortion follow-up',r.aid)}
@@ -1207,7 +1241,7 @@ function histEvents(opt={}){const E=[],ev=(ts,cat,title,sub,aid,extra)=>{if(ts)E
    if(+r.pdAmt&&r.pdPst==='Paid')ev(r.pdPaidOn||r.pdOn||r.pd,'pay',`Payment received ${rs(r.pdAmt)}${r.pdMode&&r.pdMode!=='None'?' · '+r.pdMode:''}`,'PD Check',r.aid,{who:w})}});
  S.fd.forEach(f=>{const w=anm(f.aid);ev(f.date,'feed','Free feed supplied',[f.feed,f.qty,f.bw&&'weight '+kg(f.bw)].filter(Boolean).join(' · '),f.aid,{who:w});
   (f.checks||[]).forEach(c=>ev(c.date,'feed',`Weight check: ${kg(c.kg)}`,c.note,f.aid,{who:w}))});
- S.an.forEach(a=>(a.hist||[]).forEach(h=>{const t=h.text||'';if(/^Pregnancy aborted|^Abortion record undone|closed( by .+?)?( —|$)| was declined|allotted to .+: (closed|declined|cancelled)|completed by me|done by me/.test(t))return;   /* shown from the records / circle instead */
+ S.an.forEach(a=>(a.hist||[]).forEach(h=>{const t=h.text||'';if(/^Pregnancy aborted|^Abortion record undone|closed( by .+?)?( —|$)| was declined|allotted to .+: (closed|declined|cancelled)|completed by me|done by me|Vaccinated by me/.test(t))return;   /* shown from the records / circle instead */
   ev(h.date,/^Next follow-up set|follow-up/i.test(t)?'fu':/allotted/i.test(t)?'circle':'animal',t,'',a.id,{who:anm(a.id)})}));
  if(!opt.clinical)CI.tasks.forEach(t=>{const mine=t.from_user===U.id,o=mine?t.to_name||'colleague':t.from_name||'colleague',ti=t.title;
   if(mine){ev(t.created_at,'circle',`Allotted to ${o}`,ti);t.accepted_at&&ev(t.accepted_at,'circle',`${o} accepted`,ti);t.declined_at&&ev(t.declined_at,'circle',`${o} declined`,[ti,t.response_note].filter(Boolean).join(' · '));
@@ -1226,7 +1260,7 @@ function timelineBox(aids,title){const L=histEvents({aids:new Set(aids),clinical
 /* inspector activity log */
 function logView(){const ch=(k,v,l)=>`<button class="chip ${ui[k]===v?'on':''}" data-a="flt" data-k="${k}" data-id="${v}">${l}</button>`;ui.lf=ui.lf||'all';ui.lr=ui.lr||'30';
  return `<div class="between"><h2 style="margin:0">📜 Activity log</h2><button class="btn sm" data-a="tab" data-id="dash" style="margin:0">← Home</button></div>
- <p class="mut" style="margin:6px 0 8px;font-size:13px">Everything you recorded or did, newest first: treatments, AI & PD, follow-ups, feed, payments and circle tasks. Only you can see this.</p>
+ <p class="mut" style="margin:6px 0 8px;font-size:13px">Everything you recorded or did, newest first: vaccinations, AI & PD, follow-ups, feed, payments and circle tasks. Only you can see this.</p>
  <div class="chips">${ch('lf','all','All')}${Object.entries(LCAT).map(([k,[i,l]])=>ch('lf',k,i+' '+l)).join('')}</div>
  <div class="chips">${ch('lr','7','7 days')}${ch('lr','30','30 days')}${ch('lr','90','90 days')}${ch('lr','all','All time')}</div>
  <div class="chips"><input id="lq" placeholder="Search animal, farmer, diagnosis, note…" value="${esc(ui.lq||'')}"></div><div id="loglist">${logList()}</div>`}
@@ -1239,7 +1273,7 @@ function logList(){const q=(ui.lq||'').toLowerCase(),from=ui.lr==='all'?'':add(t
 /* ---------- reminder popup: 1 day before, due today and overdue · Snooze / Stop ---------- */
 /* Each alert has a key (type : record : date [: stage]). Snooze / Stop are stored in S.rem, which is saved to the
    inspector's Supabase profile (settings), so they survive refresh, re-login and other devices. Records are never changed. */
-const RK={hc:['🩺','Post-abortion follow-up / heat check','rk-ai'],tr:['💉','Treatment follow-up','rk-tr'],ai:['🧬','AI follow-up','rk-ai'],pd:['🩺','PD check due','rk-pd'],rai:['🔁','Repeat AI due','rk-rai'],cf:['🤰','Pregnancy follow-up','rk-pg'],due:['🍼','Expected due (calving) date','rk-pg'],wt:['⚖️','3-month weight check','rk-wt']};
+const RK={hc:['🩺','Post-abortion follow-up / heat check','rk-ai'],tr:['💉','Vaccination follow-up','rk-tr'],ai:['🧬','AI follow-up','rk-ai'],pd:['🩺','PD check due','rk-pd'],rai:['🔁','Repeat AI due','rk-rai'],cf:['🤰','Pregnancy follow-up','rk-pg'],due:['🍼','Expected due (calving) date','rk-pg'],wt:['⚖️','3-month weight check','rk-wt']};
 const recOf=a=>(a.k==='tr'?S.tr:a.k==='wt'?S.fd:S.ai).find(x=>x.id===a.id);
 const monthKey=()=>'tgt:'+today().slice(0,7);
 function alerts(){const L=[];
@@ -1341,7 +1375,7 @@ function subChip(){if(SUB.legacy)return '';const e=subEff();
 const subPendingNote=()=>SUB.req==='pending'?`<div class="sub-pend">⏳ <b>Pending Verification</b> — UPI ref <b>${esc(SUB.ref)}</b> submitted ${fmtDT(SUB.reqAt)}. Pro is switched on as soon as the payment is verified.</div>`
  :SUB.req==='rejected'?`<div class="sub-rej">✕ <b>Payment not verified</b>${SUB.note?' — '+esc(SUB.note):''}. Please check the UPI reference ID and submit again.</div>`:'';
 function subBanner(){if(SUB.legacy||!SUB.loaded)return '';const e=subEff(),onDash=!ui.d&&ui.tab==='dash';let h='';
- if(e==='expired')h=`<div class="sub-ban exp"><div><b>⛔ Subscription Expired — Renew ₹${SUB.price}/month to Continue</b><div>Your farmers, animals, treatments and history are safe and still visible. Adding and editing records is paused until you renew.</div>${subPendingNote()}</div><button class="btn pri" data-a="sub">Renew ₹${SUB.price}</button></div>`;
+ if(e==='expired')h=`<div class="sub-ban exp"><div><b>⛔ Subscription Expired — Renew ₹${SUB.price}/month to Continue</b><div>Your farmers, animals, vaccinations and history are safe and still visible. Adding and editing records is paused until you renew.</div>${subPendingNote()}</div><button class="btn pri" data-a="sub">Renew ₹${SUB.price}</button></div>`;
  else if(e==='active'&&!SUB.admin&&subDays()<=5&&(onDash||ui.tab==='circle'))h=`<div class="sub-ban warn"><div><b>⭐ Pro ends in ${subDays()} day${subDays()===1?'':'s'}</b> (${fmtD(SUB.end)}). Renew now — the new 30 days are added after the current end date.${subPendingNote()}</div><button class="btn pri" data-a="sub">Renew</button></div>`;
  else if(e==='trial'&&onDash)h=`<div class="sub-ban trl"><div><b>🧪 Free trial</b> · ${S.cs.length}/${SUB.lim} farmers · ${S.an.length}/${SUB.lim} animals used. <span class="pro-tag">Pro</span> unlocks unlimited records, Inspector Circle, task allotment, circle chat and the full activity log for ₹${SUB.price}/month.${subPendingNote()}</div><button class="btn pri" data-a="sub">Upgrade ₹${SUB.price}/month</button></div>`;
  if(SUB.admin&&onDash){const n=ADM.rows.filter(r=>r.pending_payment_id).length;if(n)h+=`<div class="sub-ban adm" data-a="admin"><div><b>🛡 ${n} payment request${n>1?'s':''} waiting for verification</b><div>Open the Subscription Manager to check the UPI reference IDs and activate.</div></div><button class="btn pri" data-a="admin">Open</button></div>`}
@@ -1350,7 +1384,7 @@ function subLock(kind,feat){const exp=kind==='exp'||subEff()==='expired';popOpen
  sheet(exp?'⛔ Subscription expired':'🔒 Pro feature',`<div class="lock-hero${exp?' exp':''}"><div class="lk">${exp?'⛔':'🔒'}</div>
  <b>${exp?`Subscription Expired — Renew ₹${SUB.price}/month to Continue`:`Pro Feature — Upgrade for ₹${SUB.price}/month`}</b>
  ${!exp&&feat?`<div class="mut">${esc(feat)} is included in Pro.</div>`:''}
- <div class="mut">${exp?'All your farmers, animals, treatments, AI / PD, feed and payment records are safely stored and still visible. Adding and editing is paused until you renew — everything continues exactly where you left off.':`Pro unlocks unlimited farmers &amp; animals (trial: ${SUB.lim} each), Inspector Circle with task allotment, circle chat (1-on-1 and announcements) and the full activity log.`}</div></div>
+ <div class="mut">${exp?'All your farmers, animals, vaccinations, AI / PD, feed and payment records are safely stored and still visible. Adding and editing is paused until you renew — everything continues exactly where you left off.':`Pro unlocks unlimited farmers &amp; animals (trial: ${SUB.lim} each), Inspector Circle with task allotment, circle chat (1-on-1 and announcements) and the full activity log.`}</div></div>
  ${subPendingNote()}<div class="btns" style="justify-content:center"><button class="btn pri" data-a="sub">${exp?'Renew':'Upgrade'} ₹${SUB.price}/month</button></div>`)}
 function circleLocked(){const exp=subEff()==='expired';
  return `<h2 style="margin-top:0">👥 Inspector Circle</h2><div class="card lock-hero${exp?' exp':''}"><div class="lk">🔒</div><b>${exp?`Subscription Expired — Renew ₹${SUB.price}/month to Continue`:`Pro Feature — Upgrade for ₹${SUB.price}/month`}</b>
@@ -1379,7 +1413,7 @@ function subView(){const e=subEff(),P=SUB.price,pend=SUB.req==='pending';
   :e==='active'?`<div class="plan-card pro"><b>⭐ Pro — Active</b><div class="big">${subDays()} day${subDays()===1?'':'s'} left</div><div>Started ${fmtD(SUB.start)} · ends <b>${fmtD(SUB.end)}</b></div></div>`
   :e==='expired'?`<div class="plan-card exp"><b>⛔ Subscription Expired</b><div>${SUB.end?'Ended '+fmtD(SUB.end)+'. ':''}Renew ₹${P}/month to continue. All your records are safe and still visible.</div></div>`
   :`<div class="plan-card trl"><b>🧪 Free trial</b><div>${S.cs.length}/${SUB.lim} farmers · ${S.an.length}/${SUB.lim} animals used. Upgrade to Pro for everything.</div></div>`;
- const rows=[['Farmers &amp; animals',`${SUB.lim} each`,'Unlimited'],['Treatments, AI, PD, feed, payments',tick,tick],['1-day reminders · Snooze / Stop',tick,tick],['Mark as Aborted · history timeline',tick,tick],['Inspector Circle &amp; task allotment',lock,tick],['Circle chat (1-on-1 + announcements)',lock,tick],['Activity log',`Last ${LOGFREE}`,'Full'],['Price','Free',`₹${P} / ${SUB.days} days`]];
+ const rows=[['Farmers &amp; animals',`${SUB.lim} each`,'Unlimited'],['Vaccinations, AI, PD, feed, payments',tick,tick],['1-day reminders · Snooze / Stop',tick,tick],['Mark as Aborted · history timeline',tick,tick],['Inspector Circle &amp; task allotment',lock,tick],['Circle chat (1-on-1 + announcements)',lock,tick],['Activity log',`Last ${LOGFREE}`,'Full'],['Price','Free',`₹${P} / ${SUB.days} days`]];
  const cmp=`<table class="cmp"><tr><th></th><th>Trial</th><th>Pro</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>`;
  const pay=SUB.legacy||SUB.admin?'':`<h4 style="margin:14px 0 6px">${e==='active'?'Renew / extend':e==='expired'?'Renew':'Upgrade'} — ₹${P} for ${SUB.days} days by UPI</h4>
  <div class="pay-box"><div class="qr">${SUB.qr?`<img src="${esc(SUB.qr)}" alt="UPI QR code for payment">`:`<div class="qr-ph">UPI QR<small>${SUB.hasQr?'loading…':'QR not added yet — pay to the UPI ID'}</small></div>`}</div>
@@ -1588,7 +1622,7 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;s
 addEventListener('appinstalled',()=>{deferredPrompt=null;const el=$('#inst');if(el)el.hidden=true;toast('✅ App installed. Open it from your home screen.')});
 /* iPhone / iPad have no install prompt: show the short guide once the page has settled */
 if(isIOS()&&!isStandalone())setTimeout(showInstall,3000);
-/* home-screen shortcuts: ?go=qT (treatment), qAI, qPD, qFD */
+/* home-screen shortcuts: ?go=qT (vaccination), qAI, qPD, qFD */
 function runShortcut(){const q=new URLSearchParams(location.search),go=q.get('go');if(!go||!['qT','qAI','qPD','qFD'].includes(go))return;
  q.delete('go');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);setTimeout(()=>act(go),350)}
 /* service worker: fast start + offline opening (Supabase sign-in and data requests are never cached) */
