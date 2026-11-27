@@ -25,7 +25,7 @@ your-repo/
 **Uploading on github.com:** open the repository → **Add file → Upload files** → drag in `index.html`, `manifest.json`, `sw.js` and `README.md`, then commit. For the icons, choose **Add file → Upload files** again and drag the whole `icons` folder in (or unzip `field-officer-pwa.zip` and drag all of its contents at once). The file names must stay exactly as shown.
 
 ## One-time Supabase setup
-1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging), `supabase-abortion.sql` (abortion columns) `supabase-subscriptions.sql` (₹99/month plans; admin = id.arunraj@gmail.com) `supabase-security-hardening.sql` (closes the loopholes found in the security audit) `supabase-support.sql` (Help & Support chat + admin User Directory) and finally `supabase-vaccination.sql` (Vaccination module). All are safe to run again later.
+1. Open your project at [supabase.com](https://supabase.com) → **SQL Editor** → **New query**. Paste the whole of `supabase-setup.sql` and click **Run**. Then do the same with `supabase-circles.sql` (Inspector Circle and task handover) then `supabase-messages.sql` (circle messaging), `supabase-abortion.sql` (abortion columns) `supabase-subscriptions.sql` (₹99/month plans; admin = id.arunraj@gmail.com) `supabase-security-hardening.sql` (closes the loopholes found in the security audit) `supabase-support.sql` (Help & Support chat + admin User Directory) `supabase-vaccination.sql` (Vaccination module) and finally `supabase-tag-photos.sql` (private Storage bucket + policies for animal tag photos). All are safe to run again later.
 2. Go to **Authentication → URL Configuration**:
    - **Site URL:** your GitHub Pages address, e.g. `https://<username>.github.io/<repo>/`
    - **Redirect URLs:** add the same address. This makes the email confirmation and password-reset links open your app.
@@ -120,6 +120,14 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 * Vaccination follow-ups work exactly like before: Follow-Up Tracker, 1-day-before popup with Snooze / Stop, close with a description (also when the farmer says it was done elsewhere), Do / Complete (records the next dose with vaccine, batch and expiry), circle allotment (Accept → Close with description → Return to sender → next follow-up; Decline → back in your Tracker as Open on the original date).
 * Animal page shows **💉 Vaccination history**; the Activity Log shows "💉 Vaccination given" with vaccine, batch and expiry. Treatment records made before the switch stay, marked "earlier record".
 * Storage: vaccinations live in the same private `treatments` table (same row security and plan rules). `supabase-vaccination.sql` adds vaccine columns and a private **`vaccinations`** view (your vaccination register in Supabase).
+
+## Animal tag / identification photo
+- In **Add / Edit animal**, next to *Tag ID*: **📷 Take photo** (opens the back camera) or **🖼 Gallery / attach**, with a preview and **✕ Remove photo**.
+- The phone shrinks the photo before upload (max 1024 px, JPEG ≈ 0.78, usually 80–350 KB; files over 25 MB or that cannot be opened are refused with a message).
+- Photos go to the **private** Supabase Storage bucket `animal-tag-photos`, folder `<your user id>/<animal id>/`. The animal record stores only the path. Storage policies allow each inspector to see, add, replace and delete only their own folder; uploads follow the subscription rules; max 3,000 photos per inspector.
+- Replacing or removing a photo, or deleting the animal / farmer, deletes the old file. Files missed while offline are cleaned at the next login.
+- Photos are cached on the phone for offline viewing; the cache is wiped at logout. Profile shows your photo storage use; the admin's Subscription Manager shows the total (numbers only).
+- Supabase Free plan: 1 GB Storage (≈ 4,000–10,000 photos). Before deleting a user in Authentication → Users, delete their folder in Storage → animal-tag-photos.
 
 ## Help & Support + User Directory
 * **Inspectors:** 🛟 *Help & Support* (Home card, Profile, Subscription screen) shows your support email and phone (tap to call / email / copy) and a private chat with you. Replies arrive live; a red badge shows unread replies. Works on every plan, including expired.
