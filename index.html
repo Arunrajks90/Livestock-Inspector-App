@@ -297,6 +297,9 @@ main{padding-bottom:0}
 .tagph .phst{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:3px 8px;font-size:12px}
 .phbig{width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000;display:block}
 .phmark{font-size:13px;margin-left:4px}
+.phwrap{position:relative;max-width:340px}.phwrap .tagph{margin-bottom:10px}
+.vstamp{position:absolute;left:10px;right:10px;bottom:20px;background:rgba(6,95,70,.9);color:#fff;border:2px solid #fff;border-radius:12px;padding:6px 10px;font-weight:800;font-size:13.5px;line-height:1.3;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.vstamp small{display:block;font-weight:600;font-size:11px;opacity:.9}
 .cardbox{min-height:120px;display:grid;place-items:center;color:var(--mut);background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:8px}
 .cardbox img{width:100%;max-height:62vh;object-fit:contain;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 </style>
@@ -660,7 +663,7 @@ function anView(id){const a=A(id),c=C(a.cid),by=(x,y)=>y.date.localeCompare(x.da
   <div>${r.wDone?b('Weight verification completed','ok'):r.wDate?`3-month weight check: ${fmt(r.wDate)} ${due(r.wDate)}`:''}</div>
   <div class="btns">${!r.wDone&&r.wDate&&live(a)?`<button class="btn sm pri" data-a="wtV" data-id="${r.id}">⚖️ Verify Weight</button>${fuBtns('wt',a.id,r.wDate,fdEx(r))}`:''}${r.wDone&&live(a)?`<button class="btn sm" data-a="wtN" data-id="${r.id}">Schedule another check</button>`:''}<button class="btn sm" data-a="editF" data-id="${r.id}">Edit</button><button class="btn sm dng" data-a="delF" data-id="${r.id}">Delete</button></div></div>`).join('')}`})()}
  <h2>💉 Vaccination history</h2>${ts.map(t=>{const vc=isVac(t),v=vc&&vexp(t.exp,t.date);return `<div class="card vac-card${vc?'':' old'}"><div class="between"><b>${t.visit?'📌 Planned visit · ':vc?'💉 '+esc(vacName(t))+' · ':'Treatment (earlier record) · '}${fmt(t.date)}</b>${t.next?(t.done?b('Follow-up done','ok'):due(t.next)):''}</div>
- ${vc?`${t.visit?`<div>${esc(t.dx)}</div>`:''}${t.batch||t.exp?`<div class="vmeta">${t.batch?`Batch / code: <b>${esc(t.batch)}</b>`:''}${t.batch&&t.exp?' · ':''}${t.exp?`Expiry: <b>${fmt(t.exp)}</b>`:''} ${vexpBadge(t)}</div>`:''}${v&&v.st==='bad'?`<div class="vexp bad">${esc(v.txt)}</div>`:''}`:`<div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>`}${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>${vc?'Next dose / follow-up':'Next follow-up'}: ${fmt(t.next)}</div>`:''}${(t.fuLog||[]).map(closedNote).join('')}${closedNote(t.closure)}${allotTag(t)}${t.byOther?`<div class="mut">👥 Done by ${esc(t.byOther)} (circle)</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`}).join('')||'<div class="empty">No vaccinations recorded yet.</div>'}`}
+ ${vc?`${t.visit?`<div>${esc(t.dx)}</div>`:''}${t.batch||t.exp?`<div class="vmeta">${t.batch?`Batch / code: <b>${esc(t.batch)}</b>`:''}${t.batch&&t.exp?' · ':''}${t.exp?`Expiry: <b>${fmt(t.exp)}</b>`:''} ${vexpBadge(t)}</div>`:''}${v&&v.st==='bad'?`<div class="vexp bad">${esc(v.txt)}</div>`:''}`:`<div>${esc(t.dx)}</div><div class="mut">Medicines: ${esc(t.meds||'—')}</div>`}${t.notes?`<div class="mut">${esc(t.notes)}</div>`:''}${t.next?`<div>${vc?'Next dose / follow-up':'Next follow-up'}: ${fmt(t.next)}</div>`:''}${(t.fuLog||[]).map(closedNote).join('')}${closedNote(t.closure)}${allotTag(t)}${t.byOther?`<div class="mut">👥 Done by ${esc(t.byOther)} (circle)</div>`:''}${payTag(t,'','tr','Fee')}<div class="btns">${t.next&&!t.done&&live(a)?fuActs('tr',t.id):''}${t.next&&!t.done&&live(a)?fuBtns('tr',a.id,t.next,t.dx):''}${vc&&!t.visit&&t.vac?`<button class="btn sm" data-a="vcard" data-id="${t.id}">💉 Vaccination card</button>`:''}<button class="btn sm" data-a="editT" data-id="${t.id}">Edit</button><button class="btn sm dng" data-a="delT" data-id="${t.id}">Delete</button></div></div>`}).join('')||'<div class="empty">No vaccinations recorded yet.</div>'}`}
 
 function render(){document.body.classList.toggle('auth',!U||!S);if(!U||!S){$('#app').innerHTML=authView();$('#nav').innerHTML='';$('#hb').innerHTML='';return}
  const se=subEff();document.body.classList.toggle('nopro',!isPro());document.body.classList.toggle('expired',se==='expired');
@@ -740,7 +743,8 @@ addEventListener('online',()=>{PH.up.forEach((j,aid)=>{if(!j.busy)upPhoto(aid)})
 /* animal page block */
 function photoBlock(a){const j=PH.up.get(a.id),ph=phOf(a);
  if(j)return `<div class="tagph" data-a="phView" data-id="${a.id}"><img src="${esc(j.url)}" alt="Animal tag / identification photo"><span class="phst">${j.busy?'⏳ Uploading…':j.err?'⚠️ Not uploaded':'⏳ Waiting to upload'}</span></div>${j.err?`<div class="note" style="font-size:13px">⚠️ ${esc(j.err)} <button class="btn sm" data-a="phRetry" data-id="${a.id}">↻ Retry</button></div>`:''}`;
- if(ph)return `<div class="tagph" data-ph="${esc(ph.p)}" data-a="phView" data-id="${a.id}"></div><div class="mut" style="font-size:12px;margin-top:-6px">📷 Tag / ID photo · ${ph.kb||'?'} KB${ph.at?' · '+fmt(ph.at):''}</div>`;
+ const lv=lastVac(a.id),vs=lv?`<div class="vstamp" data-a="vcard" data-id="${lv.id}">✓ I am Vaccinated for ${esc(vacFor(lv))}<small>${fmt(lv.date)}</small></div>`:'';
+ if(ph)return `<div class="phwrap"><div class="tagph" data-ph="${esc(ph.p)}" data-a="phView" data-id="${a.id}"></div>${vs}</div><div class="mut" style="font-size:12px;margin-top:-6px">📷 Tag / ID photo · ${ph.kb||'?'} KB${ph.at?' · '+fmt(ph.at):''}</div>`;
  return live(a)?`<div class="mut" style="font-size:13px;margin-top:6px">📷 No tag / ID photo yet · add one with <b>Edit</b>.</div>`:''}
 function phView(aid){const a=A(aid);if(!a)return;const j=PH.up.get(aid),ph=phOf(a);
  sheet(`📷 ${esc(aname(a))} · Tag / ID photo`,j?`<img class="phbig" src="${esc(j.url)}" alt="Tag photo">`:ph?`<div class="tagph" style="max-width:none;aspect-ratio:auto;min-height:220px;cursor:default" data-ph="${esc(ph.p)}"></div><p class="mut" style="font-size:12.5px">${ph.w}×${ph.h} px · ${ph.kb} KB · private to your account</p>`:'<p>No photo.</p>')}
@@ -774,50 +778,86 @@ function wrapTxt(x,t,maxW,maxL){const L=[];let cur='';
  if(cur)L.push(cur);if(L.length>maxL){const rest=L.slice(maxL-1).join(' ');L.length=maxL-1;L.push(fitTxt(x,rest,maxW))}return L.length?L:['']}
 async function cardPhoto(a){const j=PH.up.get(a.id);let u=j?j.url:null;if(!u&&phOf(a))u=await photoUrl(a.photo.p);if(!u)return null;
  return new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=u})}
-async function drawCard(a){const c0=C(a.cid)||{},im=await cardPhoto(a),W=1080,P=60,IW=W-2*P;
- const title=petTag(a)||a.breed||a.species||'Animal',sub=[emo(a.species)+' '+(a.species||''),a.breed].filter(Boolean).join(' · ');
- const rows=[['Identification Tag ID',a.tag||'—'],['Pet name',a.pet||'—'],['Species',a.species||'—'],['Breed',a.breed||'—'],['Sex',a.gender||'—'],['Age',age(a)+(a.dob?' (DOB '+fmt(a.dob)+')':'')],
-  ['Farmer',c0.name||'—'],['Village / ward',c0.village||'—'],['Farmer contact',c0.phone||'—'],[a.reg?'Registration date':'Card issued',fmt(a.reg||today())]];
- if(!live(a))rows.push(['Status',(a.status==='dead'?'Deceased':'Sold')+(a.sdate?' · '+fmt(a.sdate):'')]);
- const m=document.createElement('canvas').getContext('2d');m.font=`800 64px ${CF}`;const tl=wrapTxt(m,title,IW,2);
- const PH_=im?660:0,H=220+40+tl.length*78+60+(im?PH_+40:0)+Math.ceil(rows.length/2)*124+150;
+/* disease a vaccine protects against, for the "I am Vaccinated for …" stamp */
+const VDIS=[[/^hs\s*\+\s*bq/i,'HS and Black Quarter'],[/^fmd|foot/i,'Foot and Mouth Disease'],[/^hs\b|haemorrh|hemorrh/i,'Haemorrhagic Septicaemia'],[/^bq\b|black\s*quarter/i,'Black Quarter'],
+ [/brucell|^s19/i,'Brucellosis'],[/^lsd|lumpy/i,'Lumpy Skin Disease'],[/rabies|^arv/i,'Rabies'],[/^ppr/i,'PPR (Peste des Petits Ruminants)'],[/theiler/i,'Theileriosis'],[/anthrax/i,'Anthrax'],
+ [/goat\s*pox/i,'Goat Pox'],[/enterotox|^et\b/i,'Enterotoxaemia'],[/distemper|dhpp|^dhlpp/i,'Distemper / Parvo (DHPP)'],[/parvo/i,'Parvovirus'],[/lepto/i,'Leptospirosis'],[/ranikhet|^rd\b|newcastle/i,'Ranikhet (Newcastle) Disease'],[/fowl\s*pox/i,'Fowl Pox'],[/tricat|fvrcp|feline/i,'Feline Panleukopenia / Rhinotracheitis / Calici (FVRCP)']];
+function vacFor(t){const v=String(vacName(t)||'').trim();if(!v)return '';for(const[r,n]of VDIS)if(r.test(v))return n;return v.replace(/\s*\bvacc?ine\b\s*/ig,' ').trim()||v}
+const lastVac=aid=>S.tr.filter(t=>t.aid===aid&&isVac(t)&&!t.visit&&t.vac&&t.date<=today()).sort((x,y)=>y.date.localeCompare(x.date))[0]||null;
+/* shared card painter: header band, title, optional photo (with optional stamp), detail boxes, footer */
+async function paintCard(o){const W=1080,P=60,IW=W-2*P,im=o.im,st=o.stamp;
+ const m=document.createElement('canvas').getContext('2d');m.font=`800 64px ${CF}`;const tl=wrapTxt(m,o.title,IW,2);
+ m.font=`800 40px ${CF}`;const sl=st?wrapTxt(m,'✓ I am Vaccinated for '+st,IW-120,3):[];
+ const PH_=im?660:0,stampH=st&&!im?sl.length*52+56:0,rowsH=Math.ceil(o.rows.length/2)*124;
+ const H=220+40+tl.length*78+60+(im?PH_+40:0)+(stampH?stampH+40:0)+rowsH+150;
  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.textBaseline='top';
- x.fillStyle='#f2fbf7';x.fillRect(0,0,W,H);
- const g=x.createLinearGradient(0,0,W,220);g.addColorStop(0,'#0e9f6e');g.addColorStop(1,'#0d9488');x.fillStyle=g;x.fillRect(0,0,W,220);
- x.fillStyle='#fff';x.font=`800 50px ${CF}`;x.fillText(fitTxt(x,'🐄  ANIMAL REGISTRATION CARD',IW),P,56);
+ x.fillStyle=o.bg;x.fillRect(0,0,W,H);
+ const g=x.createLinearGradient(0,0,W,220);g.addColorStop(0,o.c1);g.addColorStop(1,o.c2);x.fillStyle=g;x.fillRect(0,0,W,220);
+ x.fillStyle='#fff';x.font=`800 50px ${CF}`;x.fillText(fitTxt(x,o.head,IW),P,56);
  x.font=`500 32px ${CF}`;x.fillStyle='rgba(255,255,255,.9)';x.fillText(fitTxt(x,['Livestock Inspector',U&&U.name,U&&U.hosp].filter(Boolean).join(' · '),IW),P,132);
  let y=260;x.fillStyle='#122019';x.font=`800 64px ${CF}`;tl.forEach(l=>{x.fillText(l,P,y);y+=78});
- x.font=`500 36px ${CF}`;x.fillStyle='#56685f';x.fillText(fitTxt(x,sub,IW),P,y+4);y+=60;
+ x.font=`500 36px ${CF}`;x.fillStyle='#56685f';x.fillText(fitTxt(x,o.sub,IW),P,y+4);y+=60;
+ const band=(by,bh)=>{x.font=`800 40px ${CF}`;x.fillStyle='rgba(6,95,70,.92)';rrect(x,P+30,by,IW-60,bh,24);x.fill();x.strokeStyle='#fff';x.lineWidth=3;x.stroke();
+  x.fillStyle='#fff';sl.forEach((l,i)=>x.fillText(l,P+60,by+28+i*52))};
  if(im){y+=10;x.save();rrect(x,P,y,IW,PH_,32);x.fillStyle='#e3efe9';x.fill();x.clip();
   const s=Math.min(IW/im.naturalWidth,PH_/im.naturalHeight),dw=im.naturalWidth*s,dh=im.naturalHeight*s;
   if(dw<IW-4||dh<PH_-4){const s2=Math.max(IW/im.naturalWidth,PH_/im.naturalHeight);x.globalAlpha=.25;x.drawImage(im,P+(IW-im.naturalWidth*s2)/2,y+(PH_-im.naturalHeight*s2)/2,im.naturalWidth*s2,im.naturalHeight*s2);x.globalAlpha=1}
-  x.drawImage(im,P+(IW-dw)/2,y+(PH_-dh)/2,dw,dh);x.restore();x.strokeStyle='#d6e9e0';x.lineWidth=3;rrect(x,P,y,IW,PH_,32);x.stroke();y+=PH_+40}
- const cw=(IW-30)/2;rows.forEach((r,i)=>{const cx=P+(i%2)*(cw+30),cy=y+Math.floor(i/2)*124;
-  x.fillStyle='#fff';rrect(x,cx,cy,cw,104,20);x.fill();x.strokeStyle='#d6e9e0';x.lineWidth=2;x.stroke();
+  x.drawImage(im,P+(IW-dw)/2,y+(PH_-dh)/2,dw,dh);
+  if(st){const bh=sl.length*52+56;band(y+PH_-bh-30,bh);
+   /* round "VACCINATED" stamp, top-right of the photo */
+   const cx=P+IW-130,cy=y+130;x.save();x.translate(cx,cy);x.rotate(-0.2);x.globalAlpha=.9;x.strokeStyle='#fff';x.fillStyle='rgba(6,95,70,.85)';x.lineWidth=6;
+   x.beginPath();x.arc(0,0,96,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(0,0,80,0,Math.PI*2);x.lineWidth=2;x.stroke();
+   x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font=`900 56px ${CF}`;x.fillText('✓',0,-26);x.font=`800 22px ${CF}`;x.fillText('VACCINATED',0,24);
+   x.font=`600 18px ${CF}`;x.fillText(o.stampDate||'',0,50);x.restore()}
+  x.restore();x.strokeStyle='#d6e9e0';x.lineWidth=3;rrect(x,P,y,IW,PH_,32);x.stroke();y+=PH_+40}
+ else if(stampH){band(y,stampH);y+=stampH+40}
+ const cw=(IW-30)/2;o.rows.forEach((r,i)=>{const cx=P+(i%2)*(cw+30),cy=y+Math.floor(i/2)*124;
+  x.fillStyle=r[2]?'#e7f6ee':'#fff';rrect(x,cx,cy,cw,104,20);x.fill();x.strokeStyle=r[2]?'#0e9f6e':'#d6e9e0';x.lineWidth=2;x.stroke();
   x.fillStyle='#56685f';x.font=`600 24px ${CF}`;x.fillText(fitTxt(x,r[0].toUpperCase(),cw-40),cx+20,cy+14);
   x.fillStyle='#122019';x.font=`700 36px ${CF}`;x.fillText(fitTxt(x,r[1],cw-40),cx+20,cy+50)});
- y+=Math.ceil(rows.length/2)*124+20;x.strokeStyle='#d6e9e0';x.lineWidth=2;x.beginPath();x.moveTo(P,y);x.lineTo(W-P,y);x.stroke();
- x.fillStyle='#56685f';x.font=`500 26px ${CF}`;x.fillText(fitTxt(x,`Ref ${String(a.id).slice(-6).toUpperCase()} · Generated ${fmt(today())} · Field Officer app`,IW),P,y+30);
+ y+=rowsH+20;x.strokeStyle='#d6e9e0';x.lineWidth=2;x.beginPath();x.moveTo(P,y);x.lineTo(W-P,y);x.stroke();
+ x.fillStyle='#56685f';x.font=`500 26px ${CF}`;x.fillText(fitTxt(x,`Ref ${o.ref} · Generated ${fmt(today())} · Field Officer app`,IW),P,y+30);
  return cv}
-const cardName=a=>('Registration-'+(petTag(a)||a.species||'animal')).replace(/[^\wഀ-ൿ-]+/g,'_').replace(/_+/g,'_').slice(0,60)+'.png';
-async function cardOpen(aid,fresh){const a=A(aid);if(!a)return;
- sheet('🪪 Animal registration card',`${fresh?`<div class="note" style="margin-bottom:10px">✅ ${esc(petTag(a)||a.species)} saved. Download or share the registration card now, or later from the animal's page.</div>`:''}<div id="cardBox" class="cardbox">⏳ Preparing card…</div>
+const subLine=a=>[emo(a.species)+' '+(a.species||''),a.breed,a.gender].filter(Boolean).join(' · ');
+async function drawCard(a){const c0=C(a.cid)||{};
+ const rows=[['Identification Tag ID',a.tag||'—'],['Pet name',a.pet||'—'],['Species',a.species||'—'],['Breed',a.breed||'—'],['Sex',a.gender||'—'],['Age',age(a)+(a.dob?' (DOB '+fmt(a.dob)+')':'')],
+  ['Owner',c0.name||'—'],['Village / ward',c0.village||'—'],['Owner contact',c0.phone||'—'],[a.reg?'Registration date':'Card issued',fmt(a.reg||today())]];
+ if(!live(a))rows.push(['Status',(a.status==='dead'?'Deceased':'Sold')+(a.sdate?' · '+fmt(a.sdate):'')]);
+ return paintCard({head:'🐄  ANIMAL REGISTRATION CARD',c1:'#0e9f6e',c2:'#0d9488',bg:'#f2fbf7',title:petTag(a)||a.breed||a.species||'Animal',sub:[emo(a.species)+' '+(a.species||''),a.breed].filter(Boolean).join(' · '),
+  im:await cardPhoto(a),rows,ref:String(a.id).slice(-6).toUpperCase()})}
+async function drawVacCard(t){const a=A(t.aid)||{},c0=C(a.cid)||{},dis=vacFor(t),v=vacName(t);
+ const rows=[['Owner',c0.name||'—'],['Village / ward',c0.village||'—'],['Vaccinated for',dis||'—',1],['Vaccine',v||'—'],['Batch / code',t.batch||'—'],['Vaccinated date',fmt(t.date),1]];
+ if(t.next)rows.push(['Next due',fmt(t.next)]);if(t.exp)rows.push(['Vaccine expiry',fmt(t.exp)]);if(rows.length%2)rows.push(['Identification Tag ID',a.tag||'—']);
+ return paintCard({head:'💉  VACCINATION CARD',c1:'#047857',c2:'#0369a1',bg:'#f1f8fb',title:petTag(a)||a.breed||a.species||'Animal',sub:subLine(a),
+  im:await cardPhoto(a),stamp:dis,stampDate:fmt(t.date),rows,ref:String(t.id).slice(-6).toUpperCase()})}
+const safeName=s=>String(s).replace(/[^\wഀ-ൿ-]+/g,'_').replace(/_+/g,'_').replace(/_?-_?/g,'-').replace(/^[_-]+|[_-]+$/g,'').slice(0,70)+'.png';
+const cardName=a=>safeName('Registration-'+(petTag(a)||a.species||'animal'));
+/* one sheet for both cards: preview, Download image, Share card (navigator.share with the PNG, else download) */
+async function showCard(o){
+ sheet(o.title,`${o.fresh?`<div class="note" style="margin-bottom:10px">${o.fresh}</div>`:''}<div id="cardBox" class="cardbox">⏳ Preparing card…</div>
  <div class="btns"><button class="btn pri" id="cardDl" disabled>⬇ Download image</button><button class="btn" id="cardSh" disabled>📤 Share card</button></div><p class="mut" id="cardNote" style="font-size:12.5px;margin:6px 0 0"></p>`);
- const box=$('#cardBox');let blob=null,note='';
- try{const had=!!(PH.up.get(aid)||phOf(a));const cv=await drawCard(a);blob=await new Promise(r=>cv.toBlob(r,'image/png'));cv.width=cv.height=0;
-  if(had&&!(PH.up.get(aid)||(phOf(a)&&PH.url.has(a.photo.p))))note='📷 The photo could not be loaded (offline?) — the card was made without it. Open it again when online to include the photo.'}
+ const box=$('#cardBox'),a=o.a;let blob=null,note='';
+ try{const had=!!(PH.up.get(a.id)||phOf(a));const cv=await o.draw();blob=await new Promise(r=>cv.toBlob(r,'image/png'));cv.width=cv.height=0;
+  if(had&&!(PH.up.get(a.id)||(phOf(a)&&PH.url.has(a.photo.p))))note='📷 The photo could not be loaded (offline?) — the card was made without it. Open it again when online to include the photo.'}
  catch(e){console.warn(e)}
  if(!box||!box.isConnected)return;if(!blob){box.textContent='⚠️ Could not create the card on this phone.';return}
  if(CARD.url)try{URL.revokeObjectURL(CARD.url)}catch(e){}CARD.url=URL.createObjectURL(blob);
- const fname=cardName(a),file=(()=>{try{return new File([blob],fname,{type:'image/png'})}catch(e){return null}})();
- box.textContent='';const im=new Image();im.alt='Animal registration card';im.src=CARD.url;box.appendChild(im);
+ const fname=o.fname,file=(()=>{try{return new File([blob],fname,{type:'image/png'})}catch(e){return null}})();
+ box.textContent='';const im=new Image();im.alt=o.alt;im.src=CARD.url;box.appendChild(im);
  const dl=$('#cardDl'),sh=$('#cardSh'),nt=$('#cardNote');dl.disabled=sh.disabled=false;nt.textContent=note||`PNG image · ${kbTxt(blob.size)} · made on this phone, not stored online.`;
  const save=()=>{const l=document.createElement('a');l.href=CARD.url;l.download=fname;l.rel='noopener';document.body.appendChild(l);l.click();l.remove()};
  dl.onclick=()=>{save();toast('⬇ Card image downloaded')};
- sh.onclick=async()=>{const d={files:file?[file]:[],title:'Animal registration card',text:'Animal registration card – '+(petTag(a)||a.species)};
+ sh.onclick=async()=>{const d={files:file?[file]:[],title:o.alt,text:o.share};
   let can=false;try{can=!!(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
   if(can){try{await navigator.share(d);return}catch(e){if(e&&e.name==='AbortError')return}}
   save();nt.textContent='This browser cannot share images directly, so the card was downloaded. Send it from your Gallery / Files with WhatsApp, Telegram or email.'}}
+function cardOpen(aid,fresh){const a=A(aid);if(!a)return;
+ return showCard({a,title:'🪪 Animal registration card',alt:'Animal registration card',fname:cardName(a),share:'Animal registration card – '+(petTag(a)||a.species),draw:()=>drawCard(a),
+  fresh:fresh?`✅ ${esc(petTag(a)||a.species)} saved. Download or share the registration card now, or later from the animal's page.`:''})}
+function vacCardOpen(tid,fresh){const t=S.tr.find(x=>x.id===tid),a=t&&A(t.aid);if(!t||!a||!isVac(t)||t.visit||!t.vac)return;const dis=vacFor(t);
+ return showCard({a,title:'💉 Vaccination card',alt:'Vaccination card',fname:safeName('Vaccination-'+(petTag(a)||a.species||'animal')+'-'+(t.vac||'')+'-'+t.date),
+  share:`Vaccination card – ${petTag(a)||a.species}: vaccinated for ${dis} on ${fmt(t.date)}`,draw:()=>drawVacCard(t),
+  fresh:fresh?`✅ Vaccination saved. Share this card with the owner now, or later from the animal's vaccination history.`:''})}
 /* storage awareness */
 async function phUsage(el){if(!el||!sb)return;try{const{data,error}=await sb.rpc('tag_photo_usage');if(error)throw error;const d=data||{};el.textContent=`📷 Tag photos: ${d.files||0} · ${kbTxt(+d.bytes||0)} in your private photo storage`}catch(e){el.textContent=''}}
 async function phSweep(){if(PH.swept||!U||!sb||!S||net!=='ok')return;PH.swept=true;const me=U.id;
@@ -861,7 +901,7 @@ function trForm(t={},aid){if(t.id&&!isVac(t))return trOldForm(t);
  modal(t.id?'Edit vaccination':'💉 Log vaccination'+who(aid),vacFields(t)+ta('Dose / route / site / notes','notes',t.notes)
   +fl('Follow-up date (booster / next dose / check)','next',t.next,'date')+nextChips+payF(t,'','Vaccination fee',t.id?null:aid),
   d=>{const r=t.id?t:{id:uid(),aid};if(t.id&&d.next!==t.next)r.done=false;r.date=d.date;r.vac=String(d.vac||'').trim();r.dx=r.vac;r.batch=String(d.batch||'').trim().toUpperCase();r.exp=d.exp||'';r.notes=d.notes;r.next=d.next;
-   payApply(r,d,'','',r.aid);if(!t.id){S.tr.push(r);const v=vexp(r.exp,r.date);if(v&&v.st==='bad')setTimeout(()=>toast('⚠️ Saved — note: the vaccine batch was already expired'),300)}},
+   payApply(r,d,'','',r.aid);if(!t.id){S.tr.push(r);setTimeout(()=>{if(S.tr.includes(r))vacCardOpen(r.id,true)},350);const v=vexp(r.exp,r.date);if(v&&v.st==='bad')setTimeout(()=>toast('⚠️ Saved — note: the vaccine batch was already expired'),300)}},
   f=>{payInit(f);vacInit(f)})}
 /* records made before the switch to Vaccination keep their original editor */
 function trOldForm(t={},aid){modal('Edit earlier treatment record',fl('Date','date',t.date||today(),'date','required')+fl('Symptoms / diagnosis','dx',t.dx,'text','required')+fl('Medicines','meds',t.meds)+ta('Inspector notes','notes',t.notes)+fl('Next follow-up date','next',t.next,'date')+payF(t,'','Payment',t.id?null:aid),d=>{const r=t.id?t:{id:uid(),aid};if(t.id&&d.next!==t.next)r.done=false;['date','dx','meds','notes','next'].forEach(k=>r[k]=d[k]);payApply(r,d,'','',r.aid);if(!t.id)S.tr.push(r)},payInit)}
@@ -978,7 +1018,7 @@ function act(a,id,k){const rec=(arr)=>arr.find(x=>x.id===id);
  case'flt':ui[k]=id;return render();
  case'addC':return custForm();case'editC':return custForm(C(id));
  case'delC':return del('Delete this farmer and all their animals and records?',()=>{ownAll(id).forEach(x=>cascade(x.id));S.cs=S.cs.filter(x=>x.id!==id)});
- case'phView':return phView(id);case'card':return cardOpen(id);case'phRetry':{const j=PH.up.get(id);if(j){j.busy=false;upPhoto(id)}return}
+ case'phView':return phView(id);case'card':return cardOpen(id);case'vcard':return vacCardOpen(id);case'phRetry':{const j=PH.up.get(id);if(j){j.busy=false;upPhoto(id)}return}
  case'addA':return aniForm({},id);case'editA':return aniForm(A(id));
  case'delA':return del('Delete this animal and all its records?',()=>cascade(id));
  case'addT':return trForm({},id);case'editT':return trForm(rec(S.tr));
@@ -1356,7 +1396,7 @@ function doForm(k,id){let r=srcRec(k,id);if(!r)return;if(k==='tr'&&r.visit)k='vi
  ${fl('Next follow-up date (leave blank to close)','next','','date','min="'+today()+'"')}<div class="chips" style="margin-top:-4px">${(trk?[3,7]:[3,7,15,30]).map(n=>`<button type="button" class="chip" data-n="${n}">+${n} days</button>`).join('')}${trk?[[21,'+21 days'],[28,'+28 days (booster)'],[182,'+6 months'],[365,'+1 year']].map(([n,l])=>`<button type="button" class="chip" data-nd="${n}">${l}</button>`).join(''):''}</div>
  ${ta(trk?'Dose / route / site / notes':'Notes','notes','')}${trk?payF({},'','Vaccination fee',an.id):''}`,
  d=>{const at=d.date===today()?nowIso():d.date+'T12:00:00.000Z';
-  if(trk){const vac=String(d.vac||'').trim();d.dx=vac;const n={id:uid(),aid:an.id,date:d.date,vac,dx:vac,batch:String(d.batch||'').trim().toUpperCase(),exp:d.exp||'',meds:'',notes:d.notes,next:d.next,cycle:true,prevTr:r.id};payApply(n,d,'','',an.id);S.tr.push(n);
+  if(trk){const vac=String(d.vac||'').trim();d.dx=vac;const n={id:uid(),aid:an.id,date:d.date,vac,dx:vac,batch:String(d.batch||'').trim().toUpperCase(),exp:d.exp||'',meds:'',notes:d.notes,next:d.next,cycle:true,prevTr:r.id};payApply(n,d,'','',an.id);S.tr.push(n);if(vac)setTimeout(()=>{if(S.tr.includes(n))vacCardOpen(n.id,true)},350);
    r.done=true;r.closure={at,note:`Vaccinated by me — ${vac}${n.batch?' (batch '+n.batch+')':''}`,by:'me'};
    logH(an,`${k==='visit'?'Planned visit':'Vaccination follow-up'} completed by me — ${vac}${n.batch?' · batch '+n.batch:''}${d.next?' · next follow-up '+fmt(d.next):''}`,d.date)}
   else{r.fuLog=(r.fuLog||[]).concat([{at,note:`Follow-up done by me — ${d.dx}`,by:'me'}]);

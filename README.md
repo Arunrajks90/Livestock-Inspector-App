@@ -134,6 +134,12 @@ The app uses the project URL and the **publishable** key, which are safe to put 
 - **🪪 Registration card**: opens automatically after adding an animal and from the animal's page. It is drawn on the phone as a PNG (photo, Tag ID, pet name, species, breed, sex, age, farmer, village, contact, registration date, inspector name & hospital) — no libraries, nothing uploaded or stored.
 - **⬇ Download image** saves the PNG; **📤 Share card** opens the phone's share sheet (WhatsApp, Telegram…) where supported, otherwise it downloads the image and explains how to send it.
 
+## Vaccination card + "I am Vaccinated for…" stamp
+- **💉 Vaccination card** opens after saving a vaccination (also after *Do / Complete* of a vaccination follow-up) and from every vaccination in the animal's history.
+- Shows `Pet name / Tag ID`, **Owner**, village, **Vaccinated for** (disease worked out from the vaccine — e.g. FMD → Foot and Mouth Disease, Rabies, HS and Black Quarter), vaccine, batch / code, vaccinated date, next due and vaccine expiry.
+- If the animal has a photo, the card stamps it with **✓ I am Vaccinated for …** plus a round *VACCINATED* seal; without a photo the same stamp appears as a banner. The animal page shows the stamp on the photo for the latest vaccination.
+- Download as PNG or Share (phone share sheet, else download). Drawn on the phone; nothing is uploaded. Both cards now say **Owner** instead of Farmer.
+
 ## Help & Support + User Directory
 * **Inspectors:** 🛟 *Help & Support* (Home card, Profile, Subscription screen) shows your support email and phone (tap to call / email / copy) and a private chat with you. Replies arrive live; a red badge shows unread replies. Works on every plan, including expired.
 * **Admin (you):** *Admin → 👥 Users* lists everyone who registered — name, office, designation, area, age, email, phone, plan, registration date, last login, last seen / 🟢 online now — with 📞 one-tap call, WhatsApp, email and copy. *Admin → 🛟 Support* is the inbox (All / Unread, search); open a thread to read and reply. Set the support email and phone under *⚙ Support email & phone*.
